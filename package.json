@@ -1,0 +1,17 @@
+{
+  "name": "pi-markets",
+  "version": "0.0.1",
+  "description": "Package to work with PiMarkets",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "pimarkets"
+  ],
+  "author": "gperezalba",
+  "license": "ISC",
+  "dependencies": {
+    "ethers": "^4.0.48"
+  }
+}
