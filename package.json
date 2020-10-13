@@ -1,6 +1,6 @@
 {
   "name": "pi-markets",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Package to work with PiMarkets",
   "main": "index.js",
   "scripts": {
@@ -13,5 +13,10 @@
   "license": "ISC",
   "dependencies": {
     "ethers": "^4.0.48"
-  }
+  },
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/sigma-pi-delta/pi-markets-npm.git"
+  },
+  "homepage": "https://pimarkets.io/"
 }
