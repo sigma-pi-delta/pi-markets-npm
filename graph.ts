@@ -1,4 +1,5 @@
 import * as Constants from './constants';
+import fetch from 'node-fetch';
 
 export class Graph {
 
@@ -39,7 +40,7 @@ export class Query {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
 
         if (url == 'mainnet') {
-            this.url = Constants.RPC_URL;
+            this.url = Constants.GRAPH_URL;
 
             if (subgraph == 'bank') {
                 this.subgraph = Constants.BANK_SUBGRAPH;
@@ -51,7 +52,7 @@ export class Query {
                 this.subgraph = subgraph;
             }
         } else if (url == 'testnet') {
-            this.url = Constants.RPC_URL_TESTNET;
+            this.url = Constants.GRAPH_URL_TESTNET;
 
             if (subgraph == 'bank') {
                 this.subgraph = Constants.BANK_SUBGRAPH_TESTNET;
@@ -66,6 +67,21 @@ export class Query {
             this.url = url;
             this.subgraph = subgraph;
         }
+    }
+
+    async request() {
+        let graph = new Graph();
+
+        try {
+            let response = await graph.querySubgraph(this);
+            return response;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+
+        //TODO: Incluir this.first & this.skip y gestionar cuando length == 1000 == first
+        //para repetir la query modificando first y skip en la query
     }
 
     setCustomQuery(query: string) {
@@ -96,12 +112,12 @@ export class Query {
     }
 
     setSubproperty(property: string, subproperty: string) {
-        let searchString = property + ' { <subproperty>';
+        let searchString = property + ' { <subproperty> ';
         let replaceString: string;
 
         
         
-        if (this.query.indexOf(searchString) !== -1) {
+        if (this.query.indexOf(searchString) == -1) {
 
             if (this.query.indexOf(property) !== -1) {
                 searchString = property;
@@ -115,7 +131,7 @@ export class Query {
             }
         }*/
 
-        replaceString = searchString + subproperty;
+        replaceString = searchString + subproperty + ' { <subproperty> } ';
         let newQuery = this.query.replace(searchString, replaceString);
         this.query = newQuery;
     }
@@ -132,11 +148,17 @@ export class Query {
         let regexp2 = /<subproperty>/gi;
         let regexp3 = /<order>/gi;
         let regexp4 = /<filter>/gi;
+        let regexp5 = /where:{ }/gi;
+        let regexp6 = /{ }/gi;
         let empty = "";
         let noProperty = this.query.replace(regexp1, empty);
         let noSubproperty = noProperty.replace(regexp2, empty);
         let noOrder = noSubproperty.replace(regexp3, empty);
         let noFilter = noOrder.replace(regexp4, empty);
-        this.query = noFilter;
+        let noSpaces = noFilter.replace(/ +(?= )/g,'');
+        let noEmptyWhere = noSpaces.replace(regexp5, empty);
+        let noEmptyBraces = noEmptyWhere.replace(regexp6, empty);
+        let noDuplicateSpaces = noEmptyBraces.replace(/ +(?= )/g,'');
+        this.query = noDuplicateSpaces;
     }
 }

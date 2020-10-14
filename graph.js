@@ -38,6 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 exports.__esModule = true;
 exports.Query = exports.Graph = void 0;
 var Constants = require("./constants");
+var node_fetch_1 = require("node-fetch");
 var Graph = /** @class */ (function () {
     function Graph() {
     }
@@ -48,7 +49,7 @@ var Graph = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 4, , 5]);
-                        return [4 /*yield*/, fetch(_query.url + _query.subgraph, {
+                        return [4 /*yield*/, node_fetch_1["default"](_query.url + _query.subgraph, {
                                 "method": 'POST',
                                 "headers": {
                                     "Accept": 'application/json',
@@ -83,7 +84,7 @@ var Query = /** @class */ (function () {
         if (url === void 0) { url = 'mainnet'; }
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
         if (url == 'mainnet') {
-            this.url = Constants.RPC_URL;
+            this.url = Constants.GRAPH_URL;
             if (subgraph == 'bank') {
                 this.subgraph = Constants.BANK_SUBGRAPH;
             }
@@ -98,7 +99,7 @@ var Query = /** @class */ (function () {
             }
         }
         else if (url == 'testnet') {
-            this.url = Constants.RPC_URL_TESTNET;
+            this.url = Constants.GRAPH_URL_TESTNET;
             if (subgraph == 'bank') {
                 this.subgraph = Constants.BANK_SUBGRAPH_TESTNET;
             }
@@ -117,6 +118,29 @@ var Query = /** @class */ (function () {
             this.subgraph = subgraph;
         }
     }
+    Query.prototype.request = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var graph, response, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        graph = new Graph();
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, graph.querySubgraph(this)];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                    case 3:
+                        error_2 = _a.sent();
+                        console.error(error_2);
+                        throw new Error(error_2);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     Query.prototype.setCustomQuery = function (query) {
         this.query = query;
     };
@@ -136,13 +160,13 @@ var Query = /** @class */ (function () {
     };
     Query.prototype.setProperty = function (property) {
         var newProperty = property + ' { <subproperty> } <property>';
-        var newQuery = this.query.replace("<order>", newProperty);
+        var newQuery = this.query.replace("<property>", newProperty);
         this.query = newQuery;
     };
     Query.prototype.setSubproperty = function (property, subproperty) {
-        var searchString = property + ' { <subproperty>';
+        var searchString = property + ' { <subproperty> ';
         var replaceString;
-        if (this.query.indexOf(searchString) !== -1) {
+        if (this.query.indexOf(searchString) == -1) {
             if (this.query.indexOf(property) !== -1) {
                 searchString = property;
             }
@@ -153,7 +177,7 @@ var Query = /** @class */ (function () {
                 searchString = property;
             }
         }*/
-        replaceString = searchString + subproperty;
+        replaceString = searchString + subproperty + ' { <subproperty> } ';
         var newQuery = this.query.replace(searchString, replaceString);
         this.query = newQuery;
     };
@@ -168,12 +192,18 @@ var Query = /** @class */ (function () {
         var regexp2 = /<subproperty>/gi;
         var regexp3 = /<order>/gi;
         var regexp4 = /<filter>/gi;
+        var regexp5 = /where:{ }/gi;
+        var regexp6 = /{ }/gi;
         var empty = "";
         var noProperty = this.query.replace(regexp1, empty);
         var noSubproperty = noProperty.replace(regexp2, empty);
         var noOrder = noSubproperty.replace(regexp3, empty);
         var noFilter = noOrder.replace(regexp4, empty);
-        this.query = noFilter;
+        var noSpaces = noFilter.replace(/ +(?= )/g, '');
+        var noEmptyWhere = noSpaces.replace(regexp5, empty);
+        var noEmptyBraces = noEmptyWhere.replace(regexp6, empty);
+        var noDuplicateSpaces = noEmptyBraces.replace(/ +(?= )/g, '');
+        this.query = noDuplicateSpaces;
     };
     return Query;
 }());
