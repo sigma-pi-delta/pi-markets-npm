@@ -91,7 +91,7 @@ export class Query {
 
     setProperty(property: string) {
         let newProperty = property + ' { <subproperty> } <property>';
-        let newQuery = this.query.replace("<order>", newProperty);
+        let newQuery = this.query.replace("<property>", newProperty);
         this.query = newQuery;
     }
 
