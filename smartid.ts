@@ -43,7 +43,7 @@ export class SmartIDLogin {
 
     async walletToNickname(address) {
         let customQuery = '{ wallet(id: "' + address + '"){ name { id } } }';
-        let query = new Query('bank');
+        let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -57,7 +57,7 @@ export class SmartIDLogin {
 
     async nicknameToWallet(nickname) {
         let customQuery = '{ wallets(where: { name: "' + nickname + '" }){ id } }';
-        let query = new Query('bank');
+        let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -71,7 +71,7 @@ export class SmartIDLogin {
 
     async isNameAvailable(nickname) {
         let customQuery = '{ wallets(where: { name: "' + nickname + '" }){ id } }';
-        let query = new Query('bank');
+        let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -84,7 +84,7 @@ export class SmartIDLogin {
 
     async isDataHashAvailable(dataHash) {
         let customQuery = '{ identities(where: { dataHash: "' + dataHash + '" }){ id } }';
-        let query = new Query('bank');
+        let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -107,7 +107,7 @@ export class SmartIDLogin {
 
     async getIdentityByWallet(address) {
         let customQuery = '{ identities(where: { wallet: "' + address + '" }){ id dataHash owner recovery wallet { id name { id } } creationTime lastModification } }';
-        let query = new Query('bank');
+        let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -121,7 +121,7 @@ export class SmartIDLogin {
 
     async getIdentityByDataHash(dataHash) {
         let customQuery = '{ identities(where: { dataHash: "' + dataHash + '" }){ id dataHash owner recovery wallet { id name { id } } creationTime lastModification } }';
-        let query = new Query('bank');
+        let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
         try {

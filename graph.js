@@ -83,6 +83,9 @@ var Query = /** @class */ (function () {
     function Query(subgraph, url) {
         if (url === void 0) { url = 'mainnet'; }
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
+        this.first = 1000;
+        this.skip = 0;
+        this.isClean = false;
         if (url == 'mainnet') {
             this.url = Constants.GRAPH_URL;
             if (subgraph == 'bank') {
@@ -118,6 +121,39 @@ var Query = /** @class */ (function () {
             this.subgraph = subgraph;
         }
     }
+    Query.prototype.buildRequest = function (entity, filter, pagination, order, props) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.build(entity, filter, pagination, order, props);
+                        return [4 /*yield*/, this.request()];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    Query.prototype.build = function (entity, filter, pagination, order, props) {
+        //TODO: validar todo
+        this.setEntity(entity);
+        this.setFilter(filter);
+        this.setPagination(pagination[0], pagination[1]);
+        if (order[1] == 'asc') {
+            this.setOrder(order[0], 'asc');
+        }
+        else if (order[1] == 'desc') {
+            this.setOrder(order[0], 'desc');
+        }
+        for (var i = 0; i < props[0].length; i++) {
+            this.setProperty(props[0][i]);
+        }
+        for (var j = 1; j < props.length; j++) {
+            for (var k = 1; k < props[j].length; k++) {
+                this.setSubproperty(props[j][0], props[j][k]);
+            }
+        }
+        this.clean();
+    };
     Query.prototype.request = function () {
         return __awaiter(this, void 0, void 0, function () {
             var graph, response, error_2;
@@ -145,47 +181,69 @@ var Query = /** @class */ (function () {
         this.query = query;
     };
     Query.prototype.setEntity = function (entity) {
-        var newQuery = this.query.replace("<entity>", entity);
-        this.query = newQuery;
+        if (!this.isClean) {
+            var newQuery = this.query.replace("<entity>", entity);
+            this.query = newQuery;
+        }
+        else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     };
     Query.prototype.setPagination = function (first, skip) {
+        var searchString = 'first: ' + this.first + ' skip: ' + this.skip;
         var pagination = 'first: ' + first + ' skip: ' + skip;
-        var newQuery = this.query.replace("first: 1000 skip: 0", pagination);
+        var newQuery = this.query.replace(searchString, pagination);
         this.query = newQuery;
+        this.first = first;
+        this.skip = skip;
     };
     Query.prototype.setOrder = function (orderBy, orderDirection) {
-        var order = 'orderBy: ' + orderBy + ' orderDirection: ' + orderDirection;
-        var newQuery = this.query.replace("<order>", order);
-        this.query = newQuery;
+        if (!this.isClean) {
+            var order = 'orderBy: ' + orderBy + ' orderDirection: ' + orderDirection;
+            var newQuery = this.query.replace("<order>", order);
+            this.query = newQuery;
+        }
+        else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     };
     Query.prototype.setProperty = function (property) {
-        var newProperty = property + ' { <subproperty> } <property>';
-        var newQuery = this.query.replace("<property>", newProperty);
-        this.query = newQuery;
+        if (!this.isClean) {
+            var newProperty = property + ' { <subproperty> } <property>';
+            var newQuery = this.query.replace("<property>", newProperty);
+            this.query = newQuery;
+        }
+        else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     };
     Query.prototype.setSubproperty = function (property, subproperty) {
-        var searchString = property + ' { <subproperty> ';
-        var replaceString;
-        if (this.query.indexOf(searchString) == -1) {
-            if (this.query.indexOf(property) !== -1) {
-                searchString = property;
+        if (!this.isClean) {
+            var searchString = property + ' { <subproperty> ';
+            var replaceString = void 0;
+            if (this.query.indexOf(searchString) == -1) {
+                if (this.query.indexOf(property) !== -1) {
+                    searchString = property;
+                }
             }
+            replaceString = searchString + subproperty + ' { <subproperty> } ';
+            var newQuery = this.query.replace(searchString, replaceString);
+            this.query = newQuery;
         }
-        /*if (!this.query.includes(searchString)) {
-
-            if (this.query.includes(property)) {
-                searchString = property;
-            }
-        }*/
-        replaceString = searchString + subproperty + ' { <subproperty> } ';
-        var newQuery = this.query.replace(searchString, replaceString);
-        this.query = newQuery;
+        else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     };
     Query.prototype.setFilter = function (filter) {
-        var searchString = 'where: { <filter> ';
-        var replaceString = searchString + filter;
-        var newQuery = this.query.replace(searchString, replaceString);
-        this.query = newQuery;
+        if (!this.isClean) {
+            var searchString = 'where: { <filter> ';
+            var replaceString = searchString + filter;
+            var newQuery = this.query.replace(searchString, replaceString);
+            this.query = newQuery;
+        }
+        else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     };
     Query.prototype.clean = function () {
         var regexp1 = /<property>/gi;
@@ -204,6 +262,7 @@ var Query = /** @class */ (function () {
         var noEmptyBraces = noEmptyWhere.replace(regexp6, empty);
         var noDuplicateSpaces = noEmptyBraces.replace(/ +(?= )/g, '');
         this.query = noDuplicateSpaces;
+        this.isClean = true;
     };
     return Query;
 }());

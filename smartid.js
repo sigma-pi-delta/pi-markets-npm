@@ -106,7 +106,7 @@ var SmartIDLogin = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ wallet(id: "' + address + '"){ name { id } } }';
-                        query = new graph_1.Query('bank');
+                        query = new graph_1.Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -131,7 +131,7 @@ var SmartIDLogin = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ wallets(where: { name: "' + nickname + '" }){ id } }';
-                        query = new graph_1.Query('bank');
+                        query = new graph_1.Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -156,7 +156,7 @@ var SmartIDLogin = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ wallets(where: { name: "' + nickname + '" }){ id } }';
-                        query = new graph_1.Query('bank');
+                        query = new graph_1.Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -181,7 +181,7 @@ var SmartIDLogin = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ identities(where: { dataHash: "' + dataHash + '" }){ id } }';
-                        query = new graph_1.Query('bank');
+                        query = new graph_1.Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -229,7 +229,7 @@ var SmartIDLogin = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ identities(where: { wallet: "' + address + '" }){ id dataHash owner recovery wallet { id name { id } } creationTime lastModification } }';
-                        query = new graph_1.Query('bank');
+                        query = new graph_1.Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -254,7 +254,7 @@ var SmartIDLogin = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ identities(where: { dataHash: "' + dataHash + '" }){ id dataHash owner recovery wallet { id name { id } } creationTime lastModification } }';
-                        query = new graph_1.Query('bank');
+                        query = new graph_1.Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:

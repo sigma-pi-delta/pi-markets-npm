@@ -22,7 +22,7 @@ export class Graph {
             if (response.ok) {
                 responseData = await response.json();
             }
-            
+
             return responseData.data;
         } catch (error) {
             console.error(error);
@@ -35,9 +35,15 @@ export class Query {
     public query: string;
     public subgraph: string;
     public url: string;
+    public first: number;
+    public skip: number;
+    public isClean: boolean;
 
     constructor(subgraph: "bank" | "p2p" | "market" | string, url: string = 'mainnet') {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
+        this.first = 1000;
+        this.skip = 0;
+        this.isClean = false;
 
         if (url == 'mainnet') {
             this.url = Constants.GRAPH_URL;
@@ -69,6 +75,49 @@ export class Query {
         }
     }
 
+    async buildRequest(
+        entity: string, 
+        filter: string, 
+        pagination: number[], 
+        order: string[], 
+        props: string[][]
+    ) {
+        this.build(entity, filter, pagination, order, props);
+        return await this.request();
+    }
+
+    build(
+        entity: string, 
+        filter: string, 
+        pagination: number[], 
+        order: string[], 
+        props: string[][]
+    ) {
+        //TODO: validar todo
+
+        this.setEntity(entity);
+        this.setFilter(filter);
+        this.setPagination(pagination[0], pagination[1]);
+
+        if (order[1] == 'asc') {
+            this.setOrder(order[0], 'asc');
+        } else if (order[1] == 'desc') {
+            this.setOrder(order[0], 'desc');
+        }
+
+        for (let i = 0; i < props[0].length; i++) {
+            this.setProperty(props[0][i]);
+        }
+
+        for (let j = 1; j < props.length; j++) {
+            for (let k = 1; k < props[j].length; k++) {
+                this.setSubproperty(props[j][0], props[j][k]);
+            }
+        }
+
+        this.clean();
+    }
+
     async request() {
         let graph = new Graph();
 
@@ -80,8 +129,9 @@ export class Query {
             throw new Error(error);
         }
 
-        //TODO: Incluir this.first & this.skip y gestionar cuando length == 1000 == first
-        //para repetir la query modificando first y skip en la query
+        //TODO?: Incluir this.first & this.skip y gestionar cuando length == 1000 == first
+        //para repetir la query modificando first y skip en la query. Aunque quizás no se quiere
+        //y es mejor gestionarlo desde fuera.
     }
 
     setCustomQuery(query: string) {
@@ -89,58 +139,74 @@ export class Query {
     }
 
     setEntity(entity: string) {
-        let newQuery = this.query.replace("<entity>", entity);
-        this.query = newQuery;
+        if (!this.isClean) {
+            let newQuery = this.query.replace("<entity>", entity);
+            this.query = newQuery;
+        } else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     }
 
     setPagination(first: number, skip: number) {
+        let searchString = 'first: ' + this.first + ' skip: ' + this.skip;
         let pagination = 'first: ' + first + ' skip: ' + skip;
-        let newQuery = this.query.replace("first: 1000 skip: 0", pagination);
+        let newQuery = this.query.replace(searchString, pagination);
         this.query = newQuery;
+        this.first = first;
+        this.skip = skip;
     }
 
     setOrder(orderBy: string, orderDirection: 'asc' | 'desc') {
-        let order = 'orderBy: ' + orderBy + ' orderDirection: ' + orderDirection;
-        let newQuery = this.query.replace("<order>", order);
-        this.query = newQuery;
+        if (!this.isClean) {
+            let order = 'orderBy: ' + orderBy + ' orderDirection: ' + orderDirection;
+            let newQuery = this.query.replace("<order>", order);
+            this.query = newQuery;
+        } else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     }
 
     setProperty(property: string) {
-        let newProperty = property + ' { <subproperty> } <property>';
-        let newQuery = this.query.replace("<property>", newProperty);
-        this.query = newQuery;
+        if (!this.isClean) {
+            let newProperty = property + ' { <subproperty> } <property>';
+            let newQuery = this.query.replace("<property>", newProperty);
+            this.query = newQuery;
+        } else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     }
 
     setSubproperty(property: string, subproperty: string) {
-        let searchString = property + ' { <subproperty> ';
-        let replaceString: string;
 
-        
-        
-        if (this.query.indexOf(searchString) == -1) {
+        if (!this.isClean) {
+            let searchString = property + ' { <subproperty> ';
+            let replaceString: string;
 
-            if (this.query.indexOf(property) !== -1) {
-                searchString = property;
+            if (this.query.indexOf(searchString) == -1) {
+
+                if (this.query.indexOf(property) !== -1) {
+                    searchString = property;
+                }
             }
+
+            replaceString = searchString + subproperty + ' { <subproperty> } ';
+            let newQuery = this.query.replace(searchString, replaceString);
+            this.query = newQuery;
+        } else {
+            throw new Error('Query is built and clean, create a new one');
         }
-
-        /*if (!this.query.includes(searchString)) {
-
-            if (this.query.includes(property)) {
-                searchString = property;
-            }
-        }*/
-
-        replaceString = searchString + subproperty + ' { <subproperty> } ';
-        let newQuery = this.query.replace(searchString, replaceString);
-        this.query = newQuery;
     }
 
     setFilter(filter: string) {
-        let searchString = 'where: { <filter> ';
-        let replaceString = searchString + filter;
-        let newQuery = this.query.replace(searchString, replaceString);
-        this.query = newQuery;
+
+        if (!this.isClean) {
+            let searchString = 'where: { <filter> ';
+            let replaceString = searchString + filter;
+            let newQuery = this.query.replace(searchString, replaceString);
+            this.query = newQuery;
+        } else {
+            throw new Error('Query is built and clean, create a new one');
+        }
     }
 
     clean() {
@@ -160,5 +226,6 @@ export class Query {
         let noEmptyBraces = noEmptyWhere.replace(regexp6, empty);
         let noDuplicateSpaces = noEmptyBraces.replace(/ +(?= )/g,'');
         this.query = noDuplicateSpaces;
+        this.isClean = true;
     }
 }
