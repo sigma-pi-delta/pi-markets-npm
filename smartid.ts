@@ -1,23 +1,725 @@
 import { ethers } from 'ethers';
 import * as Constants from './constants';
-import {Contracts} from './contracts';
-import {Wallets, WalletPair} from './wallets';
-import {Transactions} from './transactions';
-import { Graph, Query } from './graph';
+import { Contracts } from './contracts';
+import { Wallets, WalletPair } from './wallets';
+import { Transactions } from './transactions';
+import { Query } from './graph';
 
 export class SmartID {
+    readonly signer: ethers.Wallet;
+    readonly identity: string;
+    readonly wallet: string;
+    readonly network: string;
+    readonly contractsService: any;
+    readonly transactionsService: any;
 
+    constructor(
+        signer: ethers.Wallet,
+        identity: string,
+        wallet: string,
+        network: string = 'mainnet'
+    ) {
+        this.signer = signer;
+        this.identity = identity;
+        this.wallet = wallet;
+        this.network = network;
+        this.contractsService = new Contracts(this.network);
+        this.transactionsService = new Transactions();
+    }
+
+    async forward(destination: string, data: string) {
+        let identityContract = this.contractsService.getContractSigner(
+            this.identity, 
+            Constants.IDENTITY_ABI, 
+            this.signer
+        );
+
+        let response: any;
+
+        try {
+            response = await identityContract.forward(destination, data, Constants.OVERRIDES);
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        }
+
+        try {
+            let receipt = await this.transactionsService.getReceipt(response);
+            return receipt;
+        } catch (receiptError) {
+            console.error(receiptError);
+            throw new Error(receiptError);
+        }
+    }
+
+    /******** TRANSFER */
+
+    async transfer(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transfer.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferSending(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferSending.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferDomain(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferDomain.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferDomainSending(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferDomainSending.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferNFT(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferNFT.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferNFTDomain(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferNFTDomain.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferNFTRef(tx: TransferNFTRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferNFTRef.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.reference, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferNFTRefDomain(tx: TransferNFTRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferNFTRefDomain.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.reference, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferPNFT(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferPNFT.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.packableId,
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async transferPNFTDomain(tx: TransferRequest) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.transferPNFTDomain.encode([
+            tx.tokenAddress, 
+            tx.destination, 
+            tx.packableId,
+            tx.amount, 
+            tx.data, 
+            tx.kind
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    /******** P2P */
+
+    // Common for all P2Ps [9-17]
+    async cancelOffer(
+        offerId: string,
+        p2pIndex: "9" | "10" | "11" | "12" | "13" | "14" | "15" | "17"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            this.signer);
+        let p2pData = p2pContract.interface.functions.cancelOffer.encode([
+            offerId
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let walletData = walletContract.interface.functions.forward.encode([
+            p2pAddress,
+            p2pData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // Common for all P2Ps [9-17]
+    async updateBuyAmount(
+        offerId: string,
+        buyAmount: ethers.utils.BigNumber,
+        p2pIndex: "9" | "10" | "11" | "12" | "13" | "14" | "15" | "17"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.updateBuyAmount.encode([
+            offerId,
+            buyAmount
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forward.encode([
+            p2pAddress,
+            p2pData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // Common for all P2Ps [9-17]
+    async voteDeal(
+        dealId: string,
+        vote: "1" | "2", // 1 - Confirm | 2 - Cancel
+        p2pIndex: "9" | "10" | "11" | "12" | "13" | "14" | "15" | "17"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.voteDeal.encode([
+            dealId,
+            vote
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forward.encode([
+            p2pAddress,
+            p2pData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // Deals where buyer part is Fiat. Common for [9-14] P2Ps 
+    async deal(
+        offerId: string,
+        buyAmount: ethers.utils.BigNumber,
+        p2pIndex: "9" | "10" | "11" | "12" | "13" | "14"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.deal.encode([
+            offerId,
+            buyAmount
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forward.encode([
+            p2pAddress,
+            p2pData
+        ]);
+    
+        try {
+            let receipt = await this.forward(this.wallet, walletData);
+
+            let event: any;
+            if (receipt.logs != undefined) {
+                for (let i = 0; i < receipt.logs.length; i++) {
+                    if (receipt.logs[i].address.toLowerCase() == p2pAddress.toLowerCase()) {
+                        if (receipt.logs[i].topics[0] == "0x75c48d2c41d94e0ba2f763f7aa64a7cae7a2802b6e471cb4ccff923c99e03977") {
+                            let topics = receipt.logs[i].topics;
+                            let data = receipt.logs[i].data;
+                            let _log = {topics, data};
+                            event = await this.contractsService.decodeEvent(p2pContract, _log)
+                        }
+                    }
+                }
+            }
+        
+            return [event.dealId, receipt.transactionHash];
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // Deals where buyer part is ERC223. Common for [9-15] P2Ps 
+    async dealToken(
+        offerId: string,
+        buyAmount: ethers.utils.BigNumber,
+        buyToken: string,
+        p2pIndex: "9" | "10" | "11" | "12" | "13" | "14" | "15"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.deal.encode([
+            offerId,
+            buyAmount
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            buyToken,
+            buyAmount,
+            p2pAddress,
+            p2pData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // ERC223 vs ERC223/Fiat. Primary and Secondary [9, 11] 
+    async offer(
+        offerParams: P2POffer,
+        p2pIndex: "9" | "11"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            this.signer);
+        let p2pData = p2pContract.interface.functions.offer.encode([
+            offerParams.tokens, 
+            offerParams.amounts, 
+            offerParams.settings, 
+            offerParams.limits,
+            offerParams.auditor,
+            offerParams.description,
+            offerParams.metadata
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            offerParams.tokens[0],
+            offerParams.amounts[0],
+            p2pAddress,
+            p2pData
+        ]);
+
+        try {
+            let receipt = await this.forward(this.wallet, walletData);
+
+            let event: any;
+            if (receipt.logs != undefined) {
+                for (let i = 0; i < receipt.logs.length; i++) {
+                    if (receipt.logs[i].address.toLowerCase() == p2pAddress.toLowerCase()) {
+                        let topics = receipt.logs[i].topics;
+                        let data = receipt.logs[i].data;
+                        let _log = {topics, data};
+                        event = await this.contractsService.decodeEvent(p2pContract, _log)
+                    }
+                }
+            }
+        
+            return [event.offerId, receipt.transactionHash];
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // NFT vs ERC223/Fiat. Primary and Secondary [10, 12]
+    async offerCommodity(
+        offerParams: P2POfferCommodity,
+        p2pIndex: "10" | "12"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_NFT_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.offer.encode([
+            offerParams.sellToken, 
+            offerParams.sellId, 
+            offerParams.buyToken,
+            offerParams.buyAmount,
+            offerParams.isBuyFiat,
+            offerParams.minReputation,
+            offerParams.auditor,
+            offerParams.description,
+            offerParams.metadata
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            offerParams.sellToken,
+            offerParams.sellId,
+            p2pAddress,
+            p2pData
+        ]);
+    
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // PNFT vs ERC223/Fiat. Primary and Secondary [13, 14]
+    async offerPackable(
+        offerParams: P2POfferPackable,
+        p2pIndex: "13" | "14"
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress(p2pIndex);
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_PNFT_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.offer.encode([
+            offerParams.tokens, 
+            offerParams.tokenId, 
+            offerParams.amounts,
+            offerParams.settings,
+            offerParams.limits,
+            offerParams.auditor,
+            offerParams.description,
+            offerParams.metadata,
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forwardValuePNFT.encode([
+            offerParams.tokens[0],
+            offerParams.tokenId,
+            offerParams.amounts[0],
+            p2pAddress,
+            p2pData
+        ]);
+    
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async offerTokenRequestPackable(
+        offerParams: P2POfferPackable
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress("17");
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_PNFT_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.offer.encode([
+            offerParams.tokens, 
+            offerParams.tokenId, 
+            offerParams.amounts,
+            offerParams.settings,
+            offerParams.limits,
+            offerParams.auditor,
+            offerParams.description,
+            offerParams.metadata,
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            offerParams.tokens[0],
+            offerParams.amounts[0],
+            p2pAddress,
+            p2pData
+        ]);
+    
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+    
+    async offerFiatRequestPackable(
+        offerParams: P2POfferPackable
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress("17");
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_PNFT_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.offer.encode([
+            offerParams.tokens, 
+            offerParams.tokenId, 
+            offerParams.amounts,
+            offerParams.settings,
+            offerParams.limits,
+            offerParams.auditor,
+            offerParams.description,
+            offerParams.metadata,
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forward.encode([
+            p2pAddress,
+            p2pData
+        ]);
+    
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async dealPackable(
+        offerId: string,
+        buyAmount: ethers.utils.BigNumber,
+        buyToken: string, //SI LA APP NO LO TIENE FÁCIL LO PILLO DEL SUBGRAPH
+        tokenId: string
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress("17");
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_PNFT_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.deal.encode([
+            offerId,
+            buyAmount
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forwardValuePNFT.encode([
+            buyToken,
+            tokenId,
+            buyAmount,
+            p2pAddress,
+            p2pData
+        ]);
+    
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 export class SmartIDLogin {
     readonly network: string;
     readonly walletsService: any;
-    readonly graph: any;
 
     constructor(_url: string = 'mainnet') {
         this.network = _url;
         this.walletsService = new Wallets(this.network);
-        this.graph = new Graph();
     }
 
     async login(password: string, encryptedWallet: string) {
@@ -36,7 +738,7 @@ export class SmartIDLogin {
         let wallet = await this.nicknameToWallet(nickname);
         let identity = await this.getIdentityByWallet(wallet);
     
-        return new SmartIDObject(nickname, identity, wallet);
+        return new SmartIDPublic(nickname, identity, wallet);
     }
 
     /***** QUERY */
@@ -47,7 +749,7 @@ export class SmartIDLogin {
         query.setCustomQuery(customQuery);
 
         try {
-            let response = await this.graph.querySubgraph(query);
+            let response = await query.request();
             return response.wallet.name.id;
         } catch(error) {
             console.error(error);
@@ -61,7 +763,7 @@ export class SmartIDLogin {
         query.setCustomQuery(customQuery);
 
         try {
-            let response = await this.graph.querySubgraph(query);
+            let response = await query.request();
             return response.wallets[0].id;
         } catch(error) {
             console.error(error);
@@ -75,7 +777,7 @@ export class SmartIDLogin {
         query.setCustomQuery(customQuery);
 
         try {
-            let response = await this.graph.querySubgraph(query);
+            let response = await query.request();
             return response.wallets.length == 0;
         } catch(error) {
             console.error(error);
@@ -88,7 +790,7 @@ export class SmartIDLogin {
         query.setCustomQuery(customQuery);
 
         try {
-            let response = await this.graph.querySubgraph(query);
+            let response = await query.request();
             return response.identities.length == 0;
         } catch(error) {
             console.error(error);
@@ -111,7 +813,7 @@ export class SmartIDLogin {
         query.setCustomQuery(customQuery);
 
         try {
-            let response = await this.graph.querySubgraph(query);
+            let response = await query.request();
             return response.identities[0].id;
         } catch(error) {
             console.error(error);
@@ -125,7 +827,7 @@ export class SmartIDLogin {
         query.setCustomQuery(customQuery);
 
         try {
-            let response = await this.graph.querySubgraph(query);
+            let response = await query.request();
             return response.identities[0].id;
         } catch(error) {
             console.error(error);
@@ -250,9 +952,44 @@ export class SmartIDRegistry {
             throw new Error(receiptError);
         }
     }
+
+    async updateReputation(
+        user: string,
+        reputation: string,
+        signerPrivateKey: string
+    ) {
+        const p2pAddress = await this.contractsService.getControllerAddress("16");
+        const signer = this.walletsService.createWalletFromPrivKey(signerPrivateKey);
+        const p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            signer
+        );
+
+        let response: any;
+
+        try {
+            response = await p2pContract.updateReputation(
+                user, 
+                reputation, 
+                Constants.OVERRIDES_BACKEND
+            );
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        }
+
+        try {
+            let receipt = await this.transactionsService.getReceipt(response);
+            return receipt;
+        } catch (receiptError) {
+            console.error(receiptError);
+            throw new Error(receiptError);
+        }
+    }
 }
 
-export class SmartIDObject {
+export class SmartIDPublic {
     readonly nickname: string;
     readonly identity: string;
     readonly wallet: string;
@@ -272,5 +1009,185 @@ export class SmartIDObject {
 
     setSigner(signer: ethers.Wallet) {
         this.signer = signer;
+    }
+}
+
+export class TransferRequest {
+
+    tokenAddress: string;
+    destination: string;
+    amount: ethers.utils.BigNumber;
+    data: string;
+    kind: ethers.utils.BigNumber;
+    packableId?: string;
+
+    constructor(
+        tokenAddress: string,
+        destination: string, //address or nickname
+        amount: ethers.utils.BigNumber,
+        data: string,
+        kind: ethers.utils.BigNumber,
+        packableId?: string
+    ) {
+        this.tokenAddress = tokenAddress;
+        this.destination = destination;
+        this.amount = amount;
+        this.data = data;
+        this.kind = kind;
+        
+        if (packableId != undefined) {
+            this.packableId = packableId;
+        }
+    }
+}
+
+export class TransferNFTRequest {
+
+    tokenAddress: string;
+    destination: string;
+    reference: string;
+    data: string;
+    kind: ethers.utils.BigNumber;
+
+    constructor(
+        tokenAddress: string,
+        destination: string, //address or nickname
+        reference: string,
+        data: string,
+        kind: ethers.utils.BigNumber
+    ) {
+        this.tokenAddress = tokenAddress;
+        this.destination = destination;
+        this.reference = reference;
+        this.data = data;
+        this.kind = kind;
+    }
+}
+
+export class P2POffer {
+
+    tokens: string[] = [];
+    amounts: ethers.utils.BigNumber[] = [];
+    settings: boolean[] = [];
+    limits: ethers.utils.BigNumber[] = [];
+    auditor: string;
+    description: string;
+    metadata: number[] = [];
+
+    constructor(
+        sellToken: string,
+        sellAmount: ethers.utils.BigNumber,
+        isPartial: boolean,
+        buyToken: string,
+        buyAmount: ethers.utils.BigNumber,
+        isBuyFiat: boolean,
+        minDealAmount: ethers.utils.BigNumber,
+        maxDealAmount: ethers.utils.BigNumber,
+        minReputation: ethers.utils.BigNumber,
+        auditor: string,
+        description: string,
+        country: number[],
+        payMethods: number[]
+    ) {
+        this.tokens.push(sellToken);
+        this.tokens.push(buyToken);
+        this.amounts.push(sellAmount);
+        this.amounts.push(buyAmount);
+        this.settings.push(isPartial);
+        this.settings.push(isBuyFiat);
+        this.limits.push(minDealAmount);
+        this.limits.push(maxDealAmount);
+        this.limits.push(minReputation);
+        this.auditor = auditor;
+        this.description = description;
+
+        let zero = [0];
+        let metadata = country.concat(zero).concat(payMethods).concat(zero);
+        this.metadata = metadata;
+    }
+}
+
+export class P2POfferCommodity {
+
+    sellToken: string;
+    sellId: ethers.utils.BigNumber;
+    buyToken: string;
+    buyAmount: ethers.utils.BigNumber;
+    isBuyFiat: boolean;
+    minReputation: ethers.utils.BigNumber;
+    auditor: string;
+    description: string;
+    metadata: number[] = [];
+
+    constructor(
+        sellToken: string,
+        sellId: ethers.utils.BigNumber,
+        buyToken: string,
+        buyAmount: ethers.utils.BigNumber,
+        isBuyFiat: boolean,
+        minReputation: ethers.utils.BigNumber,
+        auditor: string,
+        description: string,
+        country: number[],
+        payMethods: number[]
+    ) {
+        this.sellToken = sellToken;
+        this.sellId = sellId;
+        this.buyToken = buyToken;
+        this.buyAmount = buyAmount;
+        this.isBuyFiat = isBuyFiat;
+        this.minReputation = minReputation;
+        this.auditor = auditor;
+        this.description = description;
+
+        let zero = [0];
+        let metadata = country.concat(zero).concat(payMethods).concat(zero);
+        this.metadata = metadata;
+    }
+}
+
+export class P2POfferPackable {
+
+    tokens: string[] = [];
+    amounts: ethers.utils.BigNumber[] = [];
+    tokenId: string;
+    settings: boolean[] = [];
+    limits: ethers.utils.BigNumber[] = [];
+    auditor: string;
+    description: string;
+    metadata: number[] = [];
+
+    constructor(
+        sellToken: string,
+        sellAmount: ethers.utils.BigNumber,
+        tokenId: string,
+        isPartial: boolean,
+        buyToken: string,
+        buyAmount: ethers.utils.BigNumber,
+        isBuyFiat: boolean,
+        minDealAmount: ethers.utils.BigNumber,
+        maxDealAmount: ethers.utils.BigNumber,
+        minReputation: ethers.utils.BigNumber,
+        auditor: string,
+        description: string,
+        country: number[],
+        payMethods: number[]
+    ) {
+        this.tokens.push(sellToken);
+        this.tokens.push(buyToken);
+        this.amounts.push(sellAmount);
+        this.amounts.push(buyAmount);
+        this.tokenId = tokenId;
+        this.settings.push(isPartial);
+        this.settings.push(isBuyFiat);
+        this.limits.push(minDealAmount);
+        this.limits.push(maxDealAmount);
+        this.limits.push(minReputation);
+        this.auditor = auditor;
+        this.description = description;
+
+        let zero = [0];
+        let metadata = country.concat(zero).concat(payMethods).concat(zero);
+        this.metadata = metadata;
     }
 }
