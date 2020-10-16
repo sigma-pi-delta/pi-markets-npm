@@ -775,8 +775,7 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
-    SmartID.prototype.dealPackable = function (offerId, buyAmount, buyToken, //SI LA APP NO LO TIENE FÁCIL LO PILLO DEL SUBGRAPH
-    tokenId) {
+    SmartID.prototype.dealPackable = function (offerId, buyAmount, buyToken, tokenId) {
         return __awaiter(this, void 0, void 0, function () {
             var p2pAddress, p2pContract, p2pData, walletContract, walletData, error_22;
             return __generator(this, function (_a) {

@@ -677,7 +677,7 @@ export class SmartID {
     async dealPackable(
         offerId: string,
         buyAmount: ethers.utils.BigNumber,
-        buyToken: string, //SI LA APP NO LO TIENE FÁCIL LO PILLO DEL SUBGRAPH
+        buyToken: string,
         tokenId: string
     ) {
         let p2pAddress = await this.contractsService.getControllerAddress("17");
