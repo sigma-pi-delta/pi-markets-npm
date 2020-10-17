@@ -1,5 +1,6 @@
 import * as Constants from './constants';
 import fetch from 'node-fetch';
+import { ethers } from 'ethers';
 
 export class Graph {
 
@@ -227,5 +228,326 @@ export class Query {
         let noDuplicateSpaces = noEmptyBraces.replace(/ +(?= )/g,'');
         this.query = noDuplicateSpaces;
         this.isClean = true;
+    }
+}
+
+export class QueryTemplates {
+    readonly network: string;
+
+    constructor(
+        network: string = 'mainnet'
+    ) {
+        this.network = network;
+    }
+
+    /******** BANK */
+
+    async getWalletByName(name: string) {
+        let customQuery = '{ name(id:"' + name + '") { wallet { id } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.name.wallet.id;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getOwnerByName(name: string) {
+        let customQuery = '{ name(id:"' + name + '") { wallet { identity { owner } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.name.wallet.identity.owner;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTransactionsByName(
+        name: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ name(id:"' + name + '") { wallet { transactions (orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.name.wallet.transactions;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTransactionsByNameByTokens(
+        name: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        token: string
+    ) {
+        let customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{currency: ' + token +'}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.name.wallet.transactions;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTransactionsFromNameByTokens(
+        name: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        token: string
+    ) {
+        let from = await this.getWalletByName(name);
+        let customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{from: ' + from  + ', currency: ' + token +'}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.name.wallet.transactions;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTransactionsToNameByTokens(
+        name: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        token: string
+    ) {
+        let to = await this.getWalletByName(name);
+        let customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{to: ' + to  + ', currency: ' + token +'}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.name.wallet.transactions;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTransactionsFromNameToNameByTokens(
+        nameFrom: string,
+        nameTo: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        token: string
+    ) {
+        let from = await this.getWalletByName(nameFrom);
+        let to = await this.getWalletByName(nameTo);
+        let customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{from: ' + from + ', to: ' + to  + ', currency: ' + token +'}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.name.wallet.transactions;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getBalancesByName(name: string) {
+        let customQuery = '{ name(id:"' + name + '") { wallet { balances { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.wallet.balances;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getBalancesByNameByTokens(name: string, tokensArray: string[]) {
+        let customQuery = '{ name(id:"' + name + '") { wallet { balances (where:{token_in:' + tokensArray + '}) { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.wallet.balances;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTokens(tokensArray: string[]) {
+        let customQuery = '{ tokens (where:{id_in:' + tokensArray + '}) { id tokenSymbol tokenName tokenKind } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.tokens;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTransactionsByTokens(
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        tokensArray: string[]
+    ) {
+        let customQuery = '{ transactions ( where:{currency_in:'+ tokensArray +'}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.transactions;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getTokenHolders(
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        token: string
+    ) {
+        let customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.tokenBalances;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getNFTHolders(
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        token: string
+    ) {
+        let customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.wallets[0].id;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getPackableHolders(
+        tokenAddress: string,
+        packableId: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let tokenPackableId = tokenAddress + "-" + packableId
+        let customQuery = '{ packableBalances (where: {packableId:"' + tokenPackableId + '", balance_gt:0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first +', skip: ' + skip + ') { packableId { id } balance wallet { id name { id } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.packableBalances;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+
+    async name() {
+        let customQuery = '';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.wallets[0].id;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    /******** P2P */
+
+
+    async name2() {
+        let customQuery = '';
+        let query = new Query('p2p', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.wallets[0].id;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    /******** MARKET */
+
+    async name3() {
+        let customQuery = '';
+        let query = new Query('market', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.wallets[0].id;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
     }
 }

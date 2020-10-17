@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.Query = exports.Graph = void 0;
+exports.QueryTemplates = exports.Query = exports.Graph = void 0;
 var Constants = require("./constants");
 var node_fetch_1 = require("node-fetch");
 var Graph = /** @class */ (function () {
@@ -267,3 +267,449 @@ var Query = /** @class */ (function () {
     return Query;
 }());
 exports.Query = Query;
+var QueryTemplates = /** @class */ (function () {
+    function QueryTemplates(network) {
+        if (network === void 0) { network = 'mainnet'; }
+        this.network = network;
+    }
+    /******** BANK */
+    QueryTemplates.prototype.getWalletByName = function (name) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { id } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.name.wallet.id];
+                    case 3:
+                        error_3 = _a.sent();
+                        console.error(error_3);
+                        throw new Error(error_3);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getOwnerByName = function (name) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { identity { owner } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.name.wallet.identity.owner];
+                    case 3:
+                        error_4 = _a.sent();
+                        console.error(error_4);
+                        throw new Error(error_4);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTransactionsByName = function (name, orderBy, orderDirection, first, skip) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_5;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions (orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.name.wallet.transactions];
+                    case 3:
+                        error_5 = _a.sent();
+                        console.error(error_5);
+                        throw new Error(error_5);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTransactionsByNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_6;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.name.wallet.transactions];
+                    case 3:
+                        error_6 = _a.sent();
+                        console.error(error_6);
+                        throw new Error(error_6);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTransactionsFromNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var from, customQuery, query, response, error_7;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.getWalletByName(name)];
+                    case 1:
+                        from = _a.sent();
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{from: ' + from + ', currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, query.request()];
+                    case 3:
+                        response = _a.sent();
+                        return [2 /*return*/, response.name.wallet.transactions];
+                    case 4:
+                        error_7 = _a.sent();
+                        console.error(error_7);
+                        throw new Error(error_7);
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTransactionsToNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var to, customQuery, query, response, error_8;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.getWalletByName(name)];
+                    case 1:
+                        to = _a.sent();
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{to: ' + to + ', currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, query.request()];
+                    case 3:
+                        response = _a.sent();
+                        return [2 /*return*/, response.name.wallet.transactions];
+                    case 4:
+                        error_8 = _a.sent();
+                        console.error(error_8);
+                        throw new Error(error_8);
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTransactionsFromNameToNameByTokens = function (nameFrom, nameTo, orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var from, to, customQuery, query, response, error_9;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.getWalletByName(nameFrom)];
+                    case 1:
+                        from = _a.sent();
+                        return [4 /*yield*/, this.getWalletByName(nameTo)];
+                    case 2:
+                        to = _a.sent();
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{from: ' + from + ', to: ' + to + ', currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 3;
+                    case 3:
+                        _a.trys.push([3, 5, , 6]);
+                        return [4 /*yield*/, query.request()];
+                    case 4:
+                        response = _a.sent();
+                        return [2 /*return*/, response.name.wallet.transactions];
+                    case 5:
+                        error_9 = _a.sent();
+                        console.error(error_9);
+                        throw new Error(error_9);
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getBalancesByName = function (name) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_10;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { balances { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.wallet.balances];
+                    case 3:
+                        error_10 = _a.sent();
+                        console.error(error_10);
+                        throw new Error(error_10);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getBalancesByNameByTokens = function (name, tokensArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_11;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { balances (where:{token_in:' + tokensArray + '}) { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.wallet.balances];
+                    case 3:
+                        error_11 = _a.sent();
+                        console.error(error_11);
+                        throw new Error(error_11);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTokens = function (tokensArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_12;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ tokens (where:{id_in:' + tokensArray + '}) { id tokenSymbol tokenName tokenKind } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.tokens];
+                    case 3:
+                        error_12 = _a.sent();
+                        console.error(error_12);
+                        throw new Error(error_12);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTransactionsByTokens = function (orderBy, orderDirection, first, skip, tokensArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_13;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ transactions ( where:{currency_in:' + tokensArray + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.transactions];
+                    case 3:
+                        error_13 = _a.sent();
+                        console.error(error_13);
+                        throw new Error(error_13);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTokenHolders = function (orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_14;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.tokenBalances];
+                    case 3:
+                        error_14 = _a.sent();
+                        console.error(error_14);
+                        throw new Error(error_14);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getNFTHolders = function (orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_15;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.wallets[0].id];
+                    case 3:
+                        error_15 = _a.sent();
+                        console.error(error_15);
+                        throw new Error(error_15);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getPackableHolders = function (tokenAddress, packableId, orderBy, orderDirection, first, skip) {
+        return __awaiter(this, void 0, void 0, function () {
+            var tokenPackableId, customQuery, query, response, error_16;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        tokenPackableId = tokenAddress + "-" + packableId;
+                        customQuery = '{ packableBalances (where: {packableId:"' + tokenPackableId + '", balance_gt:0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { packableId { id } balance wallet { id name { id } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.packableBalances];
+                    case 3:
+                        error_16 = _a.sent();
+                        console.error(error_16);
+                        throw new Error(error_16);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.name = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_17;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.wallets[0].id];
+                    case 3:
+                        error_17 = _a.sent();
+                        console.error(error_17);
+                        throw new Error(error_17);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /******** P2P */
+    QueryTemplates.prototype.name2 = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_18;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '';
+                        query = new Query('p2p', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.wallets[0].id];
+                    case 3:
+                        error_18 = _a.sent();
+                        console.error(error_18);
+                        throw new Error(error_18);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /******** MARKET */
+    QueryTemplates.prototype.name3 = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_19;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '';
+                        query = new Query('market', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.wallets[0].id];
+                    case 3:
+                        error_19 = _a.sent();
+                        console.error(error_19);
+                        throw new Error(error_19);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    return QueryTemplates;
+}());
+exports.QueryTemplates = QueryTemplates;
