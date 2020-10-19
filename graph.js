@@ -294,7 +294,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.name.wallet.id];
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.id];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_3 = _a.sent();
                         console.error(error_3);
@@ -319,7 +321,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.name.wallet.identity.owner];
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.identity.owner];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_4 = _a.sent();
                         console.error(error_4);
@@ -344,7 +348,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.name.wallet.transactions];
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.transactions];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_5 = _a.sent();
                         console.error(error_5);
@@ -369,7 +375,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.name.wallet.transactions];
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.transactions];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_6 = _a.sent();
                         console.error(error_6);
@@ -396,7 +404,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 3:
                         response = _a.sent();
-                        return [2 /*return*/, response.name.wallet.transactions];
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.transactions];
+                        return [3 /*break*/, 5];
                     case 4:
                         error_7 = _a.sent();
                         console.error(error_7);
@@ -423,7 +433,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 3:
                         response = _a.sent();
-                        return [2 /*return*/, response.name.wallet.transactions];
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.transactions];
+                        return [3 /*break*/, 5];
                     case 4:
                         error_8 = _a.sent();
                         console.error(error_8);
@@ -453,7 +465,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 4:
                         response = _a.sent();
-                        return [2 /*return*/, response.name.wallet.transactions];
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.transactions];
+                        return [3 /*break*/, 6];
                     case 5:
                         error_9 = _a.sent();
                         console.error(error_9);
@@ -478,7 +492,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.wallet.balances];
+                        if (response != undefined)
+                            return [2 /*return*/, response.wallet.balances];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_10 = _a.sent();
                         console.error(error_10);
@@ -503,7 +519,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.wallet.balances];
+                        if (response != undefined)
+                            return [2 /*return*/, response.wallet.balances];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_11 = _a.sent();
                         console.error(error_11);
@@ -528,7 +546,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.tokens];
+                        if (response != undefined)
+                            return [2 /*return*/, response.tokens];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_12 = _a.sent();
                         console.error(error_12);
@@ -553,7 +573,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.transactions];
+                        if (response != undefined)
+                            return [2 /*return*/, response.transactions];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_13 = _a.sent();
                         console.error(error_13);
@@ -578,7 +600,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.tokenBalances];
+                        if (response != undefined)
+                            return [2 /*return*/, response.tokenBalances];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_14 = _a.sent();
                         console.error(error_14);
@@ -603,7 +627,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.tokenBalances];
+                        if (response != undefined)
+                            return [2 /*return*/, response.tokenBalances];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_15 = _a.sent();
                         console.error(error_15);
@@ -629,7 +655,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.packableBalances];
+                        if (response != undefined)
+                            return [2 /*return*/, response.packableBalances];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_16 = _a.sent();
                         console.error(error_16);
@@ -655,7 +683,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.offers];
+                        if (response != undefined)
+                            return [2 /*return*/, response.offers];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_17 = _a.sent();
                         console.error(error_17);
@@ -680,7 +710,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.offerPackables];
+                        if (response != undefined)
+                            return [2 /*return*/, response.offerPackables];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_18 = _a.sent();
                         console.error(error_18);
@@ -705,7 +737,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.offerCommodities];
+                        if (response != undefined)
+                            return [2 /*return*/, response.offerCommodities];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_19 = _a.sent();
                         console.error(error_19);
@@ -730,7 +764,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.deals];
+                        if (response != undefined)
+                            return [2 /*return*/, response.deals];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_20 = _a.sent();
                         console.error(error_20);
@@ -755,7 +791,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.dealPackables];
+                        if (response != undefined)
+                            return [2 /*return*/, response.dealPackables];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_21 = _a.sent();
                         console.error(error_21);
@@ -780,7 +818,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.dealPackables];
+                        if (response != undefined)
+                            return [2 /*return*/, response.dealPackables];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_22 = _a.sent();
                         console.error(error_22);
@@ -806,7 +846,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.controllers[0].commission];
+                        if (response != undefined)
+                            return [2 /*return*/, response.controllers[0].commission];
+                        return [3 /*break*/, 4];
                     case 3:
                         error_23 = _a.sent();
                         console.error(error_23);

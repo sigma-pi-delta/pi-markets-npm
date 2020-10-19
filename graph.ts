@@ -253,7 +253,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.name.wallet.id;
+            if (response != undefined) return response.name.wallet.id;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -267,7 +267,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.name.wallet.identity.owner;
+            if (response != undefined) return response.name.wallet.identity.owner;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -287,7 +287,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.name.wallet.transactions;
+            if (response != undefined) return response.name.wallet.transactions;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -308,7 +308,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.name.wallet.transactions;
+            if (response != undefined) return response.name.wallet.transactions;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -330,7 +330,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.name.wallet.transactions;
+            if (response != undefined) return response.name.wallet.transactions;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -352,7 +352,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.name.wallet.transactions;
+            if (response != undefined) return response.name.wallet.transactions;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -376,7 +376,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.name.wallet.transactions;
+            if (response != undefined) return response.name.wallet.transactions;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -390,7 +390,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.wallet.balances;
+            if (response != undefined) return response.wallet.balances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -404,7 +404,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.wallet.balances;
+            if (response != undefined) return response.wallet.balances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -418,7 +418,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.tokens;
+            if (response != undefined) return response.tokens;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -438,7 +438,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.transactions;
+            if (response != undefined) return response.transactions;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -458,7 +458,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.tokenBalances;
+            if (response != undefined) return response.tokenBalances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -478,7 +478,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.tokenBalances;
+            if (response != undefined) return response.tokenBalances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -500,7 +500,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.packableBalances;
+            if (response != undefined) return response.packableBalances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -522,7 +522,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.offers;
+            if (response != undefined) return response.offers;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -542,7 +542,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.offerPackables;
+            if (response != undefined) return response.offerPackables;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -562,7 +562,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.offerCommodities;
+            if (response != undefined) return response.offerCommodities;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -582,7 +582,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.deals;
+            if (response != undefined) return response.deals;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -602,7 +602,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.dealPackables;
+            if (response != undefined) return response.dealPackables;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -622,7 +622,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.dealPackables;
+            if (response != undefined) return response.dealPackables;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -638,7 +638,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.controllers[0].commission;
+            if (response != undefined) return response.controllers[0].commission;
         } catch(error) {
             console.error(error);
             throw new Error(error);
