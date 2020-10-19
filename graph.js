@@ -790,39 +790,14 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.name2 = function () {
+    /******** MARKET */
+    QueryTemplates.prototype.getTransfersCommission = function () {
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_23;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '';
-                        query = new Query('p2p', this.network);
-                        query.setCustomQuery(customQuery);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, query.request()];
-                    case 2:
-                        response = _a.sent();
-                        return [2 /*return*/, response.wallets[0].id];
-                    case 3:
-                        error_23 = _a.sent();
-                        console.error(error_23);
-                        throw new Error(error_23);
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    /******** MARKET */
-    QueryTemplates.prototype.name3 = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_24;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        customQuery = '';
+                        customQuery = '{ controllers { commission } }';
                         query = new Query('market', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -831,11 +806,11 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.wallets[0].id];
+                        return [2 /*return*/, response.controllers[0].commission];
                     case 3:
-                        error_24 = _a.sent();
-                        console.error(error_24);
-                        throw new Error(error_24);
+                        error_23 = _a.sent();
+                        console.error(error_23);
+                        throw new Error(error_23);
                     case 4: return [2 /*return*/];
                 }
             });

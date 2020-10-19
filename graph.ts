@@ -629,30 +629,16 @@ export class QueryTemplates {
         }
     }
 
-    async name2() {
-        let customQuery = '';
-        let query = new Query('p2p', this.network);
-        query.setCustomQuery(customQuery);
-
-        try {
-            let response = await query.request();
-            return response.wallets[0].id;
-        } catch(error) {
-            console.error(error);
-            throw new Error(error);
-        }
-    }
-
     /******** MARKET */
 
-    async name3() {
-        let customQuery = '';
+    async getTransfersCommission() {
+        let customQuery = '{ controllers { commission } }';
         let query = new Query('market', this.network);
         query.setCustomQuery(customQuery);
 
         try {
             let response = await query.request();
-            return response.wallets[0].id;
+            return response.controllers[0].commission;
         } catch(error) {
             console.error(error);
             throw new Error(error);
