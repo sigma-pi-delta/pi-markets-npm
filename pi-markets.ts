@@ -1,7 +1,7 @@
 import * as Constants from './constants';
 import { Blockchain } from './blockchain';
 import { Contracts } from './contracts';
-import { Graph, Query } from './graph';
+import { Graph, Query, QueryTemplates } from './graph';
 import { Transactions } from './transactions';
 import { WalletPair, Wallets } from './wallets';
 import { Utils } from './utils';
@@ -17,6 +17,7 @@ export {
     Utils, 
     Graph, 
     Query,
+    QueryTemplates,
     SmartID,
     SmartIDRegistry,
     SmartIDLogin
