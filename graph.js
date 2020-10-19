@@ -493,7 +493,7 @@ var QueryTemplates = /** @class */ (function () {
                     case 2:
                         response = _a.sent();
                         if (response != undefined)
-                            return [2 /*return*/, response.wallet.balances];
+                            return [2 /*return*/, response.name.wallet.balances];
                         return [3 /*break*/, 4];
                     case 3:
                         error_10 = _a.sent();
@@ -520,7 +520,7 @@ var QueryTemplates = /** @class */ (function () {
                     case 2:
                         response = _a.sent();
                         if (response != undefined)
-                            return [2 /*return*/, response.wallet.balances];
+                            return [2 /*return*/, response.name.wallet.balances];
                         return [3 /*break*/, 4];
                     case 3:
                         error_11 = _a.sent();

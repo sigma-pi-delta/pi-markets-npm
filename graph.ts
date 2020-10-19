@@ -390,7 +390,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            if (response != undefined) return response.wallet.balances;
+            if (response != undefined) return response.name.wallet.balances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -404,7 +404,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            if (response != undefined) return response.wallet.balances;
+            if (response != undefined) return response.name.wallet.balances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -432,7 +432,7 @@ export class QueryTemplates {
         skip: number,
         tokensArray: string[]
     ) {
-        let customQuery = '{ transactions ( where:{currency_in:'+ tokensArray +'}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } }';
+        let customQuery = '{ transactions ( where:{currency_in:' + tokensArray + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } }';
         let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
