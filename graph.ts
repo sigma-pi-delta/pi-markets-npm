@@ -53,6 +53,8 @@ export class Query {
                 this.subgraph = Constants.BANK_SUBGRAPH;
             } else if (subgraph == 'p2p') {
                 this.subgraph = Constants.P2P_SUBGRAPH;
+            } else if (subgraph == 'p2p-primary') {
+                this.subgraph = Constants.P2P_PRIMARY_SUBGRAPH;
             } else if (subgraph == 'market') {
                 this.subgraph = Constants.MARKETS_SUBGRAPH;
             } else {
@@ -64,7 +66,9 @@ export class Query {
             if (subgraph == 'bank') {
                 this.subgraph = Constants.BANK_SUBGRAPH_TESTNET;
             } else if (subgraph == 'p2p') {
-                this.subgraph = Constants.P2P_SUBGRAPH_TESTNET;
+                this.subgraph = Constants.P2P_PRIMARY_SUBGRAPH_TESTNET;
+            } else if (subgraph == 'p2p-primary') {
+                this.subgraph = Constants.P2P_SUBGRAPH;
             } else if (subgraph == 'market') {
                 this.subgraph = Constants.MARKETS_SUBGRAPH_TESTNET;
             } else {
@@ -474,7 +478,7 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            return response.wallets[0].id;
+            return response.tokenBalances;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -503,23 +507,127 @@ export class QueryTemplates {
         }
     }
 
+    /******** P2P */
 
-    async name() {
-        let customQuery = '';
-        let query = new Query('bank', this.network);
+    async getOffers(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ offers(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } initialSellAmount sellAmount buyToken { id tokenSymbol } sellAmount price isPartial isBuyFiat isSellFiat minDealAmount maxDealAmount minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
+        let query = new Query('p2p', this.network);
         query.setCustomQuery(customQuery);
 
         try {
             let response = await query.request();
-            return response.wallets[0].id;
+            return response.offers;
         } catch(error) {
             console.error(error);
             throw new Error(error);
         }
     }
 
-    /******** P2P */
+    async getPackableOffers(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ offerPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: '+ orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } initialSellAmount sellAmount sellId { tokenId metadata } buyToken { id tokenSymbol } sellAmount price price_per_unit isPartial isBuyFiat isSellFiat minDealAmount maxDealAmount minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
+        let query = new Query('p2p', this.network);
+        query.setCustomQuery(customQuery);
 
+        try {
+            let response = await query.request();
+            return response.offerPackables;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getNFTOffers(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ offerCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } sellId { tokenId metadata reference } buyToken { id tokenSymbol } price isBuyFiat minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
+        let query = new Query('p2p', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.offerCommodities;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getDeals(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ deals(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
+        let query = new Query('p2p', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.deals;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getPackableDeals(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ dealPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
+        let query = new Query('p2p', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.dealPackables;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getNFTDeals(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ dealCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata reference } } seller { id name offchainReputation } buyer { id offchainReputation } buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
+        let query = new Query('p2p', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            return response.dealPackables;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 
     async name2() {
         let customQuery = '';
