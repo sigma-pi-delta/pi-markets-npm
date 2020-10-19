@@ -15,23 +15,24 @@ export class Wallets {
     }
 
     createWalletFromEntropy(_entropy: string): ethers.Wallet {
-        return ethers.Wallet.createRandom(_entropy);
+        return ethers.Wallet.createRandom(_entropy).connect(this.provider);
     }
 
     createWalletFromMnemonic(_mnemonic: string, _path: string): ethers.Wallet {
         if (ethers.utils.HDNode.isValidMnemonic(_mnemonic)) {
-            return ethers.Wallet.fromMnemonic(_mnemonic, _path);
+            return ethers.Wallet.fromMnemonic(_mnemonic, _path).connect(this.provider);
         } else {
             return null;
         }
     }
 
     createWalletFromPrivKey(_privKey: string): ethers.Wallet {
-        return new ethers.Wallet(_privKey);
+        return new ethers.Wallet(_privKey).connect(this.provider);
     }
 
     async createWalletFromEncryptedJson(_encryptedJson: string, _password: string) {
-        return await ethers.Wallet.fromEncryptedJson(_encryptedJson, _password);
+        let wallet = await ethers.Wallet.fromEncryptedJson(_encryptedJson, _password);
+        return wallet.connect(this.provider);
     }
 
     async encryptWallet(_password: string, _wallet: ethers.Wallet ) {

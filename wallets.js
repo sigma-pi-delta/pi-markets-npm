@@ -49,25 +49,28 @@ var Wallets = /** @class */ (function () {
         return _wallet.connect(this.provider);
     };
     Wallets.prototype.createWalletFromEntropy = function (_entropy) {
-        return ethers_1.ethers.Wallet.createRandom(_entropy);
+        return ethers_1.ethers.Wallet.createRandom(_entropy).connect(this.provider);
     };
     Wallets.prototype.createWalletFromMnemonic = function (_mnemonic, _path) {
         if (ethers_1.ethers.utils.HDNode.isValidMnemonic(_mnemonic)) {
-            return ethers_1.ethers.Wallet.fromMnemonic(_mnemonic, _path);
+            return ethers_1.ethers.Wallet.fromMnemonic(_mnemonic, _path).connect(this.provider);
         }
         else {
             return null;
         }
     };
     Wallets.prototype.createWalletFromPrivKey = function (_privKey) {
-        return new ethers_1.ethers.Wallet(_privKey);
+        return new ethers_1.ethers.Wallet(_privKey).connect(this.provider);
     };
     Wallets.prototype.createWalletFromEncryptedJson = function (_encryptedJson, _password) {
         return __awaiter(this, void 0, void 0, function () {
+            var wallet;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, ethers_1.ethers.Wallet.fromEncryptedJson(_encryptedJson, _password)];
-                    case 1: return [2 /*return*/, _a.sent()];
+                    case 1:
+                        wallet = _a.sent();
+                        return [2 /*return*/, wallet.connect(this.provider)];
                 }
             });
         });
