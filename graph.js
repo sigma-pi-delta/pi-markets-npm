@@ -110,10 +110,10 @@ var Query = /** @class */ (function () {
                 this.subgraph = Constants.BANK_SUBGRAPH_TESTNET;
             }
             else if (subgraph == 'p2p') {
-                this.subgraph = Constants.P2P_PRIMARY_SUBGRAPH_TESTNET;
+                this.subgraph = Constants.P2P_SUBGRAPH_TESTNET;
             }
             else if (subgraph == 'p2p-primary') {
-                this.subgraph = Constants.P2P_SUBGRAPH;
+                this.subgraph = Constants.P2P_PRIMARY_SUBGRAPH_TESTNET;
             }
             else if (subgraph == 'market') {
                 this.subgraph = Constants.MARKETS_SUBGRAPH_TESTNET;
