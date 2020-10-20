@@ -4,10 +4,14 @@ PiMarkets Package is a Javascript library for dealing with Pi Markets smart cont
 
 ## Table of Contents
 
-    - [Installation](#installation)
-    - [Usage](#usage)
-    - [Documentation](#documentation)
-      - [Blockchain](#blockchain)
+- [PiMarkets ®](#pimarkets-)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Documentation](#documentation)
+    - [Blockchain](#blockchain)
+    - [Contracts](#contracts)
+  - [Contributing](#contributing)
 
 ## Installation
 
@@ -79,6 +83,14 @@ let address = "0x...";
 let balance = await blockchainMainnet.getBalance(address);
 console.log(balance);
 
+```
+
+### Contracts
+
+Class used to interact with Pi Markets smart contracts or any other smart contract deployed in Pi Blockchain.
+
+```javascript
+const pimarkets = require('pi-markets');
 ```
 
 ## Contributing
