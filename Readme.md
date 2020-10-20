@@ -1,4 +1,4 @@
-![PiMarkets Logo](logo-pi-circle.png)
+![PiMarkets Logo](logo-pi-markets.png)
 # PiMarkets ®
 PiMarkets Package is a Javascript library for dealing with Pi Markets smart contracts and Pi Blockchain.
 
@@ -44,7 +44,7 @@ let balances = await queryTemplates.getBalancesByName('<username>');
 // Smart Contract Call Example
 let contractService = new pimarkets.Contracts('mainnet');
 let controllerContract = contractService.getContractCaller(
-    pimarkets.Constants.CONTROLLER_ADDRESS_TESTNET,
+    pimarkets.Constants.CONTROLLER_ADDRESS,
     pimarkets.Constants.CONTROLLER_ABI
 )
 let owner = await controllerContract.owner();
@@ -91,6 +91,18 @@ Class used to interact with Pi Markets smart contracts or any other smart contra
 
 ```javascript
 const pimarkets = require('pi-markets');
+
+let contractService = new pimarkets.Contracts('mainnet');
+
+// Controller SC call
+let controllerContract = contractService.getContractCaller(
+    pimarkets.Constants.CONTROLLER_ADDRESS,
+    pimarkets.Constants.CONTROLLER_ABI
+)
+let owner = await controllerContract.owner();
+console.log(owner)
+
+
 ```
 
 ## Contributing
