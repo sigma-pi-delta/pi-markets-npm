@@ -2,6 +2,13 @@
 # PiMarkets ®
 PiMarkets Package is a Javascript library for dealing with Pi Markets smart contracts and Pi Blockchain.
 
+## Table of Contents
+
+    - [Installation](#installation)
+    - [Usage](#usage)
+    - [Documentation](#documentation)
+      - [Blockchain](#blockchain)
+
 ## Installation
 
 Use the package manager [npm](https://www.npmjs.com/) to install pi-markets.
