@@ -4,7 +4,7 @@ import { Contracts } from './contracts';
 import { Graph, Query, QueryTemplates } from './graph';
 import { Transactions } from './transactions';
 import { WalletPair, Wallets } from './wallets';
-import { Utils } from './utils';
+import * as Utils from './utils';
 import { SmartID, SmartIDLogin, SmartIDRegistry } from './smartid';
 
 export {

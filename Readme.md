@@ -11,6 +11,9 @@ PiMarkets Package is a Javascript library for dealing with Pi Markets smart cont
   - [Documentation](#documentation)
     - [Blockchain](#blockchain)
     - [Contracts](#contracts)
+    - [Wallets](#wallets)
+    - [Graph](#graph)
+    - [SmartID](#smartid)
   - [Contributing](#contributing)
 
 ## Installation
@@ -46,7 +49,7 @@ let contractService = new pimarkets.Contracts('mainnet');
 let controllerContract = contractService.getContractCaller(
     pimarkets.Constants.CONTROLLER_ADDRESS,
     pimarkets.Constants.CONTROLLER_ABI
-)
+);
 let owner = await controllerContract.owner();
 
 ```
@@ -79,7 +82,7 @@ let blockNumber = await blockchainMainnet.getBlockNumber();
 console.log(blockNumber);
 
 // Get Pi balance for an address
-let address = "0x...";
+let address = '0x...';
 let balance = await blockchainMainnet.getBalance(address);
 console.log(balance);
 
@@ -98,10 +101,106 @@ let contractService = new pimarkets.Contracts('mainnet');
 let controllerContract = contractService.getContractCaller(
     pimarkets.Constants.CONTROLLER_ADDRESS,
     pimarkets.Constants.CONTROLLER_ABI
-)
+);
 let owner = await controllerContract.owner();
-console.log(owner)
+console.log(owner);
 
+// Token BTC SC call
+let btcToken = contractService.getContractCaller(
+    pimarkets.Constants.BTC,
+    pimarkets.Constants.TOKEN_ABI
+);
+let address = '0x...';
+let balance = await btcToken.balanceOf(address);
+console.log(pimarkets.Utils.weiToEther(balance));
+
+```
+
+### Wallets
+
+Class used to handle the creation of wallets in different ways.
+
+```javascript
+const pimarkets = require('pi-markets');
+
+// Returned wallets are connected to service's network
+let walletService = new pimarkets.Wallets('mainnet');
+
+// Create a new wallet
+let wallet1 = walletService.createWalletFromEntropy('source_of_entropy');
+
+// Import an existing wallet
+let mnemonic = 'enemy skate bunker deposit vicious hint alarm sword owner bind cost draft';
+let wallet2 = walletService.createWalletFromMnemonic(mnemonic, pimarkets.Constants.PATH_0);
+
+```
+
+### Graph
+
+Class used to create queries and request them to different Pi Markets subgraphs providing fast and customizable information.
+
+```javascript
+const pimarkets = require('pi-markets');
+
+// There are different ways of building a query
+
+// FIRST WAY
+let query = new pimarkets.Query('bank', 'testnet');
+let entity = 'identities';
+let filter = 'creationTime_gt: 1602166415';
+let pagination = [5, 0]; // [first, skip]
+let order = ['creationTime', 'desc'];
+let properties = ['wallet', 'id', 'owner'];
+let subproperties = ['wallet', 'id', 'name'];
+let subproperties2 = ['name', 'id'];
+let props = [properties, subproperties, subproperties2];
+
+// Queries can be built and requested with the same method
+
+try {
+    console.log(await query.buildRequest(entity, filter, pagination, order, props));
+} catch(error) {
+    console.error(error);
+}
+
+// When having an already built query you can modify some params like pagination so you don't have to rebuild it
+query.setPagination(5, 5); //(first, skip)
+try {
+    console.log(await query.request());
+} catch(error) {
+    console.error(error);
+}
+
+// SECOND WAY
+let query2 = new pimarkets.Query('bank', 'testnet');
+let customQuery = '{ name(id:"user_name") { wallet { id } } }';
+query2.setCustomQuery(customQuery);
+try {
+    let response = await query2.request();
+    console.log(response);
+} catch(error) {
+    console.error(error);
+}
+
+// THIRD WAY
+let queryTemplates = new pimarkets.QueryTemplates('mainnet');
+let filter = 'sellToken: "' + pimarkets.Constants.EUR + '" ';
+
+try {
+    let offersEur = await queryTemplates.getOffers(filter, 'timestamp', 'desc', 3, 0);
+    console.log(offersEur);
+} catch(error) {
+    console.error(error);
+}
+
+```
+
+### SmartID
+
+Class used to .
+
+```javascript
+const pimarkets = require('pi-markets');
 
 ```
 
