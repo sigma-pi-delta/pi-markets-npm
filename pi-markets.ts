@@ -5,7 +5,16 @@ import { Graph, Query, QueryTemplates } from './graph';
 import { Transactions } from './transactions';
 import { WalletPair, Wallets } from './wallets';
 import * as Utils from './utils';
-import { SmartID, SmartIDLogin, SmartIDRegistry } from './smartid';
+import { 
+    SmartID, 
+    SmartIDLogin, 
+    SmartIDRegistry, 
+    TransferRequest, 
+    TransferNFTRequest,
+    P2POffer,
+    P2POfferCommodity,
+    P2POfferPackable
+} from './smartid';
 
 export {
     Constants, 
@@ -20,5 +29,10 @@ export {
     QueryTemplates,
     SmartID,
     SmartIDRegistry,
-    SmartIDLogin
+    SmartIDLogin,
+    TransferRequest,
+    TransferNFTRequest,
+    P2POffer,
+    P2POfferCommodity,
+    P2POfferPackable
 }

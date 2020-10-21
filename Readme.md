@@ -202,6 +202,38 @@ Class used to .
 ```javascript
 const pimarkets = require('pi-markets');
 
+// First login when device is empty (no identity and wallet address)
+let loginService = new pimarkets.SmartIDLogin('mainnet');
+let digitalIdentity = await loginService.firstLogin(
+    "user_name",
+    "{...}",
+    "password"
+);
+
+// Create the smartID so any action can be done
+let smartID = new pimarkets.SmartID(
+    digitalIdentity.signer,
+    digitalIdentity.identity,
+    digitalIdentity.wallet,
+    'mainnet'
+);
+
+// Example of simple transfer of 10 PI
+let transfer = new pimarkets.TransferRequest(
+    pimarkets.Constants.PI,
+    "0x...",
+    pimarkets.Utils.etherStringToWeiBN("10"),
+    "Insert transfer concept",
+    pimarkets.Utils.stringToBN("2")
+);
+
+try {
+    let receipt = await smartID.transfer(transfer);
+    console.log(receipt);
+} catch (error) {
+    console.error(error);
+}
+
 ```
 
 ## Contributing
