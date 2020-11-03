@@ -107,7 +107,7 @@ console.log(owner);
 
 // Token BTC SC call
 let btcToken = contractService.getContractCaller(
-    pimarkets.Constants.BTC,
+    pimarkets.Constants.BTC.address,
     pimarkets.Constants.TOKEN_ABI
 );
 let address = '0x...';
@@ -184,7 +184,7 @@ try {
 
 // THIRD WAY
 let queryTemplates = new pimarkets.QueryTemplates('mainnet');
-let filter = 'sellToken: "' + pimarkets.Constants.EUR + '" ';
+let filter = 'sellToken: "' + pimarkets.Constants.EUR.address + '" ';
 
 try {
     let offersEur = await queryTemplates.getOffers(filter, 'timestamp', 'desc', 3, 0);

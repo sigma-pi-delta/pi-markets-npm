@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.DIA_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLD = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
+exports.DIA_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLD = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
 // URL
 var RPC_URL = "https://connect.pichain.io";
 exports.RPC_URL = RPC_URL;
@@ -66,65 +66,242 @@ var CONTROLLER_ADDRESS_TESTNET = "0xd864aD84602FE08492Bd058cD6aBc47e82CcFF0A";
 exports.CONTROLLER_ADDRESS_TESTNET = CONTROLLER_ADDRESS_TESTNET;
 // TOKENS
 // MainNet
-var PI = "0x0000000000000000000000000000000000000000";
+var PI = {
+    symbol: "PI",
+    address: "0x0000000000000000000000000000000000000000"
+};
 exports.PI = PI;
-var GLD = "0x0dc5c612b313d583398aebcbc3185c6448542f2a";
+var GLD = {
+    symbol: "GLD",
+    address: "0x0dc5c612b313d583398aebcbc3185c6448542f2a"
+};
 exports.GLD = GLD;
-var MVZA = "0x19fba3dba401388dc658670437df5c5971036a66";
-exports.MVZA = MVZA;
-var PTR = "0x458e54534d6efbf2b1b0569f6ff994957bb93c7f";
+var PTR = {
+    symbol: "PTR",
+    address: "0x458e54534d6efbf2b1b0569f6ff994957bb93c7f"
+};
 exports.PTR = PTR;
-var BTC = "0x4c3c844b751c18299932dcd18a3032bd3481d61a";
+var BTC = {
+    symbol: "BTC",
+    address: "0x4c3c844b751c18299932dcd18a3032bd3481d61a"
+};
 exports.BTC = BTC;
-var USC = "0x4f38f0c9a26a480feae22c78576cd3a24dbce834";
+var USC = {
+    symbol: "USC",
+    address: "0x4f38f0c9a26a480feae22c78576cd3a24dbce834"
+};
 exports.USC = USC;
-var ETH = "0x4ffb535bbbbd3d74d2f593bd9c21daa946a68c56";
+var ETH = {
+    symbol: "ETH",
+    address: "0x4ffb535bbbbd3d74d2f593bd9c21daa946a68c56"
+};
 exports.ETH = ETH;
-var EUR = "0x6645223d7947b4534f09dee35796e1c23326fc5b";
+var EUR = {
+    symbol: "EUR",
+    address: "0x6645223d7947b4534f09dee35796e1c23326fc5b"
+};
 exports.EUR = EUR;
-var PEN = "0x6e0c484e9efccf8d29ef229cc5b47b8b79ed8f97";
+var PEN = {
+    symbol: "PEN",
+    address: "0x6e0c484e9efccf8d29ef229cc5b47b8b79ed8f97"
+};
 exports.PEN = PEN;
-var ARS = "0x6e5040f4ba7a6ec228a5247fe690d5df73539b83";
+var ARS = {
+    symbol: "ARS",
+    address: "0x6e5040f4ba7a6ec228a5247fe690d5df73539b83"
+};
 exports.ARS = ARS;
-var USD = "0x77f4ab4a154cf41c0b812f0873a3491dd39f478a";
+var USD = {
+    symbol: "USD",
+    address: "0x77f4ab4a154cf41c0b812f0873a3491dd39f478a"
+};
 exports.USD = USD;
-var IMV = "0x7b47E489c2eC1841c09b346CA1ADd03853A5dA85";
-exports.IMV = IMV;
-var VES = "0x88a83a48bf4039023118ac760e6beaf5e6f110fb";
+var VES = {
+    symbol: "VES",
+    address: "0x88a83a48bf4039023118ac760e6beaf5e6f110fb"
+};
 exports.VES = VES;
-var COP = "0xbe7a8d8c2a26a847bbde18a401066f196bf5657d";
+var COP = {
+    symbol: "COP",
+    address: "0xbe7a8d8c2a26a847bbde18a401066f196bf5657d"
+};
 exports.COP = COP;
-var CMT = "0xc28ce4d4a4428415f810097244646ef23d0f7f22";
-exports.CMT = CMT;
-var VOTE = "0xd2b28cc2de7284a24421aa12f598291ec30c7840";
-exports.VOTE = VOTE;
-var CLP = "0xd9a7f80cd3552e30b62168164bd04c3b8e5dfcc0";
+var CLP = {
+    symbol: "CLP",
+    address: "0xd9a7f80cd3552e30b62168164bd04c3b8e5dfcc0"
+};
 exports.CLP = CLP;
-var PEL = "0xe1f2d5b6d86030660fc2e80965585af3163a1454";
+var PEL = {
+    symbol: "PEL",
+    address: "0xe1f2d5b6d86030660fc2e80965585af3163a1454"
+};
 exports.PEL = PEL;
-var USDT = "0xf4a47b570d8d1c37552229e9acf3678eb9090c99";
+var USDT = {
+    symbol: "USDT",
+    address: "0xf4a47b570d8d1c37552229e9acf3678eb9090c99"
+};
 exports.USDT = USDT;
-var DIA = "0xfb75b3cd83d81937770e5955f3e6565bfecc195f";
+var DIA = {
+    symbol: "DIA",
+    address: "0xfb75b3cd83d81937770e5955f3e6565bfecc195f"
+};
 exports.DIA = DIA;
+//packables
+var CMT = {
+    symbol: "CMT",
+    address: "0xc28ce4d4a4428415f810097244646ef23d0f7f22",
+    expiry: {
+        dic20: "0xf4d673b892f6fcab7102cd5a5d491b10eb92fe62141917263e9d6177533d9f46"
+    }
+};
+exports.CMT = CMT;
+var VOTE = {
+    symbol: "VOTE",
+    address: "0xd2b28cc2de7284a24421aa12f598291ec30c7840",
+    expiry: {
+        id: ""
+    }
+};
+exports.VOTE = VOTE;
+var IMV = {
+    symbol: "IMV",
+    address: "0x7b47E489c2eC1841c09b346CA1ADd03853A5dA85",
+    expiry: {
+        id: ""
+    }
+};
+exports.IMV = IMV;
+var MVZA = {
+    symbol: "MVZA",
+    address: "0x19fba3dba401388dc658670437df5c5971036a66",
+    expiry: {
+        sep20: "0xa2606ae0f41221792d66c0660b868a3d379b2730cdbebe5ad692bc4f03f42432"
+    }
+};
+exports.MVZA = MVZA;
+var RST = {
+    symbol: "RST",
+    address: "0x7af5c748770c5d6fb8f1f949e6892aadcdc4fd52",
+    expiry: {
+        nov20: "0xc94f49fef30fea649378e3a0992a5ed53d90e5d8ee7144f52bbbeb66db688aaa",
+        ene21: "0x041b2ac9bd7b54b942a14323bb7cf435fb3600d191f3b9ba1415cd488f5c8aa0",
+        nov21: "0xb0402b82a618701408716faaec65ae5058dde918812cece7eeaa076523969797"
+    }
+};
+exports.RST = RST;
+var BNC = {
+    symbol: "BNC",
+    address: "0xa58e2aa440308ec13886e7dcfb5bd48e8bad8575",
+    expiry: {
+        nov20: "0xd2e3a36c908e5e4515b4f9508417c7a4fc3344e72f3bf8f56104c158e6fa07b2",
+        nov21: "0xf692cefd47f74d8f3bc14f683162136f062b61b7601d36444a428169c062a26e"
+    }
+};
+exports.BNC = BNC;
+var PGR = {
+    symbol: "PGR",
+    address: "0x1e4420f5d619d09bb4a2ff4e6e4e1b227c62e1ee",
+    expiry: {
+        nov20: "0x3a9785c6bced431109d4eafa2ae1d90b720fb5c1c2f8be888517b85f5aa9dac9",
+        nov21: "0x2d5dea468459751f1cde905674453fe1cce1e58999fc88291bc996aaed37e400"
+    }
+};
+exports.PGR = PGR;
+var ENV = {
+    symbol: "ENV",
+    address: "0x1ff246a656899834a6db02aa5e1858eeaa4bbf9a",
+    expiry: {
+        nov20: "0x6d7fc2c6729563a98f23c2316e16d46fce49089176e56f5136d841687ebb809e",
+        nov21: "0x9310b28b324b4410ad9ef28f35678cdaab1e1f09b257728cb24bae890316f57a"
+    }
+};
+exports.ENV = ENV;
+var TDVD = {
+    symbol: "TDVD",
+    address: "0x9e7b83875339c13cbda56a0594fb0fe4077de221",
+    expiry: {
+        nov20: "0xf4294076dd563df9932d1aaca2684d57d48f990f2cf7358f3e9eea57d6a5c7a2",
+        nov21: "0x958797977c2537d48569e68dc731d813d0dd69c937b5b3694fb9dfe671b40d7e"
+    }
+};
+exports.TDVD = TDVD;
+var BPV = {
+    symbol: "BPV",
+    address: "0xa3ea0b1a827f441be7b115872ab6b0c281c6faa5",
+    expiry: {
+        nov20: "0x430d73868b7cbc3cab3a4b3a7d9f2493c1dbb748acc472925a231fea8636577a",
+        nov21: "0x28156803d030b54832c2ca21fa5bcfc9f40d4b454518ff5ad7e672546d34e666"
+    }
+};
+exports.BPV = BPV;
+var FVIA = {
+    symbol: "FVIA",
+    address: "0xdde2c591b56166b39e64b92d1eace690bb182af5",
+    expiry: {
+        nov20: "0x5090b8841a42b1c50b439f667c3238f83724a1d49df5abf74578d40c5d989685",
+        nov21: "0xcdb3d44451ec1e28dfea5b2deda2c1d4b7466598faa9096b3fb94da48b50d42b"
+    }
+};
+exports.FVIA = FVIA;
+var CRMA = {
+    symbol: "CRMA",
+    address: "0xdf6051372ecf1aff4fe6fa2daa9c0e2a1402b7e7",
+    expiry: {
+        nov20: "0x5d9fc42c1569608d953bb140ae5a0c77c9217dc08428afcf1593d82bbff174ab",
+        nov21: "0x891ecbe18731b97f347b59c34b4c22834519832a1a424be38927e40dbaf5449a"
+    }
+};
+exports.CRMA = CRMA;
 // TestNet
-var PI_TESTNET = "0x0000000000000000000000000000000000000000";
+var PI_TESTNET = {
+    symbol: "PI_TESTNET",
+    address: "0x0000000000000000000000000000000000000000"
+};
 exports.PI_TESTNET = PI_TESTNET;
-var VES_TESTNET = "0x3fdfa8d0629ef77a9654798c0a479b33ade48b80";
+var VES_TESTNET = {
+    symbol: "VES_TESTNET",
+    address: "0x3fdfa8d0629ef77a9654798c0a479b33ade48b80"
+};
 exports.VES_TESTNET = VES_TESTNET;
-var BTC_TESTNET = "0x515234b2122a1fb51fcbe360d2379e35135b980a";
+var BTC_TESTNET = {
+    symbol: "BTC_TESTNET",
+    address: "0x515234b2122a1fb51fcbe360d2379e35135b980a"
+};
 exports.BTC_TESTNET = BTC_TESTNET;
-var ETH_TESTNET = "0x55d4a11196c8b1d0c03664e9c29296250a11635b";
+var ETH_TESTNET = {
+    symbol: "ETH_TESTNET",
+    address: "0x55d4a11196c8b1d0c03664e9c29296250a11635b"
+};
 exports.ETH_TESTNET = ETH_TESTNET;
-var EUR_TESTNET = "0xbb7636c26e22d0adb7762546a243ec38fef3eb7f";
+var EUR_TESTNET = {
+    symbol: "EUR_TESTNET",
+    address: "0xbb7636c26e22d0adb7762546a243ec38fef3eb7f"
+};
 exports.EUR_TESTNET = EUR_TESTNET;
-var USD_TESTNET = "0xd4bcb641224aea90dd39f65c2344925315348564";
+var USD_TESTNET = {
+    symbol: "USD_TESTNET",
+    address: "0xd4bcb641224aea90dd39f65c2344925315348564"
+};
 exports.USD_TESTNET = USD_TESTNET;
-var GLD_TESTNET = "0xa722eeb4972ad557e2094834ba29d68a62ffc264";
+var GLD_TESTNET = {
+    symbol: "GLD_TESTNET",
+    address: "0xa722eeb4972ad557e2094834ba29d68a62ffc264"
+};
 exports.GLD_TESTNET = GLD_TESTNET;
-var CMT_TESTNET = "0x993817a0bfffb2c86eba1b641446aac9c0bfa1ee";
-exports.CMT_TESTNET = CMT_TESTNET;
-var DIA_TESTNET = "0xca8eebf7b0268113328dba98061599f28d383c80";
+var DIA_TESTNET = {
+    symbol: "DIA_TESTNET",
+    address: "0xca8eebf7b0268113328dba98061599f28d383c80"
+};
 exports.DIA_TESTNET = DIA_TESTNET;
+var CMT_TESTNET = {
+    symbol: "CMT_TESTNET",
+    address: "0x993817a0bfffb2c86eba1b641446aac9c0bfa1ee",
+    expiry: {
+        nov20: "",
+        nov21: ""
+    }
+};
+exports.CMT_TESTNET = CMT_TESTNET;
 // OTHER
 var MIN_GAS_PRICE = "1000000000";
 exports.MIN_GAS_PRICE = MIN_GAS_PRICE;
