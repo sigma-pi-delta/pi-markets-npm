@@ -452,7 +452,7 @@ export class QueryTemplates {
         skip: number,
         token: string
     ) {
-        let customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
+        let customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
         let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
@@ -472,7 +472,7 @@ export class QueryTemplates {
         skip: number,
         token: string
     ) {
-        let customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+        let customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
         let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 

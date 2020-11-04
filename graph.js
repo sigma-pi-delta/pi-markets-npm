@@ -591,7 +591,7 @@ var QueryTemplates = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
+                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -618,7 +618,7 @@ var QueryTemplates = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ tokenBalances(where:{token:' + token + ', balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
