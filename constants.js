@@ -151,7 +151,7 @@ var CMT = {
     symbol: "CMT",
     address: "0xc28ce4d4a4428415f810097244646ef23d0f7f22",
     expiry: {
-        dic20: "0xf4d673b892f6fcab7102cd5a5d491b10eb92fe62141917263e9d6177533d9f46"
+        dic20: ["dic20", "0xf4d673b892f6fcab7102cd5a5d491b10eb92fe62141917263e9d6177533d9f46"]
     }
 };
 exports.CMT = CMT;
@@ -175,7 +175,7 @@ var MVZA = {
     symbol: "MVZA",
     address: "0x19fba3dba401388dc658670437df5c5971036a66",
     expiry: {
-        sep20: "0xa2606ae0f41221792d66c0660b868a3d379b2730cdbebe5ad692bc4f03f42432"
+        sep20: ["sep20", "0xa2606ae0f41221792d66c0660b868a3d379b2730cdbebe5ad692bc4f03f42432"]
     }
 };
 exports.MVZA = MVZA;
@@ -183,9 +183,9 @@ var RST = {
     symbol: "RST",
     address: "0x7af5c748770c5d6fb8f1f949e6892aadcdc4fd52",
     expiry: {
-        nov20: "0xc94f49fef30fea649378e3a0992a5ed53d90e5d8ee7144f52bbbeb66db688aaa",
-        ene21: "0x041b2ac9bd7b54b942a14323bb7cf435fb3600d191f3b9ba1415cd488f5c8aa0",
-        nov21: "0xb0402b82a618701408716faaec65ae5058dde918812cece7eeaa076523969797"
+        nov20: ["nov20", "0xc94f49fef30fea649378e3a0992a5ed53d90e5d8ee7144f52bbbeb66db688aaa"],
+        ene21: ["ene21", "0x041b2ac9bd7b54b942a14323bb7cf435fb3600d191f3b9ba1415cd488f5c8aa0"],
+        nov21: ["nov21", "0xb0402b82a618701408716faaec65ae5058dde918812cece7eeaa076523969797"]
     }
 };
 exports.RST = RST;
@@ -193,8 +193,8 @@ var BNC = {
     symbol: "BNC",
     address: "0xa58e2aa440308ec13886e7dcfb5bd48e8bad8575",
     expiry: {
-        nov20: "0xd2e3a36c908e5e4515b4f9508417c7a4fc3344e72f3bf8f56104c158e6fa07b2",
-        nov21: "0xf692cefd47f74d8f3bc14f683162136f062b61b7601d36444a428169c062a26e"
+        nov20: ["nov20", "0xd2e3a36c908e5e4515b4f9508417c7a4fc3344e72f3bf8f56104c158e6fa07b2"],
+        nov21: ["nov21", "0xf692cefd47f74d8f3bc14f683162136f062b61b7601d36444a428169c062a26e"]
     }
 };
 exports.BNC = BNC;
@@ -202,8 +202,8 @@ var PGR = {
     symbol: "PGR",
     address: "0x1e4420f5d619d09bb4a2ff4e6e4e1b227c62e1ee",
     expiry: {
-        nov20: "0x3a9785c6bced431109d4eafa2ae1d90b720fb5c1c2f8be888517b85f5aa9dac9",
-        nov21: "0x2d5dea468459751f1cde905674453fe1cce1e58999fc88291bc996aaed37e400"
+        nov20: ["nov20", "0x3a9785c6bced431109d4eafa2ae1d90b720fb5c1c2f8be888517b85f5aa9dac9"],
+        nov21: ["nov21", "0x2d5dea468459751f1cde905674453fe1cce1e58999fc88291bc996aaed37e400"]
     }
 };
 exports.PGR = PGR;
@@ -211,8 +211,8 @@ var ENV = {
     symbol: "ENV",
     address: "0x1ff246a656899834a6db02aa5e1858eeaa4bbf9a",
     expiry: {
-        nov20: "0x6d7fc2c6729563a98f23c2316e16d46fce49089176e56f5136d841687ebb809e",
-        nov21: "0x9310b28b324b4410ad9ef28f35678cdaab1e1f09b257728cb24bae890316f57a"
+        nov20: ["nov20", "0x6d7fc2c6729563a98f23c2316e16d46fce49089176e56f5136d841687ebb809e"],
+        nov21: ["nov21", "0x9310b28b324b4410ad9ef28f35678cdaab1e1f09b257728cb24bae890316f57a"]
     }
 };
 exports.ENV = ENV;
@@ -220,8 +220,8 @@ var TDVD = {
     symbol: "TDVD",
     address: "0x9e7b83875339c13cbda56a0594fb0fe4077de221",
     expiry: {
-        nov20: "0xf4294076dd563df9932d1aaca2684d57d48f990f2cf7358f3e9eea57d6a5c7a2",
-        nov21: "0x958797977c2537d48569e68dc731d813d0dd69c937b5b3694fb9dfe671b40d7e"
+        nov20: ["nov20", "0xf4294076dd563df9932d1aaca2684d57d48f990f2cf7358f3e9eea57d6a5c7a2"],
+        nov21: ["nov21", "0x958797977c2537d48569e68dc731d813d0dd69c937b5b3694fb9dfe671b40d7e"]
     }
 };
 exports.TDVD = TDVD;
@@ -229,8 +229,8 @@ var BPV = {
     symbol: "BPV",
     address: "0xa3ea0b1a827f441be7b115872ab6b0c281c6faa5",
     expiry: {
-        nov20: "0x430d73868b7cbc3cab3a4b3a7d9f2493c1dbb748acc472925a231fea8636577a",
-        nov21: "0x28156803d030b54832c2ca21fa5bcfc9f40d4b454518ff5ad7e672546d34e666"
+        nov20: ["nov20", "0x430d73868b7cbc3cab3a4b3a7d9f2493c1dbb748acc472925a231fea8636577a"],
+        nov21: ["nov21", "0x28156803d030b54832c2ca21fa5bcfc9f40d4b454518ff5ad7e672546d34e666"]
     }
 };
 exports.BPV = BPV;
@@ -238,8 +238,8 @@ var FVIA = {
     symbol: "FVIA",
     address: "0xdde2c591b56166b39e64b92d1eace690bb182af5",
     expiry: {
-        nov20: "0x5090b8841a42b1c50b439f667c3238f83724a1d49df5abf74578d40c5d989685",
-        nov21: "0xcdb3d44451ec1e28dfea5b2deda2c1d4b7466598faa9096b3fb94da48b50d42b"
+        nov20: ["nov20", "0x5090b8841a42b1c50b439f667c3238f83724a1d49df5abf74578d40c5d989685"],
+        nov21: ["nov21", "0xcdb3d44451ec1e28dfea5b2deda2c1d4b7466598faa9096b3fb94da48b50d42b"]
     }
 };
 exports.FVIA = FVIA;
@@ -247,8 +247,8 @@ var CRMA = {
     symbol: "CRMA",
     address: "0xdf6051372ecf1aff4fe6fa2daa9c0e2a1402b7e7",
     expiry: {
-        nov20: "0x5d9fc42c1569608d953bb140ae5a0c77c9217dc08428afcf1593d82bbff174ab",
-        nov21: "0x891ecbe18731b97f347b59c34b4c22834519832a1a424be38927e40dbaf5449a"
+        nov20: ["nov20", "0x5d9fc42c1569608d953bb140ae5a0c77c9217dc08428afcf1593d82bbff174ab"],
+        nov21: ["nov21", "0x891ecbe18731b97f347b59c34b4c22834519832a1a424be38927e40dbaf5449a"]
     }
 };
 exports.CRMA = CRMA;
