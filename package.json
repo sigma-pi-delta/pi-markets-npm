@@ -1,6 +1,6 @@
 {
   "name": "pi-markets",
-  "version": "0.0.41",
+  "version": "0.0.42",
   "description": "Package to work with PiMarkets",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "ethers": "^4.0.48",
+    "exceljs": "^4.2.0",
     "node-fetch": "^2.6.1"
   },
   "repository": {
