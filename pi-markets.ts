@@ -15,6 +15,7 @@ import {
     P2POfferCommodity,
     P2POfferPackable
 } from './smartid';
+import { Report } from './reports';
 
 export {
     Constants, 
@@ -34,5 +35,6 @@ export {
     TransferNFTRequest,
     P2POffer,
     P2POfferCommodity,
-    P2POfferPackable
+    P2POfferPackable,
+    Report
 }
