@@ -40,7 +40,7 @@ export class Query {
     public skip: number;
     public isClean: boolean;
 
-    constructor(subgraph: "bank" | "p2p" | "market" | string, url: string = 'mainnet') {
+    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | string, url: string = 'mainnet') {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
         this.first = 1000;
         this.skip = 0;
@@ -514,10 +514,11 @@ export class QueryTemplates {
         orderBy: string,
         orderDirection: "asc" | "desc",
         first: number,
-        skip: number
+        skip: number,
+        market: "p2p" | "p2p-primary" = "p2p"
     ) {
         let customQuery = '{ offers(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } initialSellAmount sellAmount buyToken { id tokenSymbol } sellAmount price isPartial isBuyFiat isSellFiat minDealAmount maxDealAmount minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
-        let query = new Query('p2p', this.network);
+        let query = new Query(market, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -534,10 +535,11 @@ export class QueryTemplates {
         orderBy: string,
         orderDirection: "asc" | "desc",
         first: number,
-        skip: number
+        skip: number,
+        market: "p2p" | "p2p-primary" = "p2p"
     ) {
         let customQuery = '{ offerPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: '+ orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } initialSellAmount sellAmount sellId { tokenId metadata } buyToken { id tokenSymbol } sellAmount price price_per_unit isPartial isBuyFiat isSellFiat minDealAmount maxDealAmount minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
-        let query = new Query('p2p', this.network);
+        let query = new Query(market, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -554,10 +556,11 @@ export class QueryTemplates {
         orderBy: string,
         orderDirection: "asc" | "desc",
         first: number,
-        skip: number
+        skip: number,
+        market: "p2p" | "p2p-primary" = "p2p"
     ) {
         let customQuery = '{ offerCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } sellId { tokenId metadata reference } buyToken { id tokenSymbol } price isBuyFiat minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
-        let query = new Query('p2p', this.network);
+        let query = new Query(market, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -574,10 +577,11 @@ export class QueryTemplates {
         orderBy: string,
         orderDirection: "asc" | "desc",
         first: number,
-        skip: number
+        skip: number,
+        market: "p2p" | "p2p-primary" = "p2p"
     ) {
         let customQuery = '{ deals(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
-        let query = new Query('p2p', this.network);
+        let query = new Query(market, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -594,10 +598,11 @@ export class QueryTemplates {
         orderBy: string,
         orderDirection: "asc" | "desc",
         first: number,
-        skip: number
+        skip: number,
+        market: "p2p" | "p2p-primary" = "p2p"
     ) {
         let customQuery = '{ dealPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
-        let query = new Query('p2p', this.network);
+        let query = new Query(market, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -614,10 +619,11 @@ export class QueryTemplates {
         orderBy: string,
         orderDirection: "asc" | "desc",
         first: number,
-        skip: number
+        skip: number,
+        market: "p2p" | "p2p-primary" = "p2p"
     ) {
         let customQuery = '{ dealCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata reference } } seller { id name offchainReputation } buyer { id offchainReputation } buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
-        let query = new Query('p2p', this.network);
+        let query = new Query(market, this.network);
         query.setCustomQuery(customQuery);
 
         try {

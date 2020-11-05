@@ -668,14 +668,15 @@ var QueryTemplates = /** @class */ (function () {
         });
     };
     /******** P2P */
-    QueryTemplates.prototype.getOffers = function (filter, orderBy, orderDirection, first, skip) {
+    QueryTemplates.prototype.getOffers = function (filter, orderBy, orderDirection, first, skip, market) {
+        if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_17;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ offers(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } initialSellAmount sellAmount buyToken { id tokenSymbol } sellAmount price isPartial isBuyFiat isSellFiat minDealAmount maxDealAmount minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
-                        query = new Query('p2p', this.network);
+                        query = new Query(market, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -695,14 +696,15 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getPackableOffers = function (filter, orderBy, orderDirection, first, skip) {
+    QueryTemplates.prototype.getPackableOffers = function (filter, orderBy, orderDirection, first, skip, market) {
+        if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_18;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ offerPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } initialSellAmount sellAmount sellId { tokenId metadata } buyToken { id tokenSymbol } sellAmount price price_per_unit isPartial isBuyFiat isSellFiat minDealAmount maxDealAmount minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
-                        query = new Query('p2p', this.network);
+                        query = new Query(market, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -722,14 +724,15 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getNFTOffers = function (filter, orderBy, orderDirection, first, skip) {
+    QueryTemplates.prototype.getNFTOffers = function (filter, orderBy, orderDirection, first, skip, market) {
+        if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_19;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ offerCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } sellToken { id tokenSymbol } sellId { tokenId metadata reference } buyToken { id tokenSymbol } price isBuyFiat minReputation isOpen auditor description country payMethod payAccount timestamp deals { id } } }';
-                        query = new Query('p2p', this.network);
+                        query = new Query(market, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -749,14 +752,15 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getDeals = function (filter, orderBy, orderDirection, first, skip) {
+    QueryTemplates.prototype.getDeals = function (filter, orderBy, orderDirection, first, skip, market) {
+        if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_20;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ deals(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
-                        query = new Query('p2p', this.network);
+                        query = new Query(market, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -776,14 +780,15 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getPackableDeals = function (filter, orderBy, orderDirection, first, skip) {
+    QueryTemplates.prototype.getPackableDeals = function (filter, orderBy, orderDirection, first, skip, market) {
+        if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_21;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ dealPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
-                        query = new Query('p2p', this.network);
+                        query = new Query(market, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -803,14 +808,15 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getNFTDeals = function (filter, orderBy, orderDirection, first, skip) {
+    QueryTemplates.prototype.getNFTDeals = function (filter, orderBy, orderDirection, first, skip, market) {
+        if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_22;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ dealCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata reference } } seller { id name offchainReputation } buyer { id offchainReputation } buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
-                        query = new Query('p2p', this.network);
+                        query = new Query(market, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
