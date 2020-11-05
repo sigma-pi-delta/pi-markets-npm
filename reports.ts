@@ -83,7 +83,7 @@ export class Report {
     ) {
         const first = 1000;
         let skip = 0;
-        let queryTemplates = new QueryTemplates('mainnet');
+        let queryTemplates = new QueryTemplates(this.url);
         const workbook = new ExcelJS.Workbook();
     
         for (let i = 0; i < tokensArray.length; i++) {
@@ -213,7 +213,7 @@ export class Report {
     ) {
         const first = 1000;
         let skip = 0;
-        let queryTemplates = new QueryTemplates('mainnet');
+        let queryTemplates = new QueryTemplates(this.url);
         const workbook = new ExcelJS.Workbook();
     
         for (let i = 0; i < tokensArray.length; i++) {
@@ -347,7 +347,7 @@ export class Report {
     ) {
         const first = 1000;
         let skip = 0;
-        let queryTemplates = new QueryTemplates('mainnet');
+        let queryTemplates = new QueryTemplates(this.url);
         const workbook = new ExcelJS.Workbook();
     
         for (let i = 0; i < tokensArray.length; i++) {
@@ -957,7 +957,7 @@ async function getTransactions(
 ) {
     let skip = 0;
     let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } }';
-    let queryService = new Query('bank', 'mainnet');
+    let queryService = new Query('bank', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryTransactions = response.transactions;
@@ -982,7 +982,7 @@ async function getOffers(
 ) {
     let skip = 0;
     let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', 'mainnet');
+    let queryService = new Query('p2p', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1007,7 +1007,7 @@ async function getRequests(
 ) {
     let skip = 0;
     let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', 'mainnet');
+    let queryService = new Query('p2p', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1032,7 +1032,7 @@ async function getOffersPrimary(
 ) {
     let skip = 0;
     let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', 'mainnet');
+    let queryService = new Query('p2p-primary', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1057,7 +1057,7 @@ async function getRequestsPrimary(
 ) {
     let skip = 0;
     let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', 'mainnet');
+    let queryService = new Query('p2p-primary', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1082,7 +1082,7 @@ async function getPackableOffers(
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', 'mainnet');
+    let queryService = new Query('p2p', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;
@@ -1107,7 +1107,7 @@ async function getPackableRequests(
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', 'mainnet');
+    let queryService = new Query('p2p', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;
@@ -1132,7 +1132,7 @@ async function getPackableOffersPrimary(
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', 'mainnet');
+    let queryService = new Query('p2p-primary', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;
@@ -1157,7 +1157,7 @@ async function getPackableRequestsPrimary(
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', 'mainnet');
+    let queryService = new Query('p2p-primary', this.url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;

@@ -115,7 +115,7 @@ var Report = /** @class */ (function () {
                     case 0:
                         first = 1000;
                         skip = 0;
-                        queryTemplates = new graph_1.QueryTemplates('mainnet');
+                        queryTemplates = new graph_1.QueryTemplates(this.url);
                         workbook = new ExcelJS.Workbook();
                         i = 0;
                         _a.label = 1;
@@ -219,7 +219,7 @@ var Report = /** @class */ (function () {
                     case 0:
                         first = 1000;
                         skip = 0;
-                        queryTemplates = new graph_1.QueryTemplates('mainnet');
+                        queryTemplates = new graph_1.QueryTemplates(this.url);
                         workbook = new ExcelJS.Workbook();
                         i = 0;
                         _a.label = 1;
@@ -328,7 +328,7 @@ var Report = /** @class */ (function () {
                     case 0:
                         first = 1000;
                         skip = 0;
-                        queryTemplates = new graph_1.QueryTemplates('mainnet');
+                        queryTemplates = new graph_1.QueryTemplates(this.url);
                         workbook = new ExcelJS.Workbook();
                         i = 0;
                         _a.label = 1;
@@ -893,7 +893,7 @@ function getTransactions(_timeLow, _timeHigh, _tokenAddress) {
                 case 0:
                     skip = 0;
                     query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } }';
-                    queryService = new graph_1.Query('bank', 'mainnet');
+                    queryService = new graph_1.Query('bank', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -925,7 +925,7 @@ function getOffers(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p', 'mainnet');
+                    queryService = new graph_1.Query('p2p', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -957,7 +957,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p', 'mainnet');
+                    queryService = new graph_1.Query('p2p', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -989,7 +989,7 @@ function getOffersPrimary(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p-primary', 'mainnet');
+                    queryService = new graph_1.Query('p2p-primary', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -1021,7 +1021,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p-primary', 'mainnet');
+                    queryService = new graph_1.Query('p2p-primary', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -1053,7 +1053,7 @@ function getPackableOffers(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p', 'mainnet');
+                    queryService = new graph_1.Query('p2p', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -1085,7 +1085,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p', 'mainnet');
+                    queryService = new graph_1.Query('p2p', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -1117,7 +1117,7 @@ function getPackableOffersPrimary(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p-primary', 'mainnet');
+                    queryService = new graph_1.Query('p2p-primary', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
@@ -1149,7 +1149,7 @@ function getPackableRequestsPrimary(_timeLow, _timeHigh, _tokensAddress) {
                 case 0:
                     skip = 0;
                     query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-                    queryService = new graph_1.Query('p2p-primary', 'mainnet');
+                    queryService = new graph_1.Query('p2p-primary', this.url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 1:
