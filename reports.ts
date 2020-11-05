@@ -22,7 +22,7 @@ export class Report {
 
         for (let i = 0; i < tokensArray.length; i++) {
             let sheet = workbook.addWorksheet(tokensArray[i].symbol);
-            let transactions = await getTransactions(timeLow, timeHigh, tokensArray[i].address);
+            let transactions = await getTransactions(timeLow, timeHigh, tokensArray[i].address, this.url);
 
             if (transactions.length > 0) {
                 let rows = [];
@@ -479,10 +479,10 @@ export class Report {
         for (let i = 0; i < tokensArray.length; i++) {
             let sheet: any;
             let sheet2: any;
-            let offers = await getOffers(timeLow, timeHigh, tokensArray[i].address);
-            let offersPrimary = await getOffersPrimary(timeLow, timeHigh, tokensArray[i].address);
-            let requests = await getRequests(timeLow, timeHigh, tokensArray[i].address);
-            let requestsPrimary = await getRequestsPrimary(timeLow, timeHigh, tokensArray[i].address);
+            let offers = await getOffers(timeLow, timeHigh, tokensArray[i].address, this.url);
+            let offersPrimary = await getOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
+            let requests = await getRequests(timeLow, timeHigh, tokensArray[i].address, this.url);
+            let requestsPrimary = await getRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
     
             if ((offers.length > 0) || (requests.length > 0)) {
                 sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
@@ -719,10 +719,10 @@ export class Report {
         for (let i = 0; i < tokensArray.length; i++) {
             let sheet: any;
             let sheet2: any;
-            let offers = await getPackableOffers(timeLow, timeHigh, tokensArray[i].address);
-            let offersPrimary = await getPackableOffersPrimary(timeLow, timeHigh, tokensArray[i].address);
-            let requests = await getPackableRequests(timeLow, timeHigh, tokensArray[i].address);
-            let requestsPrimary = await getPackableRequestsPrimary(timeLow, timeHigh, tokensArray[i].address);
+            let offers = await getPackableOffers(timeLow, timeHigh, tokensArray[i].address, this.url);
+            let offersPrimary = await getPackableOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
+            let requests = await getPackableRequests(timeLow, timeHigh, tokensArray[i].address, this.url);
+            let requestsPrimary = await getPackableRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
     
             if ((offers.length > 0) || (requests.length > 0)) {
                 sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
@@ -953,11 +953,12 @@ export class Report {
 async function getTransactions(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokenAddress: string
+    _tokenAddress: string,
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } }';
-    let queryService = new Query('bank', this.url);
+    let queryService = new Query('bank', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryTransactions = response.transactions;
@@ -978,11 +979,12 @@ async function getTransactions(
 async function getOffers(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', this.url);
+    let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1003,11 +1005,12 @@ async function getOffers(
 async function getRequests(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', this.url);
+    let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1028,11 +1031,12 @@ async function getRequests(
 async function getOffersPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', this.url);
+    let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1053,11 +1057,12 @@ async function getOffersPrimary(
 async function getRequestsPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', this.url);
+    let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offers;
@@ -1078,11 +1083,12 @@ async function getRequestsPrimary(
 async function getPackableOffers(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', this.url);
+    let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;
@@ -1103,11 +1109,12 @@ async function getPackableOffers(
 async function getPackableRequests(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p', this.url);
+    let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;
@@ -1128,11 +1135,12 @@ async function getPackableRequests(
 async function getPackableOffersPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', this.url);
+    let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;
@@ -1153,11 +1161,12 @@ async function getPackableOffersPrimary(
 async function getPackableRequestsPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[]
+    _tokensAddress: string[],
+    _url: string = 'mainnet'
 ) {
     let skip = 0;
     let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
-    let queryService = new Query('p2p-primary', this.url);
+    let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
     let queryOffers = response.offerPackables;
