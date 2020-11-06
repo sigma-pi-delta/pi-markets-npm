@@ -2,6 +2,7 @@
 const ExcelJS = require('exceljs');
 import { Query, QueryTemplates } from './graph';
 import { weiToEther } from './utils';
+const FileSaver = require('file-saver');
 
 export class Report {
 
@@ -73,7 +74,17 @@ export class Report {
             }
         }
 
-        await workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx');
+        try {
+            await workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
     async getTokenHoldersReport(
@@ -202,7 +213,17 @@ export class Report {
             }
         }
     
-        await workbook.xlsx.writeFile('PiMarketsTokenHoldersReport.xlsx');
+        try {
+            await workbook.xlsx.writeFile('PiMarketsTokenHoldersReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenHoldersReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
     async getPackableHoldersReport(
@@ -337,7 +358,17 @@ export class Report {
             }
         }
     
-        await workbook.xlsx.writeFile('PiMarketsPackableHoldersReport.xlsx');
+        try {
+            await workbook.xlsx.writeFile('PiMarketsPackableHoldersReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableHoldersReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
     async getCollectableHoldersReport(
@@ -465,8 +496,18 @@ export class Report {
                 );
             }
         }
-    
-        await workbook.xlsx.writeFile('PiMarketsCollectableHoldersReport.xlsx');
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsCollectableHoldersReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsCollectableHoldersReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
     async getTokenDealsReport(
@@ -705,8 +746,18 @@ export class Report {
                 }
             }
         }
-    
-        await workbook.xlsx.writeFile('PiMarketsTokenDealsReport.xlsx');
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsTokenDealsReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 
     async getPackableDealsReport(
@@ -945,8 +996,18 @@ export class Report {
                 }
             }
         }
-    
-        await workbook.xlsx.writeFile('PiMarketsPackableDealsReport.xlsx');
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsPackableDealsReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
     }
 }
 

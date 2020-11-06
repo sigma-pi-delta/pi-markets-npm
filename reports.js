@@ -41,6 +41,7 @@ exports.Report = void 0;
 var ExcelJS = require('exceljs');
 var graph_1 = require("./graph");
 var utils_1 = require("./utils");
+var FileSaver = require('file-saver');
 var Report = /** @class */ (function () {
     function Report(url) {
         if (url === void 0) { url = 'mainnet'; }
@@ -48,7 +49,7 @@ var Report = /** @class */ (function () {
     }
     Report.prototype.getTransactionReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, transactions, rows, j, array, tableName;
+            var workbook, i, sheet, transactions, rows, j, array, tableName, error_1, buffer, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -99,17 +100,37 @@ var Report = /** @class */ (function () {
                     case 3:
                         i++;
                         return [3 /*break*/, 1];
-                    case 4: return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx')];
+                    case 4:
+                        _a.trys.push([4, 6, , 12]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx')];
                     case 5:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 12];
+                    case 6:
+                        error_1 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 7:
+                        buffer = _a.sent();
+                        _a.label = 8;
+                    case 8:
+                        _a.trys.push([8, 10, , 11]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReport.xlsx')];
+                    case 9:
+                        _a.sent();
+                        return [3 /*break*/, 11];
+                    case 10:
+                        err_1 = _a.sent();
+                        console.error(err_1);
+                        return [3 /*break*/, 11];
+                    case 11: return [3 /*break*/, 12];
+                    case 12: return [2 /*return*/];
                 }
             });
         });
     };
     Report.prototype.getTokenHoldersReport = function (orderBy, orderDirection, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_2, buffer, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -203,17 +224,37 @@ var Report = /** @class */ (function () {
                     case 12:
                         i++;
                         return [3 /*break*/, 1];
-                    case 13: return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenHoldersReport.xlsx')];
+                    case 13:
+                        _a.trys.push([13, 15, , 21]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenHoldersReport.xlsx')];
                     case 14:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 21];
+                    case 15:
+                        error_2 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 16:
+                        buffer = _a.sent();
+                        _a.label = 17;
+                    case 17:
+                        _a.trys.push([17, 19, , 20]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenHoldersReport.xlsx')];
+                    case 18:
+                        _a.sent();
+                        return [3 /*break*/, 20];
+                    case 19:
+                        err_2 = _a.sent();
+                        console.error(err_2);
+                        return [3 /*break*/, 20];
+                    case 20: return [3 /*break*/, 21];
+                    case 21: return [2 /*return*/];
                 }
             });
         });
     };
     Report.prototype.getPackableHoldersReport = function (orderBy, orderDirection, tokensArray, expiries) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_3, buffer, err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -312,17 +353,37 @@ var Report = /** @class */ (function () {
                     case 12:
                         i++;
                         return [3 /*break*/, 1];
-                    case 13: return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableHoldersReport.xlsx')];
+                    case 13:
+                        _a.trys.push([13, 15, , 21]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableHoldersReport.xlsx')];
                     case 14:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 21];
+                    case 15:
+                        error_3 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 16:
+                        buffer = _a.sent();
+                        _a.label = 17;
+                    case 17:
+                        _a.trys.push([17, 19, , 20]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableHoldersReport.xlsx')];
+                    case 18:
+                        _a.sent();
+                        return [3 /*break*/, 20];
+                    case 19:
+                        err_3 = _a.sent();
+                        console.error(err_3);
+                        return [3 /*break*/, 20];
+                    case 20: return [3 /*break*/, 21];
+                    case 21: return [2 /*return*/];
                 }
             });
         });
     };
     Report.prototype.getCollectableHoldersReport = function (orderBy, orderDirection, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -416,17 +477,37 @@ var Report = /** @class */ (function () {
                     case 12:
                         i++;
                         return [3 /*break*/, 1];
-                    case 13: return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsCollectableHoldersReport.xlsx')];
+                    case 13:
+                        _a.trys.push([13, 15, , 21]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsCollectableHoldersReport.xlsx')];
                     case 14:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 21];
+                    case 15:
+                        error_4 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 16:
+                        buffer = _a.sent();
+                        _a.label = 17;
+                    case 17:
+                        _a.trys.push([17, 19, , 20]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsCollectableHoldersReport.xlsx')];
+                    case 18:
+                        _a.sent();
+                        return [3 /*break*/, 20];
+                    case 19:
+                        err_4 = _a.sent();
+                        console.error(err_4);
+                        return [3 /*break*/, 20];
+                    case 20: return [3 /*break*/, 21];
+                    case 21: return [2 /*return*/];
                 }
             });
         });
     };
     Report.prototype.getTokenDealsReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName;
+            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_5, buffer, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -645,17 +726,37 @@ var Report = /** @class */ (function () {
                     case 21:
                         i++;
                         return [3 /*break*/, 1];
-                    case 22: return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenDealsReport.xlsx')];
+                    case 22:
+                        _a.trys.push([22, 24, , 30]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenDealsReport.xlsx')];
                     case 23:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 30];
+                    case 24:
+                        error_5 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 25:
+                        buffer = _a.sent();
+                        _a.label = 26;
+                    case 26:
+                        _a.trys.push([26, 28, , 29]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReport.xlsx')];
+                    case 27:
+                        _a.sent();
+                        return [3 /*break*/, 29];
+                    case 28:
+                        err_5 = _a.sent();
+                        console.error(err_5);
+                        return [3 /*break*/, 29];
+                    case 29: return [3 /*break*/, 30];
+                    case 30: return [2 /*return*/];
                 }
             });
         });
     };
     Report.prototype.getPackableDealsReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName;
+            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_6, buffer, err_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -874,10 +975,30 @@ var Report = /** @class */ (function () {
                     case 21:
                         i++;
                         return [3 /*break*/, 1];
-                    case 22: return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableDealsReport.xlsx')];
+                    case 22:
+                        _a.trys.push([22, 24, , 30]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableDealsReport.xlsx')];
                     case 23:
                         _a.sent();
-                        return [2 /*return*/];
+                        return [3 /*break*/, 30];
+                    case 24:
+                        error_6 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 25:
+                        buffer = _a.sent();
+                        _a.label = 26;
+                    case 26:
+                        _a.trys.push([26, 28, , 29]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReport.xlsx')];
+                    case 27:
+                        _a.sent();
+                        return [3 /*break*/, 29];
+                    case 28:
+                        err_6 = _a.sent();
+                        console.error(err_6);
+                        return [3 /*break*/, 29];
+                    case 29: return [3 /*break*/, 30];
+                    case 30: return [2 /*return*/];
                 }
             });
         });
