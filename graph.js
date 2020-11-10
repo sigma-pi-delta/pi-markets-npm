@@ -100,6 +100,9 @@ var Query = /** @class */ (function () {
             else if (subgraph == 'market') {
                 this.subgraph = Constants.MARKETS_SUBGRAPH;
             }
+            else if (subgraph == 'auction') {
+                this.subgraph = Constants.AUCTION_SUBGRAPH;
+            }
             else {
                 this.subgraph = subgraph;
             }
@@ -117,6 +120,9 @@ var Query = /** @class */ (function () {
             }
             else if (subgraph == 'market') {
                 this.subgraph = Constants.MARKETS_SUBGRAPH_TESTNET;
+            }
+            else if (subgraph == 'auction') {
+                this.subgraph = Constants.AUCTION_SUBGRAPH_TESTNET;
             }
             else {
                 this.subgraph = subgraph;
@@ -859,6 +865,61 @@ var QueryTemplates = /** @class */ (function () {
                         error_23 = _a.sent();
                         console.error(error_23);
                         throw new Error(error_23);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /******** AUCTIONS */
+    QueryTemplates.prototype.getAuctions = function (filter, orderBy, orderDirection, first, skip) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_24;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ auctions (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { id } auctionPackable { id } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id } startTime endTime auditor category bids { id bidder { id name } bid bids isCancel auction { id } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } }';
+                        query = new Query("auction", this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.auctions];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_24 = _a.sent();
+                        console.error(error_24);
+                        throw new Error(error_24);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getBids = function (filter, orderBy, orderDirection, first, skip) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_25;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder timestamp isCancel auction { auctionToken { id tokenSymbol } bidToken { id tokenSymbol } maxBid maxBidder { name id } endTime isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
+                        query = new Query("auction", this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.bids];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_25 = _a.sent();
+                        console.error(error_25);
+                        throw new Error(error_25);
                     case 4: return [2 /*return*/];
                 }
             });

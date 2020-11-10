@@ -13,7 +13,8 @@ import {
     TransferNFTRequest,
     P2POffer,
     P2POfferCommodity,
-    P2POfferPackable
+    P2POfferPackable,
+    AuctionParams
 } from './smartid';
 import { Report } from './reports';
 
@@ -36,5 +37,6 @@ export {
     P2POffer,
     P2POfferCommodity,
     P2POfferPackable,
+    AuctionParams,
     Report
 }

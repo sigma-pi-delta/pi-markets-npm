@@ -711,6 +711,217 @@ export class SmartID {
             throw new Error(error);
         }
     }
+
+    /******** AUCTIONS */
+
+    // WHEN AUCTION TOKEN IS ERC223 OR COLLECTABLE
+    async deployAuction (
+        auction: AuctionParams
+    ) {
+        let auctionFactoryAddress = await this.contractsService.getControllerAddress("20");
+        let auctionFactory = this.contractsService.getContractSigner(
+            auctionFactoryAddress, 
+            Constants.AUCTION_FACTORY_ABI, 
+            this.signer
+        );
+        let deployAuctionData = auctionFactory.interface.functions.deployAuction.encode([
+            auction.auditor,
+            auction.tokens,
+            auction.auctionAmountOrId,
+            auction.auctionTokenId,
+            auction.settings
+        ]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            auction.tokens[0],
+            auction.auctionAmountOrId,
+            auctionFactoryAddress,
+            deployAuctionData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    // WHEN AUCTION TOKEN IS PACKABLE
+    async deployAuctionPackable (
+        auction: AuctionParams
+    ) {
+        let auctionFactoryAddress = await this.contractsService.getControllerAddress("20");
+        let auctionFactory = this.contractsService.getContractSigner(
+            auctionFactoryAddress, 
+            Constants.AUCTION_FACTORY_ABI, 
+            this.signer
+        );
+        let deployAuctionData = auctionFactory.interface.functions.deployAuction.encode([
+            auction.auditor,
+            auction.tokens,
+            auction.auctionAmountOrId,
+            auction.auctionTokenId,
+            auction.settings
+        ]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValuePNFT.encode([
+            auction.tokens[0],
+            auction.auctionTokenId,
+            auction.auctionAmountOrId,
+            auctionFactoryAddress,
+            deployAuctionData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async bid(
+        auctionAddress: string,
+        bidToken: string,
+        bid: ethers.utils.BigNumber,
+        minValue: ethers.utils.BigNumber
+    ) {
+        let auctionContract = this.contractsService.getContractSigner(
+            auctionAddress, 
+            Constants.AUCTION_ABI, 
+            this.signer
+        );
+        let bidData = auctionContract.interface.functions.bid.encode([
+            bid
+        ]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            bidToken,
+            minValue,
+            auctionAddress,
+            bidData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async updateBid(
+        auctionAddress: string,
+        bid: ethers.utils.BigNumber
+    ) {
+        let auctionContract = this.contractsService.getContractSigner(
+            auctionAddress, 
+            Constants.AUCTION_ABI, 
+            this.signer
+        );
+        let bidData = auctionContract.interface.functions.updateBid.encode([
+            bid
+        ]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forward.encode([
+            auctionAddress,
+            bidData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async cancelBid(
+        auctionAddress: string
+    ) {
+        let auctionContract = this.contractsService.getContractSigner(
+            auctionAddress, 
+            Constants.AUCTION_ABI, 
+            this.signer
+        );
+        let bidData = auctionContract.interface.functions.cancelBid.encode([]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forward.encode([
+            auctionAddress,
+            bidData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async payDeal(
+        auctionAddress: string,
+        bidToken: string,
+        amountLeft: ethers.utils.BigNumber
+    ) {
+        let auctionContract = this.contractsService.getContractSigner(
+            auctionAddress, 
+            Constants.AUCTION_ABI, 
+            this.signer
+        );
+        let bidData = auctionContract.interface.functions.payDeal.encode([]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            bidToken,
+            amountLeft,
+            auctionAddress,
+            bidData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 export class SmartIDLogin {
@@ -1189,5 +1400,39 @@ export class P2POfferPackable {
         let zero = [0];
         let metadata = country.concat(zero).concat(payMethods).concat(zero);
         this.metadata = metadata;
+    }
+}
+
+export class AuctionParams {
+
+    readonly auditor: string;
+    readonly tokens: string[];
+    readonly auctionAmountOrId: ethers.utils.BigNumber;
+    readonly settings: ethers.utils.BigNumber[];
+    readonly auctionTokenId: string;
+
+    constructor(
+        auditor: string,
+        auctionToken: string,
+        bidToken: string,
+        auctionAmountOrId: ethers.utils.BigNumber,
+        minValue: ethers.utils.BigNumber,
+        endTime: ethers.utils.BigNumber,
+        auctionTokenId?: string
+    ) {
+        this.auditor = auditor;
+        this.tokens = [];
+        this.tokens.push(auctionToken);
+        this.tokens.push(bidToken);
+        this.auctionAmountOrId = auctionAmountOrId;
+        this.settings = [];
+        this.settings.push(minValue);
+        this.settings.push(endTime);
+
+        if (auctionTokenId == undefined) {
+            this.auctionTokenId = ethers.constants.HashZero;
+        } else {
+            this.auctionTokenId = auctionTokenId;
+        }
     }
 }

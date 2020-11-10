@@ -209,7 +209,7 @@ var Report = /** @class */ (function () {
                             array2 = [];
                             array2.push(offers[k].owner.name);
                             array2.push(offers[k].owner.id);
-                            array2.push(parseInt(utils_1.weiToEther(offers[k].sellAmount)));
+                            array2.push(parseFloat(utils_1.weiToEther(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
                         tableName2 = 'P2P' + tokensArray[i].symbol;

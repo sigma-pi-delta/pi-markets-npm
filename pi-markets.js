@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.Report = exports.P2POfferPackable = exports.P2POfferCommodity = exports.P2POffer = exports.TransferNFTRequest = exports.TransferRequest = exports.SmartIDLogin = exports.SmartIDRegistry = exports.SmartID = exports.QueryTemplates = exports.Query = exports.Graph = exports.Utils = exports.Transactions = exports.Contracts = exports.WalletPair = exports.Wallets = exports.Blockchain = exports.Constants = void 0;
+exports.Report = exports.AuctionParams = exports.P2POfferPackable = exports.P2POfferCommodity = exports.P2POffer = exports.TransferNFTRequest = exports.TransferRequest = exports.SmartIDLogin = exports.SmartIDRegistry = exports.SmartID = exports.QueryTemplates = exports.Query = exports.Graph = exports.Utils = exports.Transactions = exports.Contracts = exports.WalletPair = exports.Wallets = exports.Blockchain = exports.Constants = void 0;
 var Constants = require("./constants");
 exports.Constants = Constants;
 var blockchain_1 = require("./blockchain");
@@ -27,5 +27,6 @@ exports.TransferNFTRequest = smartid_1.TransferNFTRequest;
 exports.P2POffer = smartid_1.P2POffer;
 exports.P2POfferCommodity = smartid_1.P2POfferCommodity;
 exports.P2POfferPackable = smartid_1.P2POfferPackable;
+exports.AuctionParams = smartid_1.AuctionParams;
 var reports_1 = require("./reports");
 exports.Report = reports_1.Report;

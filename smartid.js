@@ -36,7 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.P2POfferPackable = exports.P2POfferCommodity = exports.P2POffer = exports.TransferNFTRequest = exports.TransferRequest = exports.SmartIDPublic = exports.SmartIDRegistry = exports.SmartIDLogin = exports.SmartID = void 0;
+exports.AuctionParams = exports.P2POfferPackable = exports.P2POfferCommodity = exports.P2POffer = exports.TransferNFTRequest = exports.TransferRequest = exports.SmartIDPublic = exports.SmartIDRegistry = exports.SmartIDLogin = exports.SmartID = void 0;
+var ethers_1 = require("ethers");
 var Constants = require("./constants");
 var contracts_1 = require("./contracts");
 var wallets_1 = require("./wallets");
@@ -810,6 +811,200 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
+    /******** AUCTIONS */
+    // WHEN AUCTION TOKEN IS ERC223 OR COLLECTABLE
+    SmartID.prototype.deployAuction = function (auction) {
+        return __awaiter(this, void 0, void 0, function () {
+            var auctionFactoryAddress, auctionFactory, deployAuctionData, walletContract, walletData, error_23;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("20")];
+                    case 1:
+                        auctionFactoryAddress = _a.sent();
+                        auctionFactory = this.contractsService.getContractSigner(auctionFactoryAddress, Constants.AUCTION_FACTORY_ABI, this.signer);
+                        deployAuctionData = auctionFactory.interface.functions.deployAuction.encode([
+                            auction.auditor,
+                            auction.tokens,
+                            auction.auctionAmountOrId,
+                            auction.auctionTokenId,
+                            auction.settings
+                        ]);
+                        walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
+                        walletData = walletContract.interface.functions.forwardValue.encode([
+                            auction.tokens[0],
+                            auction.auctionAmountOrId,
+                            auctionFactoryAddress,
+                            deployAuctionData
+                        ]);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                    case 3: return [2 /*return*/, _a.sent()];
+                    case 4:
+                        error_23 = _a.sent();
+                        console.error(error_23);
+                        throw new Error(error_23);
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    // WHEN AUCTION TOKEN IS PACKABLE
+    SmartID.prototype.deployAuctionPackable = function (auction) {
+        return __awaiter(this, void 0, void 0, function () {
+            var auctionFactoryAddress, auctionFactory, deployAuctionData, walletContract, walletData, error_24;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("20")];
+                    case 1:
+                        auctionFactoryAddress = _a.sent();
+                        auctionFactory = this.contractsService.getContractSigner(auctionFactoryAddress, Constants.AUCTION_FACTORY_ABI, this.signer);
+                        deployAuctionData = auctionFactory.interface.functions.deployAuction.encode([
+                            auction.auditor,
+                            auction.tokens,
+                            auction.auctionAmountOrId,
+                            auction.auctionTokenId,
+                            auction.settings
+                        ]);
+                        walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
+                        walletData = walletContract.interface.functions.forwardValuePNFT.encode([
+                            auction.tokens[0],
+                            auction.auctionTokenId,
+                            auction.auctionAmountOrId,
+                            auctionFactoryAddress,
+                            deployAuctionData
+                        ]);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                    case 3: return [2 /*return*/, _a.sent()];
+                    case 4:
+                        error_24 = _a.sent();
+                        console.error(error_24);
+                        throw new Error(error_24);
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SmartID.prototype.bid = function (auctionAddress, bidToken, bid, minValue) {
+        return __awaiter(this, void 0, void 0, function () {
+            var auctionContract, bidData, walletContract, walletData, error_25;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        auctionContract = this.contractsService.getContractSigner(auctionAddress, Constants.AUCTION_ABI, this.signer);
+                        bidData = auctionContract.interface.functions.bid.encode([
+                            bid
+                        ]);
+                        walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
+                        walletData = walletContract.interface.functions.forwardValue.encode([
+                            bidToken,
+                            minValue,
+                            auctionAddress,
+                            bidData
+                        ]);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        error_25 = _a.sent();
+                        console.error(error_25);
+                        throw new Error(error_25);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SmartID.prototype.updateBid = function (auctionAddress, bid) {
+        return __awaiter(this, void 0, void 0, function () {
+            var auctionContract, bidData, walletContract, walletData, error_26;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        auctionContract = this.contractsService.getContractSigner(auctionAddress, Constants.AUCTION_ABI, this.signer);
+                        bidData = auctionContract.interface.functions.updateBid.encode([
+                            bid
+                        ]);
+                        walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
+                        walletData = walletContract.interface.functions.forward.encode([
+                            auctionAddress,
+                            bidData
+                        ]);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        error_26 = _a.sent();
+                        console.error(error_26);
+                        throw new Error(error_26);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SmartID.prototype.cancelBid = function (auctionAddress) {
+        return __awaiter(this, void 0, void 0, function () {
+            var auctionContract, bidData, walletContract, walletData, error_27;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        auctionContract = this.contractsService.getContractSigner(auctionAddress, Constants.AUCTION_ABI, this.signer);
+                        bidData = auctionContract.interface.functions.cancelBid.encode([]);
+                        walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
+                        walletData = walletContract.interface.functions.forward.encode([
+                            auctionAddress,
+                            bidData
+                        ]);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        error_27 = _a.sent();
+                        console.error(error_27);
+                        throw new Error(error_27);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SmartID.prototype.payDeal = function (auctionAddress, bidToken, amountLeft) {
+        return __awaiter(this, void 0, void 0, function () {
+            var auctionContract, bidData, walletContract, walletData, error_28;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        auctionContract = this.contractsService.getContractSigner(auctionAddress, Constants.AUCTION_ABI, this.signer);
+                        bidData = auctionContract.interface.functions.payDeal.encode([]);
+                        walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
+                        walletData = walletContract.interface.functions.forwardValue.encode([
+                            bidToken,
+                            amountLeft,
+                            auctionAddress,
+                            bidData
+                        ]);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        error_28 = _a.sent();
+                        console.error(error_28);
+                        throw new Error(error_28);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return SmartID;
 }());
 exports.SmartID = SmartID;
@@ -865,7 +1060,7 @@ var SmartIDLogin = /** @class */ (function () {
     /***** QUERY */
     SmartIDLogin.prototype.walletToNickname = function (address) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_23;
+            var customQuery, query, response, error_29;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -880,8 +1075,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.wallet.name.id];
                     case 3:
-                        error_23 = _a.sent();
-                        console.error(error_23);
+                        error_29 = _a.sent();
+                        console.error(error_29);
                         return [2 /*return*/, ''];
                     case 4: return [2 /*return*/];
                 }
@@ -890,7 +1085,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.nicknameToWallet = function (nickname) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_24;
+            var customQuery, query, response, error_30;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -905,8 +1100,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.wallets[0].id];
                     case 3:
-                        error_24 = _a.sent();
-                        console.error(error_24);
+                        error_30 = _a.sent();
+                        console.error(error_30);
                         return [2 /*return*/, ''];
                     case 4: return [2 /*return*/];
                 }
@@ -915,7 +1110,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.isNameAvailable = function (nickname) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_25;
+            var customQuery, query, response, error_31;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -930,8 +1125,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.wallets.length == 0];
                     case 3:
-                        error_25 = _a.sent();
-                        console.error(error_25);
+                        error_31 = _a.sent();
+                        console.error(error_31);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -940,7 +1135,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.isDataHashAvailable = function (dataHash) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_26;
+            var customQuery, query, response, error_32;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -955,8 +1150,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.identities.length == 0];
                     case 3:
-                        error_26 = _a.sent();
-                        console.error(error_26);
+                        error_32 = _a.sent();
+                        console.error(error_32);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -965,7 +1160,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.getIdentityByName = function (nickname) {
         return __awaiter(this, void 0, void 0, function () {
-            var address, response, error_27;
+            var address, response, error_33;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -978,8 +1173,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response];
                     case 3:
-                        error_27 = _a.sent();
-                        console.error(error_27);
+                        error_33 = _a.sent();
+                        console.error(error_33);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -988,7 +1183,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.getIdentityByWallet = function (address) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_28;
+            var customQuery, query, response, error_34;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1003,8 +1198,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.identities[0].id];
                     case 3:
-                        error_28 = _a.sent();
-                        console.error(error_28);
+                        error_34 = _a.sent();
+                        console.error(error_34);
                         return [2 /*return*/, ''];
                     case 4: return [2 /*return*/];
                 }
@@ -1013,7 +1208,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.getIdentityByDataHash = function (dataHash) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_29;
+            var customQuery, query, response, error_35;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1028,8 +1223,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.identities[0].id];
                     case 3:
-                        error_29 = _a.sent();
-                        console.error(error_29);
+                        error_35 = _a.sent();
+                        console.error(error_35);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -1068,7 +1263,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.deployIdentity = function (owner, recovery, dataHash, nickname, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var controllerContract, identityFactoryAddress, signer, identityFactory, response, error_30, receipt, event_3, i, topics, data, _log, receiptError_2;
+            var controllerContract, identityFactoryAddress, signer, identityFactory, response, error_36, receipt, event_3, i, topics, data, _log, receiptError_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1086,9 +1281,9 @@ var SmartIDRegistry = /** @class */ (function () {
                         response = _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        error_30 = _a.sent();
-                        console.error(error_30);
-                        throw new Error(error_30);
+                        error_36 = _a.sent();
+                        console.error(error_36);
+                        throw new Error(error_36);
                     case 5:
                         _a.trys.push([5, 11, , 12]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];
@@ -1128,7 +1323,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.setNewIdentityDD = function (identity, dataHashDD, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var controllerContract, registryAddress, signer, identityFactory, response, error_31, receipt, receiptError_3;
+            var controllerContract, registryAddress, signer, identityFactory, response, error_37, receipt, receiptError_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1146,9 +1341,9 @@ var SmartIDRegistry = /** @class */ (function () {
                         response = _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        error_31 = _a.sent();
-                        console.error(error_31);
-                        throw new Error(error_31);
+                        error_37 = _a.sent();
+                        console.error(error_37);
+                        throw new Error(error_37);
                     case 5:
                         _a.trys.push([5, 7, , 8]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];
@@ -1166,7 +1361,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.updateReputation = function (user, reputation, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var p2pAddress, signer, p2pContract, response, error_32, receipt, receiptError_4;
+            var p2pAddress, signer, p2pContract, response, error_38, receipt, receiptError_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("16")];
@@ -1182,9 +1377,9 @@ var SmartIDRegistry = /** @class */ (function () {
                         response = _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        error_32 = _a.sent();
-                        console.error(error_32);
-                        throw new Error(error_32);
+                        error_38 = _a.sent();
+                        console.error(error_38);
+                        throw new Error(error_38);
                     case 5:
                         _a.trys.push([5, 7, , 8]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];
@@ -1312,3 +1507,23 @@ var P2POfferPackable = /** @class */ (function () {
     return P2POfferPackable;
 }());
 exports.P2POfferPackable = P2POfferPackable;
+var AuctionParams = /** @class */ (function () {
+    function AuctionParams(auditor, auctionToken, bidToken, auctionAmountOrId, minValue, endTime, auctionTokenId) {
+        this.auditor = auditor;
+        this.tokens = [];
+        this.tokens.push(auctionToken);
+        this.tokens.push(bidToken);
+        this.auctionAmountOrId = auctionAmountOrId;
+        this.settings = [];
+        this.settings.push(minValue);
+        this.settings.push(endTime);
+        if (auctionTokenId == undefined) {
+            this.auctionTokenId = ethers_1.ethers.constants.HashZero;
+        }
+        else {
+            this.auctionTokenId = auctionTokenId;
+        }
+    }
+    return AuctionParams;
+}());
+exports.AuctionParams = AuctionParams;

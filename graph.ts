@@ -40,7 +40,7 @@ export class Query {
     public skip: number;
     public isClean: boolean;
 
-    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | string, url: string = 'mainnet') {
+    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | string, url: string = 'mainnet') {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
         this.first = 1000;
         this.skip = 0;
@@ -57,6 +57,8 @@ export class Query {
                 this.subgraph = Constants.P2P_PRIMARY_SUBGRAPH;
             } else if (subgraph == 'market') {
                 this.subgraph = Constants.MARKETS_SUBGRAPH;
+            } else if (subgraph == 'auction') {
+                this.subgraph = Constants.AUCTION_SUBGRAPH;
             } else {
                 this.subgraph = subgraph;
             }
@@ -71,6 +73,8 @@ export class Query {
                 this.subgraph = Constants.P2P_PRIMARY_SUBGRAPH_TESTNET;
             } else if (subgraph == 'market') {
                 this.subgraph = Constants.MARKETS_SUBGRAPH_TESTNET;
+            } else if (subgraph == 'auction') {
+                this.subgraph = Constants.AUCTION_SUBGRAPH_TESTNET;
             } else {
                 this.subgraph = subgraph;
             }
@@ -645,6 +649,48 @@ export class QueryTemplates {
         try {
             let response = await query.request();
             if (response != undefined) return response.controllers[0].commission;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    /******** AUCTIONS */
+
+    async getAuctions(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ auctions (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { id } auctionPackable { id } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id } startTime endTime auditor category bids { id bidder { id name } bid bids isCancel auction { id } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } }';
+        let query = new Query("auction", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.auctions;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getBids(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder timestamp isCancel auction { auctionToken { id tokenSymbol } bidToken { id tokenSymbol } maxBid maxBidder { name id } endTime isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
+        let query = new Query("auction", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.bids;
         } catch(error) {
             console.error(error);
             throw new Error(error);
