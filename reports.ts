@@ -174,7 +174,7 @@ export class Report {
     
             while(loopOffers.length >= 1000) {
                 skipOffers = offers.length;
-                offers = await queryTemplates.getPackableOffers(
+                offers = await queryTemplates.getOffers(
                     'sellToken: "' + tokensArray[i].address + '", isOpen: true',
                     'sellAmount',
                     'desc',
@@ -1009,6 +1009,210 @@ export class Report {
             }
         }
     }
+
+    async getTransactionsData(
+        timeLow: number,
+        timeHigh: number,
+        token: any
+    ) {
+        return await getTransactions(timeLow, timeHigh, token.address);
+    }
+
+    async getDealsData(
+        timeLow: number,
+        timeHigh: number,
+        token: any,
+        market: "primary" | "secondary" = "secondary"
+    ) {
+        let offers: any[] = [];
+        let requests: any[] = [];
+
+        if (token.category == 1) {
+            if (market == "secondary") {
+                offers = await getOffers(timeLow, timeHigh, token.address);
+                requests = await getRequests(timeLow, timeHigh, token.address);
+            } else if (market == "primary") {
+                offers = await getOffersPrimary(timeLow, timeHigh, token.address);
+                requests = await getRequestsPrimary(timeLow, timeHigh, token.address);
+            }
+        } else if (token.category == 2) {
+            if (market == "secondary") {
+                offers = await getCollectableOffers(timeLow, timeHigh, token.address);
+            } else if (market == "primary") {
+                offers = await getCollectableOffersPrimary(timeLow, timeHigh, token.address);
+            }
+        } else if (token.category == 3) {
+            if (market == "secondary") {
+                offers = await getPackableOffers(timeLow, timeHigh, token.address);
+                requests = await getPackableRequests(timeLow, timeHigh, token.address);
+            } else if (market == "primary") {
+                offers = await getPackableOffersPrimary(timeLow, timeHigh, token.address);
+                requests = await getPackableRequestsPrimary(timeLow, timeHigh, token.address);
+            }
+        }
+
+        offers = cleanEmptyDeals(offers);
+        requests = cleanEmptyDeals(requests);
+
+        return new DealsReportData(token.address, token.symbol, offers, requests);
+    }
+
+    async getHoldersData(
+        token: any,
+        expiry?: any
+    ) {
+        const first = 1000;
+        const orderBy = "balance";
+        const orderDirection = "desc";
+        let queryTemplates = new QueryTemplates(this.url);
+        let skip = 0;
+        let holders: any[] = [];
+        let offers: any[] = [];
+
+        if (token.category == 1) {
+            holders = await queryTemplates.getTokenHolders(
+                orderBy,
+                orderDirection,
+                first,
+                skip,
+                token.address
+            );
+    
+            let loopresponse = holders;
+    
+            while(loopresponse.length >= 1000) {
+                skip = holders.length;
+                holders = await queryTemplates.getTokenHolders(
+                    orderBy,
+                    orderDirection,
+                    first,
+                    skip,
+                    token.address
+                );
+                holders = holders.concat(loopresponse);
+            }
+
+            let skipOffers = 0;
+    
+            offers = await queryTemplates.getOffers(
+                'sellToken: "' + token.address + '", isOpen: true',
+                'sellAmount',
+                'desc',
+                1000,
+                skipOffers
+            );
+    
+            let loopOffers = offers;
+    
+            while(loopOffers.length >= 1000) {
+                skipOffers = offers.length;
+                offers = await queryTemplates.getOffers(
+                    'sellToken: "' + token.address + '", isOpen: true',
+                    'sellAmount',
+                    'desc',
+                    1000,
+                    skipOffers
+                );
+                offers = offers.concat(loopOffers);
+            }
+        } else if (token.category == 2) {
+            holders = await queryTemplates.getNFTHolders(
+                orderBy,
+                orderDirection,
+                first,
+                skip,
+                token.address
+            );
+    
+            let loopresponse = holders;
+    
+            while(loopresponse.length >= 1000) {
+                skip = holders.length;
+                holders = await queryTemplates.getNFTHolders(
+                    orderBy,
+                    orderDirection,
+                    first,
+                    skip,
+                    token.address
+                );
+                holders = holders.concat(loopresponse);
+            }
+
+            let skipOffers = 0;
+    
+            offers = await queryTemplates.getNFTOffers(
+                'sellToken: "' + token.address + '", isOpen: true',
+                'sellAmount',
+                'desc',
+                1000,
+                skipOffers
+            );
+    
+            let loopOffers = offers;
+    
+            while(loopOffers.length >= 1000) {
+                skipOffers = offers.length;
+                offers = await queryTemplates.getNFTOffers(
+                    'sellToken: "' + token.address + '", isOpen: true',
+                    'sellAmount',
+                    'desc',
+                    1000,
+                    skipOffers
+                );
+                offers = offers.concat(loopOffers);
+            }
+        } else if (token.category == 3) {
+            holders = await queryTemplates.getPackableHolders(
+                token.address,
+                expiry[1],
+                orderBy,
+                orderDirection,
+                first,
+                skip
+            );
+    
+            let loopresponse = holders;
+    
+            while(loopresponse.length >= 1000) {
+                skip = holders.length;
+                holders = await queryTemplates.getPackableHolders(
+                    token.address,
+                    expiry[1],
+                    orderBy,
+                    orderDirection,
+                    first,
+                    skip
+                );
+                holders = holders.concat(loopresponse);
+            }
+
+            let skipOffers = 0;
+    
+            offers = await queryTemplates.getPackableOffers(
+                'sellToken: "' + token.address + '", sellId: "' + expiry[1] + '", isOpen: true',
+                'sellAmount',
+                'desc',
+                1000,
+                skipOffers
+            );
+    
+            let loopOffers = offers;
+    
+            while(loopOffers.length >= 1000) {
+                skipOffers = offers.length;
+                offers = await queryTemplates.getPackableOffers(
+                    'sellToken: "' + token.address + '", sellId: "' + expiry[1] + '", isOpen: true',
+                    'sellAmount',
+                    'desc',
+                    1000,
+                    skipOffers
+                );
+                offers = offers.concat(loopOffers);
+            }
+        }
+
+        return new HoldersReportData(token.address, token.symbol, holders, offers, expiry);
+    }
 }
 
 async function getTransactions(
@@ -1040,7 +1244,7 @@ async function getTransactions(
 async function getOffers(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1066,7 +1270,7 @@ async function getOffers(
 async function getRequests(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1092,7 +1296,7 @@ async function getRequests(
 async function getOffersPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1118,7 +1322,7 @@ async function getOffersPrimary(
 async function getRequestsPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1141,10 +1345,62 @@ async function getRequestsPrimary(
     return offers;
 }
 
+async function getCollectableOffers(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _tokensAddress: string,
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+    let queryService = new Query('p2p', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryOffers = response.offerPackables;
+    let offers = queryOffers;
+
+    while(queryOffers.length >= 1000) {
+        skip = offers.length;
+        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryOffers = response.offerPackables;
+        offers = offers.concat(queryOffers);
+    }
+
+    return offers;
+}
+
+async function getCollectableOffersPrimary(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _tokensAddress: string,
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+    let queryService = new Query('p2p-primary', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryOffers = response.offerPackables;
+    let offers = queryOffers;
+
+    while(queryOffers.length >= 1000) {
+        skip = offers.length;
+        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryOffers = response.offerPackables;
+        offers = offers.concat(queryOffers);
+    }
+
+    return offers;
+}
+
 async function getPackableOffers(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1170,7 +1426,7 @@ async function getPackableOffers(
 async function getPackableRequests(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1196,7 +1452,7 @@ async function getPackableRequests(
 async function getPackableOffersPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1222,7 +1478,7 @@ async function getPackableOffersPrimary(
 async function getPackableRequestsPrimary(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokensAddress: string[],
+    _tokensAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -1281,4 +1537,64 @@ function timeConverter(UNIX_timestamp) {
     var sec = a.getSeconds();
     var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
     return time;
+}
+
+function cleanEmptyDeals(array: any[]) {
+    let cleanArray: any[] = [];
+
+    for (let i = 0; i < array.length; i++) {
+        if (array[i].deals.length > 0) {
+            cleanArray.push(array[i]);
+        }
+    }
+
+    return cleanArray;
+}
+
+export class DealsReportData {
+
+    readonly tokenSymbol: string;
+    readonly tokenAddress: string;
+    readonly offers: any[];
+    readonly requests: any[];
+
+    constructor(
+        tokenAddress: string,
+        tokenSymbol: string,
+        offers: any[],
+        requests: any[]
+    ) {
+        this.tokenAddress = tokenAddress;
+        this.tokenSymbol = tokenSymbol;
+        this.offers = offers;
+        this.requests = requests;
+    }
+}
+
+export class HoldersReportData {
+
+    readonly tokenSymbol: string;
+    readonly tokenAddress: string;
+    readonly holders: any[];
+    readonly offers: any[];
+    readonly expiry: string[];
+    readonly timestamp: string;
+
+    constructor(
+        tokenAddress: string,
+        tokenSymbol: string,
+        holders: any[],
+        offers: any[],
+        expiry?: string[]
+    ) {
+        this.tokenAddress = tokenAddress;
+        this.tokenSymbol = tokenSymbol;
+        this.holders = holders;
+        this.offers = offers;
+        this.timestamp = getTime();
+        
+        if (expiry != undefined) {
+            this.expiry = expiry;
+        }
+    }
 }

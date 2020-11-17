@@ -76,82 +76,98 @@ exports.CONTROLLER_ADDRESS_TESTNET = CONTROLLER_ADDRESS_TESTNET;
 // MainNet
 var PI = {
     symbol: "PI",
-    address: "0x0000000000000000000000000000000000000000"
+    address: "0x0000000000000000000000000000000000000000",
+    category: 1
 };
 exports.PI = PI;
 var GLD = {
     symbol: "GLD",
-    address: "0x0dc5c612b313d583398aebcbc3185c6448542f2a"
+    address: "0x0dc5c612b313d583398aebcbc3185c6448542f2a",
+    category: 2
 };
 exports.GLD = GLD;
 var PTR = {
     symbol: "PTR",
-    address: "0x458e54534d6efbf2b1b0569f6ff994957bb93c7f"
+    address: "0x458e54534d6efbf2b1b0569f6ff994957bb93c7f",
+    category: 1
 };
 exports.PTR = PTR;
 var BTC = {
     symbol: "BTC",
-    address: "0x4c3c844b751c18299932dcd18a3032bd3481d61a"
+    address: "0x4c3c844b751c18299932dcd18a3032bd3481d61a",
+    category: 1
 };
 exports.BTC = BTC;
 var USC = {
     symbol: "USC",
-    address: "0x4f38f0c9a26a480feae22c78576cd3a24dbce834"
+    address: "0x4f38f0c9a26a480feae22c78576cd3a24dbce834",
+    category: 1
 };
 exports.USC = USC;
 var ETH = {
     symbol: "ETH",
-    address: "0x4ffb535bbbbd3d74d2f593bd9c21daa946a68c56"
+    address: "0x4ffb535bbbbd3d74d2f593bd9c21daa946a68c56",
+    category: 1
 };
 exports.ETH = ETH;
 var EUR = {
     symbol: "EUR",
-    address: "0x6645223d7947b4534f09dee35796e1c23326fc5b"
+    address: "0x6645223d7947b4534f09dee35796e1c23326fc5b",
+    category: 1
 };
 exports.EUR = EUR;
 var PEN = {
     symbol: "PEN",
-    address: "0x6e0c484e9efccf8d29ef229cc5b47b8b79ed8f97"
+    address: "0x6e0c484e9efccf8d29ef229cc5b47b8b79ed8f97",
+    category: 1
 };
 exports.PEN = PEN;
 var ARS = {
     symbol: "ARS",
-    address: "0x6e5040f4ba7a6ec228a5247fe690d5df73539b83"
+    address: "0x6e5040f4ba7a6ec228a5247fe690d5df73539b83",
+    category: 1
 };
 exports.ARS = ARS;
 var USD = {
     symbol: "USD",
-    address: "0x77f4ab4a154cf41c0b812f0873a3491dd39f478a"
+    address: "0x77f4ab4a154cf41c0b812f0873a3491dd39f478a",
+    category: 1
 };
 exports.USD = USD;
 var VES = {
     symbol: "VES",
-    address: "0x88a83a48bf4039023118ac760e6beaf5e6f110fb"
+    address: "0x88a83a48bf4039023118ac760e6beaf5e6f110fb",
+    category: 1
 };
 exports.VES = VES;
 var COP = {
     symbol: "COP",
-    address: "0xbe7a8d8c2a26a847bbde18a401066f196bf5657d"
+    address: "0xbe7a8d8c2a26a847bbde18a401066f196bf5657d",
+    category: 1
 };
 exports.COP = COP;
 var CLP = {
     symbol: "CLP",
-    address: "0xd9a7f80cd3552e30b62168164bd04c3b8e5dfcc0"
+    address: "0xd9a7f80cd3552e30b62168164bd04c3b8e5dfcc0",
+    category: 1
 };
 exports.CLP = CLP;
 var PEL = {
     symbol: "PEL",
-    address: "0xe1f2d5b6d86030660fc2e80965585af3163a1454"
+    address: "0xe1f2d5b6d86030660fc2e80965585af3163a1454",
+    category: 1
 };
 exports.PEL = PEL;
 var USDT = {
     symbol: "USDT",
-    address: "0xf4a47b570d8d1c37552229e9acf3678eb9090c99"
+    address: "0xf4a47b570d8d1c37552229e9acf3678eb9090c99",
+    category: 1
 };
 exports.USDT = USDT;
 var DIA = {
     symbol: "DIA",
-    address: "0xfb75b3cd83d81937770e5955f3e6565bfecc195f"
+    address: "0xfb75b3cd83d81937770e5955f3e6565bfecc195f",
+    category: 2
 };
 exports.DIA = DIA;
 //packables
@@ -160,7 +176,8 @@ var CMT = {
     address: "0xc28ce4d4a4428415f810097244646ef23d0f7f22",
     expiry: {
         dic20: ["dic20", "0xf4d673b892f6fcab7102cd5a5d491b10eb92fe62141917263e9d6177533d9f46"]
-    }
+    },
+    category: 3
 };
 exports.CMT = CMT;
 var VOTE = {
@@ -168,7 +185,8 @@ var VOTE = {
     address: "0xd2b28cc2de7284a24421aa12f598291ec30c7840",
     expiry: {
         id: ""
-    }
+    },
+    category: 3
 };
 exports.VOTE = VOTE;
 var IMV = {
@@ -176,7 +194,8 @@ var IMV = {
     address: "0x7b47E489c2eC1841c09b346CA1ADd03853A5dA85",
     expiry: {
         id: ""
-    }
+    },
+    category: 3
 };
 exports.IMV = IMV;
 var MVZA = {
@@ -184,7 +203,8 @@ var MVZA = {
     address: "0x19fba3dba401388dc658670437df5c5971036a66",
     expiry: {
         sep20: ["sep20", "0xa2606ae0f41221792d66c0660b868a3d379b2730cdbebe5ad692bc4f03f42432"]
-    }
+    },
+    category: 3
 };
 exports.MVZA = MVZA;
 var RST = {
@@ -194,7 +214,8 @@ var RST = {
         nov20: ["nov20", "0xc94f49fef30fea649378e3a0992a5ed53d90e5d8ee7144f52bbbeb66db688aaa"],
         ene21: ["ene21", "0x041b2ac9bd7b54b942a14323bb7cf435fb3600d191f3b9ba1415cd488f5c8aa0"],
         nov21: ["nov21", "0xb0402b82a618701408716faaec65ae5058dde918812cece7eeaa076523969797"]
-    }
+    },
+    category: 3
 };
 exports.RST = RST;
 var BNC = {
@@ -203,7 +224,8 @@ var BNC = {
     expiry: {
         nov20: ["nov20", "0xd2e3a36c908e5e4515b4f9508417c7a4fc3344e72f3bf8f56104c158e6fa07b2"],
         nov21: ["nov21", "0xf692cefd47f74d8f3bc14f683162136f062b61b7601d36444a428169c062a26e"]
-    }
+    },
+    category: 3
 };
 exports.BNC = BNC;
 var PGR = {
@@ -212,7 +234,8 @@ var PGR = {
     expiry: {
         nov20: ["nov20", "0x3a9785c6bced431109d4eafa2ae1d90b720fb5c1c2f8be888517b85f5aa9dac9"],
         nov21: ["nov21", "0x2d5dea468459751f1cde905674453fe1cce1e58999fc88291bc996aaed37e400"]
-    }
+    },
+    category: 3
 };
 exports.PGR = PGR;
 var ENV = {
@@ -221,7 +244,8 @@ var ENV = {
     expiry: {
         nov20: ["nov20", "0x6d7fc2c6729563a98f23c2316e16d46fce49089176e56f5136d841687ebb809e"],
         nov21: ["nov21", "0x9310b28b324b4410ad9ef28f35678cdaab1e1f09b257728cb24bae890316f57a"]
-    }
+    },
+    category: 3
 };
 exports.ENV = ENV;
 var TDVD = {
@@ -230,7 +254,8 @@ var TDVD = {
     expiry: {
         nov20: ["nov20", "0xf4294076dd563df9932d1aaca2684d57d48f990f2cf7358f3e9eea57d6a5c7a2"],
         nov21: ["nov21", "0x958797977c2537d48569e68dc731d813d0dd69c937b5b3694fb9dfe671b40d7e"]
-    }
+    },
+    category: 3
 };
 exports.TDVD = TDVD;
 var BPV = {
@@ -239,7 +264,8 @@ var BPV = {
     expiry: {
         nov20: ["nov20", "0x430d73868b7cbc3cab3a4b3a7d9f2493c1dbb748acc472925a231fea8636577a"],
         nov21: ["nov21", "0x28156803d030b54832c2ca21fa5bcfc9f40d4b454518ff5ad7e672546d34e666"]
-    }
+    },
+    category: 3
 };
 exports.BPV = BPV;
 var FVIA = {
@@ -248,7 +274,8 @@ var FVIA = {
     expiry: {
         nov20: ["nov20", "0x5090b8841a42b1c50b439f667c3238f83724a1d49df5abf74578d40c5d989685"],
         nov21: ["nov21", "0xcdb3d44451ec1e28dfea5b2deda2c1d4b7466598faa9096b3fb94da48b50d42b"]
-    }
+    },
+    category: 3
 };
 exports.FVIA = FVIA;
 var CRMA = {
@@ -257,48 +284,57 @@ var CRMA = {
     expiry: {
         nov20: ["nov20", "0x5d9fc42c1569608d953bb140ae5a0c77c9217dc08428afcf1593d82bbff174ab"],
         nov21: ["nov21", "0x891ecbe18731b97f347b59c34b4c22834519832a1a424be38927e40dbaf5449a"]
-    }
+    },
+    category: 3
 };
 exports.CRMA = CRMA;
 // TestNet
 var PI_TESTNET = {
     symbol: "PI_TESTNET",
-    address: "0x0000000000000000000000000000000000000000"
+    address: "0x0000000000000000000000000000000000000000",
+    category: 1
 };
 exports.PI_TESTNET = PI_TESTNET;
 var VES_TESTNET = {
     symbol: "VES_TESTNET",
-    address: "0x3fdfa8d0629ef77a9654798c0a479b33ade48b80"
+    address: "0x3fdfa8d0629ef77a9654798c0a479b33ade48b80",
+    category: 1
 };
 exports.VES_TESTNET = VES_TESTNET;
 var BTC_TESTNET = {
     symbol: "BTC_TESTNET",
-    address: "0x515234b2122a1fb51fcbe360d2379e35135b980a"
+    address: "0x515234b2122a1fb51fcbe360d2379e35135b980a",
+    category: 1
 };
 exports.BTC_TESTNET = BTC_TESTNET;
 var ETH_TESTNET = {
     symbol: "ETH_TESTNET",
-    address: "0x55d4a11196c8b1d0c03664e9c29296250a11635b"
+    address: "0x55d4a11196c8b1d0c03664e9c29296250a11635b",
+    category: 1
 };
 exports.ETH_TESTNET = ETH_TESTNET;
 var EUR_TESTNET = {
     symbol: "EUR_TESTNET",
-    address: "0xbb7636c26e22d0adb7762546a243ec38fef3eb7f"
+    address: "0xbb7636c26e22d0adb7762546a243ec38fef3eb7f",
+    category: 1
 };
 exports.EUR_TESTNET = EUR_TESTNET;
 var USD_TESTNET = {
     symbol: "USD_TESTNET",
-    address: "0xd4bcb641224aea90dd39f65c2344925315348564"
+    address: "0xd4bcb641224aea90dd39f65c2344925315348564",
+    category: 1
 };
 exports.USD_TESTNET = USD_TESTNET;
 var GLD_TESTNET = {
     symbol: "GLD_TESTNET",
-    address: "0xa722eeb4972ad557e2094834ba29d68a62ffc264"
+    address: "0xa722eeb4972ad557e2094834ba29d68a62ffc264",
+    category: 2
 };
 exports.GLD_TESTNET = GLD_TESTNET;
 var DIA_TESTNET = {
     symbol: "DIA_TESTNET",
-    address: "0xca8eebf7b0268113328dba98061599f28d383c80"
+    address: "0xca8eebf7b0268113328dba98061599f28d383c80",
+    category: 2
 };
 exports.DIA_TESTNET = DIA_TESTNET;
 var CMT_TESTNET = {
@@ -307,7 +343,8 @@ var CMT_TESTNET = {
     expiry: {
         nov20: "",
         nov21: ""
-    }
+    },
+    category: 3
 };
 exports.CMT_TESTNET = CMT_TESTNET;
 // OTHER

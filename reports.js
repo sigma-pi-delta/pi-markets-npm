@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.Report = void 0;
+exports.HoldersReportData = exports.DealsReportData = exports.Report = void 0;
 //import ExcelJS from 'exceljs';
 var ExcelJS = require('exceljs');
 var graph_1 = require("./graph");
@@ -195,7 +195,7 @@ var Report = /** @class */ (function () {
                     case 8:
                         if (!(loopOffers.length >= 1000)) return [3 /*break*/, 10];
                         skipOffers = offers.length;
-                        return [4 /*yield*/, queryTemplates.getPackableOffers('sellToken: "' + tokensArray[i].address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
+                        return [4 /*yield*/, queryTemplates.getOffers('sellToken: "' + tokensArray[i].address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
                     case 9:
                         offers = _a.sent();
                         offers = offers.concat(loopOffers);
@@ -1003,6 +1003,194 @@ var Report = /** @class */ (function () {
             });
         });
     };
+    Report.prototype.getTransactionsData = function (timeLow, timeHigh, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, getTransactions(timeLow, timeHigh, token.address)];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    Report.prototype.getDealsData = function (timeLow, timeHigh, token, market) {
+        if (market === void 0) { market = "secondary"; }
+        return __awaiter(this, void 0, void 0, function () {
+            var offers, requests;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        offers = [];
+                        requests = [];
+                        if (!(token.category == 1)) return [3 /*break*/, 7];
+                        if (!(market == "secondary")) return [3 /*break*/, 3];
+                        return [4 /*yield*/, getOffers(timeLow, timeHigh, token.address)];
+                    case 1:
+                        offers = _a.sent();
+                        return [4 /*yield*/, getRequests(timeLow, timeHigh, token.address)];
+                    case 2:
+                        requests = _a.sent();
+                        return [3 /*break*/, 6];
+                    case 3:
+                        if (!(market == "primary")) return [3 /*break*/, 6];
+                        return [4 /*yield*/, getOffersPrimary(timeLow, timeHigh, token.address)];
+                    case 4:
+                        offers = _a.sent();
+                        return [4 /*yield*/, getRequestsPrimary(timeLow, timeHigh, token.address)];
+                    case 5:
+                        requests = _a.sent();
+                        _a.label = 6;
+                    case 6: return [3 /*break*/, 18];
+                    case 7:
+                        if (!(token.category == 2)) return [3 /*break*/, 12];
+                        if (!(market == "secondary")) return [3 /*break*/, 9];
+                        return [4 /*yield*/, getCollectableOffers(timeLow, timeHigh, token.address)];
+                    case 8:
+                        offers = _a.sent();
+                        return [3 /*break*/, 11];
+                    case 9:
+                        if (!(market == "primary")) return [3 /*break*/, 11];
+                        return [4 /*yield*/, getCollectableOffersPrimary(timeLow, timeHigh, token.address)];
+                    case 10:
+                        offers = _a.sent();
+                        _a.label = 11;
+                    case 11: return [3 /*break*/, 18];
+                    case 12:
+                        if (!(token.category == 3)) return [3 /*break*/, 18];
+                        if (!(market == "secondary")) return [3 /*break*/, 15];
+                        return [4 /*yield*/, getPackableOffers(timeLow, timeHigh, token.address)];
+                    case 13:
+                        offers = _a.sent();
+                        return [4 /*yield*/, getPackableRequests(timeLow, timeHigh, token.address)];
+                    case 14:
+                        requests = _a.sent();
+                        return [3 /*break*/, 18];
+                    case 15:
+                        if (!(market == "primary")) return [3 /*break*/, 18];
+                        return [4 /*yield*/, getPackableOffersPrimary(timeLow, timeHigh, token.address)];
+                    case 16:
+                        offers = _a.sent();
+                        return [4 /*yield*/, getPackableRequestsPrimary(timeLow, timeHigh, token.address)];
+                    case 17:
+                        requests = _a.sent();
+                        _a.label = 18;
+                    case 18:
+                        offers = cleanEmptyDeals(offers);
+                        requests = cleanEmptyDeals(requests);
+                        return [2 /*return*/, new DealsReportData(token.address, token.symbol, offers, requests)];
+                }
+            });
+        });
+    };
+    Report.prototype.getHoldersData = function (token, expiry) {
+        return __awaiter(this, void 0, void 0, function () {
+            var first, orderBy, orderDirection, queryTemplates, skip, holders, offers, loopresponse, skipOffers, loopOffers, loopresponse, skipOffers, loopOffers, loopresponse, skipOffers, loopOffers;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        first = 1000;
+                        orderBy = "balance";
+                        orderDirection = "desc";
+                        queryTemplates = new graph_1.QueryTemplates(this.url);
+                        skip = 0;
+                        holders = [];
+                        offers = [];
+                        if (!(token.category == 1)) return [3 /*break*/, 9];
+                        return [4 /*yield*/, queryTemplates.getTokenHolders(orderBy, orderDirection, first, skip, token.address)];
+                    case 1:
+                        holders = _a.sent();
+                        loopresponse = holders;
+                        _a.label = 2;
+                    case 2:
+                        if (!(loopresponse.length >= 1000)) return [3 /*break*/, 4];
+                        skip = holders.length;
+                        return [4 /*yield*/, queryTemplates.getTokenHolders(orderBy, orderDirection, first, skip, token.address)];
+                    case 3:
+                        holders = _a.sent();
+                        holders = holders.concat(loopresponse);
+                        return [3 /*break*/, 2];
+                    case 4:
+                        skipOffers = 0;
+                        return [4 /*yield*/, queryTemplates.getOffers('sellToken: "' + token.address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
+                    case 5:
+                        offers = _a.sent();
+                        loopOffers = offers;
+                        _a.label = 6;
+                    case 6:
+                        if (!(loopOffers.length >= 1000)) return [3 /*break*/, 8];
+                        skipOffers = offers.length;
+                        return [4 /*yield*/, queryTemplates.getOffers('sellToken: "' + token.address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
+                    case 7:
+                        offers = _a.sent();
+                        offers = offers.concat(loopOffers);
+                        return [3 /*break*/, 6];
+                    case 8: return [3 /*break*/, 26];
+                    case 9:
+                        if (!(token.category == 2)) return [3 /*break*/, 18];
+                        return [4 /*yield*/, queryTemplates.getNFTHolders(orderBy, orderDirection, first, skip, token.address)];
+                    case 10:
+                        holders = _a.sent();
+                        loopresponse = holders;
+                        _a.label = 11;
+                    case 11:
+                        if (!(loopresponse.length >= 1000)) return [3 /*break*/, 13];
+                        skip = holders.length;
+                        return [4 /*yield*/, queryTemplates.getNFTHolders(orderBy, orderDirection, first, skip, token.address)];
+                    case 12:
+                        holders = _a.sent();
+                        holders = holders.concat(loopresponse);
+                        return [3 /*break*/, 11];
+                    case 13:
+                        skipOffers = 0;
+                        return [4 /*yield*/, queryTemplates.getNFTOffers('sellToken: "' + token.address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
+                    case 14:
+                        offers = _a.sent();
+                        loopOffers = offers;
+                        _a.label = 15;
+                    case 15:
+                        if (!(loopOffers.length >= 1000)) return [3 /*break*/, 17];
+                        skipOffers = offers.length;
+                        return [4 /*yield*/, queryTemplates.getNFTOffers('sellToken: "' + token.address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
+                    case 16:
+                        offers = _a.sent();
+                        offers = offers.concat(loopOffers);
+                        return [3 /*break*/, 15];
+                    case 17: return [3 /*break*/, 26];
+                    case 18:
+                        if (!(token.category == 3)) return [3 /*break*/, 26];
+                        return [4 /*yield*/, queryTemplates.getPackableHolders(token.address, expiry[1], orderBy, orderDirection, first, skip)];
+                    case 19:
+                        holders = _a.sent();
+                        loopresponse = holders;
+                        _a.label = 20;
+                    case 20:
+                        if (!(loopresponse.length >= 1000)) return [3 /*break*/, 22];
+                        skip = holders.length;
+                        return [4 /*yield*/, queryTemplates.getPackableHolders(token.address, expiry[1], orderBy, orderDirection, first, skip)];
+                    case 21:
+                        holders = _a.sent();
+                        holders = holders.concat(loopresponse);
+                        return [3 /*break*/, 20];
+                    case 22:
+                        skipOffers = 0;
+                        return [4 /*yield*/, queryTemplates.getPackableOffers('sellToken: "' + token.address + '", sellId: "' + expiry[1] + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
+                    case 23:
+                        offers = _a.sent();
+                        loopOffers = offers;
+                        _a.label = 24;
+                    case 24:
+                        if (!(loopOffers.length >= 1000)) return [3 /*break*/, 26];
+                        skipOffers = offers.length;
+                        return [4 /*yield*/, queryTemplates.getPackableOffers('sellToken: "' + token.address + '", sellId: "' + expiry[1] + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
+                    case 25:
+                        offers = _a.sent();
+                        offers = offers.concat(loopOffers);
+                        return [3 /*break*/, 24];
+                    case 26: return [2 /*return*/, new HoldersReportData(token.address, token.symbol, holders, offers, expiry)];
+                }
+            });
+        });
+    };
     return Report;
 }());
 exports.Report = Report;
@@ -1171,6 +1359,72 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
         });
     });
 }
+function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryOffers, offers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    queryService = new graph_1.Query('p2p', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryOffers = response.offerPackables;
+                    offers = queryOffers;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
+                    skip = offers.length;
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryOffers = response.offerPackables;
+                    offers = offers.concat(queryOffers);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, offers];
+            }
+        });
+    });
+}
+function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryOffers, offers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    queryService = new graph_1.Query('p2p-primary', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryOffers = response.offerPackables;
+                    offers = queryOffers;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
+                    skip = offers.length;
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryOffers = response.offerPackables;
+                    offers = offers.concat(queryOffers);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, offers];
+            }
+        });
+    });
+}
 function getPackableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
     if (_url === void 0) { _url = 'mainnet'; }
     return __awaiter(this, void 0, void 0, function () {
@@ -1332,3 +1586,36 @@ function timeConverter(UNIX_timestamp) {
     var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
     return time;
 }
+function cleanEmptyDeals(array) {
+    var cleanArray = [];
+    for (var i = 0; i < array.length; i++) {
+        if (array[i].deals.length > 0) {
+            cleanArray.push(array[i]);
+        }
+    }
+    return cleanArray;
+}
+var DealsReportData = /** @class */ (function () {
+    function DealsReportData(tokenAddress, tokenSymbol, offers, requests) {
+        this.tokenAddress = tokenAddress;
+        this.tokenSymbol = tokenSymbol;
+        this.offers = offers;
+        this.requests = requests;
+    }
+    return DealsReportData;
+}());
+exports.DealsReportData = DealsReportData;
+var HoldersReportData = /** @class */ (function () {
+    function HoldersReportData(tokenAddress, tokenSymbol, holders, offers, expiry) {
+        this.tokenAddress = tokenAddress;
+        this.tokenSymbol = tokenSymbol;
+        this.holders = holders;
+        this.offers = offers;
+        this.timestamp = getTime();
+        if (expiry != undefined) {
+            this.expiry = expiry;
+        }
+    }
+    return HoldersReportData;
+}());
+exports.HoldersReportData = HoldersReportData;

@@ -14,6 +14,7 @@ PiMarkets Package is a Javascript library for dealing with Pi Markets smart cont
     - [Wallets](#wallets)
     - [Graph](#graph)
     - [SmartID](#smartid)
+    - [Reports](#reports)
   - [Contributing](#contributing)
 
 ## Installation
@@ -233,6 +234,41 @@ try {
 } catch (error) {
     console.error(error);
 }
+
+```
+
+### Reports
+
+Class used to generate historical reports (Excel or RAW data).
+
+```javascript
+const pimarkets = require('pi-markets');
+
+// Reports in Mainnet
+let report = new pimarkets.Report('mainnet');
+
+// GET RAW DATA
+
+// Get all RST transactions between lowUtcTime and highUtcTime
+let lowUtcTime = 0;
+let highUtcTime = 32503676400; 
+let dataTransactions = await report.getTransactionsData(lowUtcTime, highUtcTime, pimarkets.Constants.RST);
+console.log(dataTransactions);
+
+// Get all BTC deals  between lowUtcTime and highUtcTime in secondary P2P market
+let dataDeals = await report.getDealsData(lowUtcTime, highUtcTime, pimarkets.Constants.BTC, 'secondary');
+console.log(dataDeals);
+
+// Get PGR holders and PGR offers
+// (Note expiry time is only needed for Packable tokens)
+let dataHolders = await report.getHoldersData(pimarkets.Constants.PGR, pimarkets.Constants.PGR.expiry.nov20);
+console.log(dataHolders);
+
+// GENERATE EXCEL
+
+// Generate an excel with all RST and BTC TXs between lowUtcTime and highUtcTime
+// (Note it can be used in browser and Node.js)
+await report.getTransactionReport(lowUtcTime, highUtcTime, [pimarkets.Constants.RST, pimarkets.Constants.BTC]);
 
 ```
 
