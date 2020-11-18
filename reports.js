@@ -1007,7 +1007,7 @@ var Report = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, getTransactions(timeLow, timeHigh, token.address)];
+                    case 0: return [4 /*yield*/, getTransactions(timeLow, timeHigh, token.address, this.url)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });
@@ -1024,19 +1024,19 @@ var Report = /** @class */ (function () {
                         requests = [];
                         if (!(token.category == 1)) return [3 /*break*/, 7];
                         if (!(market == "secondary")) return [3 /*break*/, 3];
-                        return [4 /*yield*/, getOffers(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getOffers(timeLow, timeHigh, token.address, this.url)];
                     case 1:
                         offers = _a.sent();
-                        return [4 /*yield*/, getRequests(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getRequests(timeLow, timeHigh, token.address, this.url)];
                     case 2:
                         requests = _a.sent();
                         return [3 /*break*/, 6];
                     case 3:
                         if (!(market == "primary")) return [3 /*break*/, 6];
-                        return [4 /*yield*/, getOffersPrimary(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getOffersPrimary(timeLow, timeHigh, token.address, this.url)];
                     case 4:
                         offers = _a.sent();
-                        return [4 /*yield*/, getRequestsPrimary(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getRequestsPrimary(timeLow, timeHigh, token.address, this.url)];
                     case 5:
                         requests = _a.sent();
                         _a.label = 6;
@@ -1044,13 +1044,13 @@ var Report = /** @class */ (function () {
                     case 7:
                         if (!(token.category == 2)) return [3 /*break*/, 12];
                         if (!(market == "secondary")) return [3 /*break*/, 9];
-                        return [4 /*yield*/, getCollectableOffers(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getCollectableOffers(timeLow, timeHigh, token.address, this.url)];
                     case 8:
                         offers = _a.sent();
                         return [3 /*break*/, 11];
                     case 9:
                         if (!(market == "primary")) return [3 /*break*/, 11];
-                        return [4 /*yield*/, getCollectableOffersPrimary(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getCollectableOffersPrimary(timeLow, timeHigh, token.address, this.url)];
                     case 10:
                         offers = _a.sent();
                         _a.label = 11;
@@ -1058,19 +1058,19 @@ var Report = /** @class */ (function () {
                     case 12:
                         if (!(token.category == 3)) return [3 /*break*/, 18];
                         if (!(market == "secondary")) return [3 /*break*/, 15];
-                        return [4 /*yield*/, getPackableOffers(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getPackableOffers(timeLow, timeHigh, token.address, this.url)];
                     case 13:
                         offers = _a.sent();
-                        return [4 /*yield*/, getPackableRequests(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getPackableRequests(timeLow, timeHigh, token.address, this.url)];
                     case 14:
                         requests = _a.sent();
                         return [3 /*break*/, 18];
                     case 15:
                         if (!(market == "primary")) return [3 /*break*/, 18];
-                        return [4 /*yield*/, getPackableOffersPrimary(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getPackableOffersPrimary(timeLow, timeHigh, token.address, this.url)];
                     case 16:
                         offers = _a.sent();
-                        return [4 /*yield*/, getPackableRequestsPrimary(timeLow, timeHigh, token.address)];
+                        return [4 /*yield*/, getPackableRequestsPrimary(timeLow, timeHigh, token.address, this.url)];
                     case 17:
                         requests = _a.sent();
                         _a.label = 18;

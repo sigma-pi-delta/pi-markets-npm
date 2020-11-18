@@ -1015,7 +1015,7 @@ export class Report {
         timeHigh: number,
         token: any
     ) {
-        return await getTransactions(timeLow, timeHigh, token.address);
+        return await getTransactions(timeLow, timeHigh, token.address, this.url);
     }
 
     async getDealsData(
@@ -1029,25 +1029,25 @@ export class Report {
 
         if (token.category == 1) {
             if (market == "secondary") {
-                offers = await getOffers(timeLow, timeHigh, token.address);
-                requests = await getRequests(timeLow, timeHigh, token.address);
+                offers = await getOffers(timeLow, timeHigh, token.address, this.url);
+                requests = await getRequests(timeLow, timeHigh, token.address, this.url);
             } else if (market == "primary") {
-                offers = await getOffersPrimary(timeLow, timeHigh, token.address);
-                requests = await getRequestsPrimary(timeLow, timeHigh, token.address);
+                offers = await getOffersPrimary(timeLow, timeHigh, token.address, this.url);
+                requests = await getRequestsPrimary(timeLow, timeHigh, token.address, this.url);
             }
         } else if (token.category == 2) {
             if (market == "secondary") {
-                offers = await getCollectableOffers(timeLow, timeHigh, token.address);
+                offers = await getCollectableOffers(timeLow, timeHigh, token.address, this.url);
             } else if (market == "primary") {
-                offers = await getCollectableOffersPrimary(timeLow, timeHigh, token.address);
+                offers = await getCollectableOffersPrimary(timeLow, timeHigh, token.address, this.url);
             }
         } else if (token.category == 3) {
             if (market == "secondary") {
-                offers = await getPackableOffers(timeLow, timeHigh, token.address);
-                requests = await getPackableRequests(timeLow, timeHigh, token.address);
+                offers = await getPackableOffers(timeLow, timeHigh, token.address, this.url);
+                requests = await getPackableRequests(timeLow, timeHigh, token.address, this.url);
             } else if (market == "primary") {
-                offers = await getPackableOffersPrimary(timeLow, timeHigh, token.address);
-                requests = await getPackableRequestsPrimary(timeLow, timeHigh, token.address);
+                offers = await getPackableOffersPrimary(timeLow, timeHigh, token.address, this.url);
+                requests = await getPackableRequestsPrimary(timeLow, timeHigh, token.address, this.url);
             }
         }
 
