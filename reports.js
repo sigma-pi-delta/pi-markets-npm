@@ -551,6 +551,8 @@ var Report = /** @class */ (function () {
                         for (k = 0; k < deals.length; k++) {
                             array = [];
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
                             if (deals[k].seller.name == null) {
                                 array.push("");
@@ -572,7 +574,9 @@ var Report = /** @class */ (function () {
                         sheet.getCell('B2').font = { bold: true };
                         tableName = 'Tabla' + tokensArray[i].symbol;
                         return [4 /*yield*/, addTable(sheet, tableName, 'B3', [
-                                { name: 'Fecha', filterButton: true },
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -597,6 +601,8 @@ var Report = /** @class */ (function () {
                         for (k = 0; k < deals.length; k++) {
                             array = [];
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.sellToken.tokenSymbol);
                             if (deals[k].seller.name == null) {
                                 array.push("");
@@ -614,11 +620,13 @@ var Report = /** @class */ (function () {
                             array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
                             rows.push(array);
                         }
-                        sheet.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet.getCell('I2').font = { bold: true };
+                        sheet.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet.getCell('K2').font = { bold: true };
                         tableName = 'Tabla2' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet, tableName, 'I3', [
-                                { name: 'Fecha', filterButton: true },
+                        return [4 /*yield*/, addTable(sheet, tableName, 'K3', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -643,6 +651,8 @@ var Report = /** @class */ (function () {
                         for (k = 0; k < deals.length; k++) {
                             array = [];
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
                             if (deals[k].seller.name == null) {
                                 array.push("");
@@ -664,7 +674,9 @@ var Report = /** @class */ (function () {
                         sheet2.getCell('B2').font = { bold: true };
                         tableName = 'TablaPrimario' + tokensArray[i].symbol;
                         return [4 /*yield*/, addTable(sheet2, tableName, 'B3', [
-                                { name: 'Fecha', filterButton: true },
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -689,6 +701,8 @@ var Report = /** @class */ (function () {
                         for (k = 0; k < deals.length; k++) {
                             array = [];
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.sellToken.tokenSymbol);
                             if (deals[k].seller.name == null) {
                                 array.push("");
@@ -706,11 +720,13 @@ var Report = /** @class */ (function () {
                             array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
                             rows.push(array);
                         }
-                        sheet2.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('I2').font = { bold: true };
+                        sheet2.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet2.getCell('K2').font = { bold: true };
                         tableName = 'TablaPrimario' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet2, tableName, 'I3', [
-                                { name: 'Fecha', filterButton: true },
+                        return [4 /*yield*/, addTable(sheet2, tableName, 'K3', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -800,6 +816,8 @@ var Report = /** @class */ (function () {
                         for (k = 0; k < deals.length; k++) {
                             array = [];
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
                             if (deals[k].seller.name == null) {
                                 array.push("");
@@ -821,7 +839,9 @@ var Report = /** @class */ (function () {
                         sheet.getCell('B2').font = { bold: true };
                         tableName = 'Tabla' + tokensArray[i].symbol;
                         return [4 /*yield*/, addTable(sheet, tableName, 'B3', [
-                                { name: 'Fecha', filterButton: true },
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -863,11 +883,13 @@ var Report = /** @class */ (function () {
                             array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
                             rows.push(array);
                         }
-                        sheet.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet.getCell('I2').font = { bold: true };
+                        sheet.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet.getCell('K2').font = { bold: true };
                         tableName = 'Tabla2' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet, tableName, 'I3', [
-                                { name: 'Fecha', filterButton: true },
+                        return [4 /*yield*/, addTable(sheet, tableName, 'K3', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -892,6 +914,8 @@ var Report = /** @class */ (function () {
                         for (k = 0; k < deals.length; k++) {
                             array = [];
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
                             if (deals[k].seller.name == null) {
                                 array.push("");
@@ -913,7 +937,9 @@ var Report = /** @class */ (function () {
                         sheet2.getCell('B2').font = { bold: true };
                         tableName = 'TablaPrimario' + tokensArray[i].symbol;
                         return [4 /*yield*/, addTable(sheet2, tableName, 'B3', [
-                                { name: 'Fecha', filterButton: true },
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -938,6 +964,8 @@ var Report = /** @class */ (function () {
                         for (k = 0; k < deals.length; k++) {
                             array = [];
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.sellToken.tokenSymbol);
                             if (deals[k].seller.name == null) {
                                 array.push("");
@@ -955,11 +983,13 @@ var Report = /** @class */ (function () {
                             array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
                             rows.push(array);
                         }
-                        sheet2.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('I2').font = { bold: true };
+                        sheet2.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet2.getCell('K2').font = { bold: true };
                         tableName = 'TablaPrimario' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet2, tableName, 'I3', [
-                                { name: 'Fecha', filterButton: true },
+                        return [4 /*yield*/, addTable(sheet2, tableName, 'K3', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
@@ -1235,7 +1265,7 @@ function getOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1247,7 +1277,7 @@ function getOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1268,7 +1298,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1280,7 +1310,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1301,7 +1331,7 @@ function getOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1313,7 +1343,7 @@ function getOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1334,7 +1364,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1346,7 +1376,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1367,7 +1397,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1379,7 +1409,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1400,7 +1430,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1412,7 +1442,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1433,7 +1463,7 @@ function getPackableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1445,7 +1475,7 @@ function getPackableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1466,7 +1496,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1478,7 +1508,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1499,7 +1529,7 @@ function getPackableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1511,7 +1541,7 @@ function getPackableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1532,7 +1562,7 @@ function getPackableRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1544,7 +1574,7 @@ function getPackableRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:

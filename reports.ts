@@ -549,6 +549,8 @@ export class Report {
                             let array = [];
     
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
     
                             if (deals[k].seller.name == null) {
@@ -577,7 +579,9 @@ export class Report {
                             tableName,
                             'B3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -601,6 +605,8 @@ export class Report {
                             let array = [];
     
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.sellToken.tokenSymbol);
     
                             if (deals[k].seller.name == null) {
@@ -620,16 +626,18 @@ export class Report {
                             rows.push(array);
                         }      
                         
-                        sheet.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet.getCell('I2').font = {bold: true};
+                        sheet.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet.getCell('K2').font = {bold: true};
                         let tableName = 'Tabla2' + tokensArray[i].symbol;
     
                         await addTable(
                             sheet,
                             tableName,
-                            'I3',
+                            'K3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -653,6 +661,8 @@ export class Report {
                             let array = [];
     
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
     
                             if (deals[k].seller.name == null) {
@@ -681,7 +691,9 @@ export class Report {
                             tableName,
                             'B3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -705,6 +717,8 @@ export class Report {
                             let array = [];
     
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.sellToken.tokenSymbol);
     
                             if (deals[k].seller.name == null) {
@@ -724,16 +738,18 @@ export class Report {
                             rows.push(array);
                         }      
                         
-                        sheet2.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('I2').font = {bold: true};
+                        sheet2.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet2.getCell('K2').font = {bold: true};
                         let tableName = 'TablaPrimario' + tokensArray[i].symbol;
     
                         await addTable(
                             sheet2,
                             tableName,
-                            'I3',
+                            'K3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -799,6 +815,8 @@ export class Report {
                             let array = [];
     
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
     
                             if (deals[k].seller.name == null) {
@@ -827,7 +845,9 @@ export class Report {
                             tableName,
                             'B3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -870,16 +890,18 @@ export class Report {
                             rows.push(array);
                         }      
                         
-                        sheet.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet.getCell('I2').font = {bold: true};
+                        sheet.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet.getCell('K2').font = {bold: true};
                         let tableName = 'Tabla2' + tokensArray[i].symbol;
     
                         await addTable(
                             sheet,
                             tableName,
-                            'I3',
+                            'K3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -903,6 +925,8 @@ export class Report {
                             let array = [];
     
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.buyToken.tokenSymbol);
     
                             if (deals[k].seller.name == null) {
@@ -931,7 +955,9 @@ export class Report {
                             tableName,
                             'B3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -955,6 +981,8 @@ export class Report {
                             let array = [];
     
                             array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
                             array.push(deals[k].offer.sellToken.tokenSymbol);
     
                             if (deals[k].seller.name == null) {
@@ -974,16 +1002,18 @@ export class Report {
                             rows.push(array);
                         }      
                         
-                        sheet2.getCell('I2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('I2').font = {bold: true};
+                        sheet2.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet2.getCell('K2').font = {bold: true};
                         let tableName = 'TablaPrimario' + tokensArray[i].symbol;
     
                         await addTable(
                             sheet2,
                             tableName,
-                            'I3',
+                            'K3',
                             [
-                                {name: 'Fecha', filterButton: true},
+                                {name: 'Fecha (pacto)', filterButton: true},
+                                {name: 'Hora (oferta)'},
+                                {name: 'Hora (pacto)'},
                                 {name: 'Contrapartida', filterButton: true},
                                 {name: 'Vendedor (usuario)', filterButton: true},
                                 {name: 'Comprador (usuario)', filterButton: true},
@@ -1248,7 +1278,7 @@ async function getOffers(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1257,7 +1287,7 @@ async function getOffers(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -1274,7 +1304,7 @@ async function getRequests(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1283,7 +1313,7 @@ async function getRequests(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -1300,7 +1330,7 @@ async function getOffersPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1309,7 +1339,7 @@ async function getOffersPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -1326,7 +1356,7 @@ async function getRequestsPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1335,7 +1365,7 @@ async function getRequestsPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -1352,7 +1382,7 @@ async function getCollectableOffers(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1361,7 +1391,7 @@ async function getCollectableOffers(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -1378,7 +1408,7 @@ async function getCollectableOffersPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1387,7 +1417,7 @@ async function getCollectableOffersPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -1404,7 +1434,7 @@ async function getPackableOffers(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1413,7 +1443,7 @@ async function getPackableOffers(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -1430,7 +1460,7 @@ async function getPackableRequests(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1439,7 +1469,7 @@ async function getPackableRequests(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -1456,7 +1486,7 @@ async function getPackableOffersPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1465,7 +1495,7 @@ async function getPackableOffersPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -1482,7 +1512,7 @@ async function getPackableRequestsPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -1491,7 +1521,7 @@ async function getPackableRequestsPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
