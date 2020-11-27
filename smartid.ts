@@ -1412,7 +1412,7 @@ export class P2POfferPackable {
         isPartial: boolean,
         buyToken: string,
         buyAmount: ethers.utils.BigNumber,
-        isBuyFiat: boolean,
+        isFiat: boolean, // isBuyFiat or isSellFiat depending on the target SC
         minDealAmount: ethers.utils.BigNumber,
         maxDealAmount: ethers.utils.BigNumber,
         minReputation: ethers.utils.BigNumber,
@@ -1427,7 +1427,7 @@ export class P2POfferPackable {
         this.amounts.push(buyAmount);
         this.tokenId = tokenId;
         this.settings.push(isPartial);
-        this.settings.push(isBuyFiat);
+        this.settings.push(isFiat);
         this.limits.push(minDealAmount);
         this.limits.push(maxDealAmount);
         this.limits.push(minReputation);

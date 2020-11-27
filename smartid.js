@@ -1520,7 +1520,8 @@ var P2POfferCommodity = /** @class */ (function () {
 }());
 exports.P2POfferCommodity = P2POfferCommodity;
 var P2POfferPackable = /** @class */ (function () {
-    function P2POfferPackable(sellToken, sellAmount, tokenId, isPartial, buyToken, buyAmount, isBuyFiat, minDealAmount, maxDealAmount, minReputation, auditor, description, country, payMethods) {
+    function P2POfferPackable(sellToken, sellAmount, tokenId, isPartial, buyToken, buyAmount, isFiat, // isBuyFiat or isSellFiat depending on the target SC
+    minDealAmount, maxDealAmount, minReputation, auditor, description, country, payMethods) {
         this.tokens = [];
         this.amounts = [];
         this.settings = [];
@@ -1532,7 +1533,7 @@ var P2POfferPackable = /** @class */ (function () {
         this.amounts.push(buyAmount);
         this.tokenId = tokenId;
         this.settings.push(isPartial);
-        this.settings.push(isBuyFiat);
+        this.settings.push(isFiat);
         this.limits.push(minDealAmount);
         this.limits.push(maxDealAmount);
         this.limits.push(minReputation);
