@@ -712,6 +712,43 @@ export class SmartID {
         }
     }
 
+    async offerFiat(
+        offerParams: P2POffer
+    ) {
+        let p2pAddress = await this.contractsService.getControllerAddress("15");
+        let p2pContract = this.contractsService.getContractSigner(
+            p2pAddress, 
+            Constants.P2P_ABI, 
+            this.signer
+        );
+        let p2pData = p2pContract.interface.functions.offer.encode([
+            offerParams.tokens, 
+            offerParams.amounts, 
+            offerParams.settings, 
+            offerParams.limits,
+            offerParams.auditor,
+            offerParams.description,
+            offerParams.metadata
+        ]);
+    
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+        let walletData = walletContract.interface.functions.forward.encode([
+            p2pAddress,
+            p2pData
+        ]);
+    
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
     /******** AUCTIONS */
 
     // WHEN AUCTION TOKEN IS ERC223 OR COLLECTABLE
@@ -1291,7 +1328,7 @@ export class P2POffer {
         isPartial: boolean,
         buyToken: string,
         buyAmount: ethers.utils.BigNumber,
-        isBuyFiat: boolean,
+        isFiat: boolean, // isBuyFiat or isSellFiat depending on the target SC
         minDealAmount: ethers.utils.BigNumber,
         maxDealAmount: ethers.utils.BigNumber,
         minReputation: ethers.utils.BigNumber,
@@ -1305,7 +1342,7 @@ export class P2POffer {
         this.amounts.push(sellAmount);
         this.amounts.push(buyAmount);
         this.settings.push(isPartial);
-        this.settings.push(isBuyFiat);
+        this.settings.push(isFiat);
         this.limits.push(minDealAmount);
         this.limits.push(maxDealAmount);
         this.limits.push(minReputation);
