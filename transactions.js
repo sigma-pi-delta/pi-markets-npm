@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
-exports.Transactions = void 0;
+exports.ErrorObj = exports.Transactions = void 0;
 var ethers_1 = require("ethers");
 var Constants = require("./constants");
 var Transactions = /** @class */ (function () {
@@ -59,8 +59,8 @@ var Transactions = /** @class */ (function () {
                         return [4 /*yield*/, this.getRequireErrorMsg(_response.transactionHash)];
                     case 3:
                         _requireMsg = _a.sent();
-                        _errorObj = '{"transactionHash": "' + _response.transactionHash + '", "requireErrorMessage": " ' + _requireMsg + '", "error": "' + String(error_1) + '"}';
-                        throw new Error(_errorObj);
+                        _errorObj = new ErrorObj(_requireMsg, _response.transactionHash, error_1);
+                        throw new Error(String(_errorObj));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -664,3 +664,12 @@ var Transactions = /** @class */ (function () {
     return Transactions;
 }());
 exports.Transactions = Transactions;
+var ErrorObj = /** @class */ (function () {
+    function ErrorObj(errorMessage, transactionHash, web3Error) {
+        this.errorMessage = errorMessage;
+        this.transactionHash = transactionHash;
+        this.web3Error = web3Error;
+    }
+    return ErrorObj;
+}());
+exports.ErrorObj = ErrorObj;

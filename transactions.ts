@@ -11,9 +11,13 @@ export class Transactions {
             console.error(error);
 
             let _requireMsg = await this.getRequireErrorMsg(_response.transactionHash);
-            let _errorObj = '{"transactionHash": "' + _response.transactionHash + '", "requireErrorMessage": " ' + _requireMsg + '", "error": "' + String(error) + '"}';
+            let _errorObj = new ErrorObj(
+                _requireMsg,
+                _response.transactionHash,
+                error 
+            )
 
-            throw new Error(_errorObj);
+            throw new Error(String(_errorObj));
         }
     }
 
@@ -566,5 +570,21 @@ export class Transactions {
         }
     
         return errorMessage;
+    }
+}
+
+export class ErrorObj {
+    readonly errorMessage: string;
+    readonly transactionHash: string;
+    readonly web3Error: any;
+
+    constructor(
+        errorMessage: string,
+        transactionHash: string,
+        web3Error: any
+    ) {
+        this.errorMessage = errorMessage;
+        this.transactionHash = transactionHash;
+        this.web3Error = web3Error;
     }
 }
