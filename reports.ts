@@ -3105,7 +3105,15 @@ async function getDayRate(
             }
 
             for (let i = 23; i < responseData.length; i=i+24) {
-                rates.push((1/(responseData[i].rate))/factor);
+                if (
+                    (token == Constants.BTC.address) ||
+                    (token == Constants.ETH.address) ||
+                    (token == Constants.USDT.address)
+                ) {
+                    rates.push(responseData[i].rate/factor);
+                } else {
+                    rates.push((1/(responseData[i].rate))/factor);
+                }
             }
 
             let len = 31 - rates.length;
@@ -3169,6 +3177,14 @@ async function convertToUsd(
             
                 default:
                     break;
+            }
+
+            if (
+                (token == Constants.BTC.address) ||
+                (token == Constants.ETH.address) ||
+                (token == Constants.USDT.address)
+            ) {
+                rate = 1 / rate;
             }
 
             return amount/(rate * factor);

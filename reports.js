@@ -3003,7 +3003,14 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                             break;
                     }
                     for (i = 23; i < responseData.length; i = i + 24) {
-                        rates.push((1 / (responseData[i].rate)) / factor);
+                        if ((token == Constants.BTC.address) ||
+                            (token == Constants.ETH.address) ||
+                            (token == Constants.USDT.address)) {
+                            rates.push(responseData[i].rate / factor);
+                        }
+                        else {
+                            rates.push((1 / (responseData[i].rate)) / factor);
+                        }
                     }
                     len = 31 - rates.length;
                     if (len > 0) {
@@ -3066,6 +3073,11 @@ function convertToUsd(amount, token, timestamp) {
                                 break;
                             default:
                                 break;
+                        }
+                        if ((token == Constants.BTC.address) ||
+                            (token == Constants.ETH.address) ||
+                            (token == Constants.USDT.address)) {
+                            rate = 1 / rate;
                         }
                         return [2 /*return*/, amount / (rate * factor)];
                     }
