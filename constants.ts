@@ -48,10 +48,15 @@ const PI = {
     address: "0x0000000000000000000000000000000000000000",
     category: 1
 };
-const GLD = {
-    symbol: "GLD",
+const GLDS = {
+    symbol: "GLDs",
     address: "0x0dc5c612b313d583398aebcbc3185c6448542f2a",
     category: 2
+};
+const GLDX = {
+    symbol: "GLDx",
+    address: "0x8e4b37a1b65ce5e78616259584662341fb667345",
+    category: 1
 };
 const PTR = {
     symbol: "PTR",
@@ -324,7 +329,8 @@ export {
     OVERRIDES,
     OVERRIDES_BACKEND,
     PI,
-    GLD,
+    GLDS,
+    GLDX,
     MVZA,
     PTR,
     BTC,

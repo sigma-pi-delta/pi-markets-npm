@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.DIA_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLD = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
+exports.DIA_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDS = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
 // URL
 var RPC_URL = "https://connect.pichain.io";
 exports.RPC_URL = RPC_URL;
@@ -80,12 +80,18 @@ var PI = {
     category: 1
 };
 exports.PI = PI;
-var GLD = {
-    symbol: "GLD",
+var GLDS = {
+    symbol: "GLDs",
     address: "0x0dc5c612b313d583398aebcbc3185c6448542f2a",
     category: 2
 };
-exports.GLD = GLD;
+exports.GLDS = GLDS;
+var GLDX = {
+    symbol: "GLDx",
+    address: "0x8e4b37a1b65ce5e78616259584662341fb667345",
+    category: 1
+};
+exports.GLDX = GLDX;
 var PTR = {
     symbol: "PTR",
     address: "0x458e54534d6efbf2b1b0569f6ff994957bb93c7f",

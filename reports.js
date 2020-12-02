@@ -39,17 +39,209 @@ exports.__esModule = true;
 exports.HoldersReportData = exports.DealsReportData = exports.Report = void 0;
 //import ExcelJS from 'exceljs';
 var ExcelJS = require('exceljs');
+var Constants = require("./constants");
 var graph_1 = require("./graph");
 var utils_1 = require("./utils");
+var node_fetch_1 = require("node-fetch");
 var FileSaver = require('file-saver');
+var ONE_UTC_DAY = 86400;
 var Report = /** @class */ (function () {
     function Report(url) {
         if (url === void 0) { url = 'mainnet'; }
         this.url = url;
     }
+    Report.prototype.getTransactionReportV2 = function (monthIndex, year, tokensArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var workbook, toYear, toMonthIndex, i, rates, sheet, day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, timeLow, timeHigh, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRow, weekRow_1, transactions_1, j, amount, weekRow, monthRow, tableDay, tableWeek, tableMonth, transactions, rows, j, array, tableName, error_1, buffer, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        workbook = new ExcelJS.Workbook();
+                        toYear = year;
+                        toMonthIndex = monthIndex + 1;
+                        if (monthIndex == 12) {
+                            toYear = year + 1;
+                            toMonthIndex = 1;
+                        }
+                        i = 0;
+                        _a.label = 1;
+                    case 1:
+                        if (!(i < tokensArray.length)) return [3 /*break*/, 8];
+                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, tokensArray[i].address, tokensArray[i].category)];
+                    case 2:
+                        rates = _a.sent();
+                        sheet = workbook.addWorksheet(tokensArray[i].symbol);
+                        day = 1;
+                        week = 1;
+                        month = 1;
+                        dayCounter = 0;
+                        weekCounter = 0;
+                        weekRates = 0;
+                        monthCounter = 0;
+                        monthRates = 0;
+                        timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+                        timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
+                        _timeLow = timeLow;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                        dayRows = [];
+                        weekRows = [];
+                        monthRows = [];
+                        _a.label = 3;
+                    case 3:
+                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 5];
+                        dayRow = [];
+                        weekRow_1 = [];
+                        return [4 /*yield*/, getTransactions(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 4:
+                        transactions_1 = _a.sent();
+                        if (transactions_1.length > 0) {
+                            for (j = 0; j < transactions_1.length; j++) {
+                                amount = parseFloat(utils_1.weiToEther(transactions_1[j].amount));
+                                dayCounter = dayCounter + amount;
+                                weekCounter = weekCounter + amount;
+                                monthCounter = monthCounter + amount;
+                            }
+                        }
+                        weekRates = weekRates + rates[day - 1];
+                        monthRates = monthRates + rates[day - 1];
+                        if (day == 7 * week) {
+                            //WEEKS
+                            weekRates = weekRates / 7;
+                            weekRow_1.push(week);
+                            weekRow_1.push(weekCounter);
+                            weekRow_1.push(weekCounter * weekRates);
+                            weekRow_1.push(weekRates);
+                            weekRows.push(weekRow_1);
+                            week++;
+                            weekCounter = 0;
+                            weekRates = 0;
+                        }
+                        dayRow.push(day);
+                        dayRow.push(dayCounter);
+                        dayRow.push(dayCounter * rates[day - 1]);
+                        dayRow.push(rates[day - 1]);
+                        dayRows.push(dayRow);
+                        day++;
+                        dayCounter = 0;
+                        _timeLow = _timeHigh;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                        return [3 /*break*/, 3];
+                    case 5:
+                        weekRow = [];
+                        monthRow = [];
+                        weekRates = weekRates / (day - 29);
+                        weekRow.push(week);
+                        weekRow.push(weekCounter);
+                        weekRow.push(weekCounter * weekRates);
+                        weekRow.push(weekRates);
+                        weekRows.push(weekRow);
+                        monthRates = monthRates / (day - 1);
+                        monthRow.push(month);
+                        monthRow.push(monthCounter);
+                        monthRow.push(monthCounter * monthRates);
+                        monthRow.push(monthRates);
+                        monthRows.push(monthRow);
+                        tableDay = 'TablaDay' + tokensArray[i].symbol;
+                        tableWeek = 'TablaWeek' + tokensArray[i].symbol;
+                        tableMonth = 'TablaMonth' + tokensArray[i].symbol;
+                        addTable(sheet, tableDay, 'B2', [
+                            { name: 'Día', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], dayRows);
+                        addTable(sheet, tableWeek, 'G2', [
+                            { name: 'Semana', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], weekRows);
+                        addTable(sheet, tableMonth, 'L2', [
+                            { name: 'Mes', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], monthRows);
+                        return [4 /*yield*/, getTransactions(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 6:
+                        transactions = _a.sent();
+                        if (transactions.length > 0) {
+                            rows = [];
+                            for (j = 0; j < transactions.length; j++) {
+                                array = [];
+                                array.push(new Date(transactions[j].timestamp * 1000));
+                                array.push(transactions[j].currency.tokenSymbol);
+                                array.push(transactions[j].from.id);
+                                if (transactions[j].from.name == null) {
+                                    array.push("");
+                                }
+                                else {
+                                    array.push(transactions[j].from.name.id);
+                                }
+                                array.push(transactions[j].to.id);
+                                if (transactions[j].to.name == null) {
+                                    array.push("");
+                                }
+                                else {
+                                    array.push(transactions[j].to.name.id);
+                                }
+                                array.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
+                                rows.push(array);
+                            }
+                            tableName = 'Tabla' + tokensArray[i].symbol;
+                            addTable(sheet, tableName, 'B36', [
+                                { name: 'Fecha', filterButton: true },
+                                { name: 'Divisa' },
+                                { name: 'Origen (wallet)' },
+                                { name: 'Origen (usuario)', filterButton: true },
+                                { name: 'Destino (wallet)' },
+                                { name: 'Destino (usuario)', filterButton: true },
+                                { name: 'Monto', totalsRowFunction: 'sum' }
+                            ], rows);
+                            sheet.getCell('B35').value = 'TRANSFERENCIAS';
+                            sheet.getCell('B35').font = { bold: true };
+                            sheet.getCell('B1').value = 'PROMEDIO (diario)';
+                            sheet.getCell('B1').font = { bold: true };
+                            sheet.getCell('G1').value = 'PROMEDIO (semanal)';
+                            sheet.getCell('G1').font = { bold: true };
+                            sheet.getCell('L1').value = 'PROMEDIO (mensual)';
+                            sheet.getCell('L1').font = { bold: true };
+                        }
+                        _a.label = 7;
+                    case 7:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 8:
+                        _a.trys.push([8, 10, , 16]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReportV2.xlsx')];
+                    case 9:
+                        _a.sent();
+                        return [3 /*break*/, 16];
+                    case 10:
+                        error_1 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 11:
+                        buffer = _a.sent();
+                        _a.label = 12;
+                    case 12:
+                        _a.trys.push([12, 14, , 15]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReportV2.xlsx')];
+                    case 13:
+                        _a.sent();
+                        return [3 /*break*/, 15];
+                    case 14:
+                        err_1 = _a.sent();
+                        console.error(err_1);
+                        return [3 /*break*/, 15];
+                    case 15: return [3 /*break*/, 16];
+                    case 16: return [2 /*return*/];
+                }
+            });
+        });
+    };
     Report.prototype.getTransactionReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, transactions, rows, j, array, tableName, error_1, buffer, err_1;
+            var workbook, i, sheet, transactions, rows, j, array, tableName, error_2, buffer, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -107,7 +299,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 12];
                     case 6:
-                        error_1 = _a.sent();
+                        error_2 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 7:
                         buffer = _a.sent();
@@ -119,8 +311,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 11];
                     case 10:
-                        err_1 = _a.sent();
-                        console.error(err_1);
+                        err_2 = _a.sent();
+                        console.error(err_2);
                         return [3 /*break*/, 11];
                     case 11: return [3 /*break*/, 12];
                     case 12: return [2 /*return*/];
@@ -130,7 +322,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getTokenHoldersReport = function (orderBy, orderDirection, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_2, buffer, err_2;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_3, buffer, err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -231,7 +423,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 21];
                     case 15:
-                        error_2 = _a.sent();
+                        error_3 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 16:
                         buffer = _a.sent();
@@ -243,8 +435,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 20];
                     case 19:
-                        err_2 = _a.sent();
-                        console.error(err_2);
+                        err_3 = _a.sent();
+                        console.error(err_3);
                         return [3 /*break*/, 20];
                     case 20: return [3 /*break*/, 21];
                     case 21: return [2 /*return*/];
@@ -254,7 +446,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getPackableHoldersReport = function (orderBy, orderDirection, tokensArray, expiries) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_3, buffer, err_3;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -360,7 +552,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 21];
                     case 15:
-                        error_3 = _a.sent();
+                        error_4 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 16:
                         buffer = _a.sent();
@@ -372,8 +564,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 20];
                     case 19:
-                        err_3 = _a.sent();
-                        console.error(err_3);
+                        err_4 = _a.sent();
+                        console.error(err_4);
                         return [3 /*break*/, 20];
                     case 20: return [3 /*break*/, 21];
                     case 21: return [2 /*return*/];
@@ -383,7 +575,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getCollectableHoldersReport = function (orderBy, orderDirection, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_5, buffer, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -484,7 +676,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 21];
                     case 15:
-                        error_4 = _a.sent();
+                        error_5 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 16:
                         buffer = _a.sent();
@@ -496,8 +688,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 20];
                     case 19:
-                        err_4 = _a.sent();
-                        console.error(err_4);
+                        err_5 = _a.sent();
+                        console.error(err_5);
                         return [3 /*break*/, 20];
                     case 20: return [3 /*break*/, 21];
                     case 21: return [2 /*return*/];
@@ -505,9 +697,490 @@ var Report = /** @class */ (function () {
             });
         });
     };
+    Report.prototype.getTokenDealsReportV2 = function (monthIndex, year, tokensArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var workbook, timeLow, timeHigh, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, toYear, toMonthIndex, rates, day, week, month, dayCounter, dayCounterPrimary, weekCounter, weekCounterPrimary, weekRates, monthCounter, monthCounterPrimary, monthRates, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, dayRow, weekRow_2, dayRowPrimary, weekRowPrimary_1, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, p, deals, q, amount, p, deals, q, amount, p, deals, q, amount, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_6, buffer, err_6;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        workbook = new ExcelJS.Workbook();
+                        timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+                        timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
+                        i = 0;
+                        _a.label = 1;
+                    case 1:
+                        if (!(i < tokensArray.length)) return [3 /*break*/, 29];
+                        sheet = void 0;
+                        sheet2 = void 0;
+                        return [4 /*yield*/, getOffers(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 2:
+                        offers = _a.sent();
+                        return [4 /*yield*/, getOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 3:
+                        offersPrimary = _a.sent();
+                        return [4 /*yield*/, getRequests(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 4:
+                        requests = _a.sent();
+                        return [4 /*yield*/, getRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 5:
+                        requestsPrimary = _a.sent();
+                        sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
+                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+                        sheet.getCell('C1').font = { bold: true };
+                        sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
+                        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
+                        sheet2.getCell('C1').font = { bold: true };
+                        sheet.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet.getCell('B2').font = { bold: true };
+                        sheet2.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet2.getCell('B2').font = { bold: true };
+                        sheet.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet.getCell('G2').font = { bold: true };
+                        sheet2.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet2.getCell('G2').font = { bold: true };
+                        sheet.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet.getCell('L2').font = { bold: true };
+                        sheet2.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet2.getCell('L2').font = { bold: true };
+                        toYear = year;
+                        toMonthIndex = monthIndex + 1;
+                        if (monthIndex == 12) {
+                            toYear = year + 1;
+                            toMonthIndex = 1;
+                        }
+                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, tokensArray[i].address, tokensArray[i].category)];
+                    case 6:
+                        rates = _a.sent();
+                        day = 1;
+                        week = 1;
+                        month = 1;
+                        dayCounter = 0;
+                        dayCounterPrimary = 0;
+                        weekCounter = 0;
+                        weekCounterPrimary = 0;
+                        weekRates = 0;
+                        monthCounter = 0;
+                        monthCounterPrimary = 0;
+                        monthRates = 0;
+                        _timeLow = timeLow;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                        dayRows = [];
+                        weekRows = [];
+                        monthRows = [];
+                        dayRowsPrimary = [];
+                        weekRowsPrimary = [];
+                        monthRowsPrimary = [];
+                        _a.label = 7;
+                    case 7:
+                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 12];
+                        dayRow = [];
+                        weekRow_2 = [];
+                        dayRowPrimary = [];
+                        weekRowPrimary_1 = [];
+                        return [4 /*yield*/, getOffers(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 8:
+                        dayOffers = _a.sent();
+                        return [4 /*yield*/, getOffersPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 9:
+                        dayOffersPrimary = _a.sent();
+                        return [4 /*yield*/, getRequests(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 10:
+                        dayRequests = _a.sent();
+                        return [4 /*yield*/, getRequestsPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 11:
+                        dayRequestsPrimary = _a.sent();
+                        if (dayOffers.length > 0) {
+                            for (p = 0; p < dayOffers.length; p++) {
+                                if (dayOffers[p].deals.length > 0) {
+                                    deals = dayOffers[p].deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                                        dayCounter = dayCounter + amount;
+                                        weekCounter = weekCounter + amount;
+                                        monthCounter = monthCounter + amount;
+                                    }
+                                }
+                            }
+                        }
+                        if (dayOffersPrimary.length > 0) {
+                            for (p = 0; p < dayOffersPrimary.length; p++) {
+                                if (dayOffersPrimary[p].deals.length > 0) {
+                                    deals = dayOffersPrimary[p].deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                                        dayCounterPrimary = dayCounterPrimary + amount;
+                                        weekCounterPrimary = weekCounterPrimary + amount;
+                                        monthCounterPrimary = monthCounterPrimary + amount;
+                                    }
+                                }
+                            }
+                        }
+                        if (dayRequests.length > 0) {
+                            for (p = 0; p < dayRequests.length; p++) {
+                                if (dayRequests[p].deals.length > 0) {
+                                    deals = dayRequests[p].deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                                        dayCounter = dayCounter + amount;
+                                        weekCounter = weekCounter + amount;
+                                        monthCounter = monthCounter + amount;
+                                    }
+                                }
+                            }
+                        }
+                        if (dayRequestsPrimary.length > 0) {
+                            for (p = 0; p < dayRequestsPrimary.length; p++) {
+                                if (dayRequestsPrimary[p].deals.length > 0) {
+                                    deals = dayRequestsPrimary[p].deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                                        dayCounterPrimary = dayCounterPrimary + amount;
+                                        weekCounterPrimary = weekCounterPrimary + amount;
+                                        monthCounterPrimary = monthCounterPrimary + amount;
+                                    }
+                                }
+                            }
+                        }
+                        weekRates = weekRates + rates[day - 1];
+                        monthRates = monthRates + rates[day - 1];
+                        if (day == 7 * week) {
+                            //WEEKS
+                            weekRates = weekRates / 7;
+                            weekRow_2.push(week);
+                            weekRow_2.push(weekCounter);
+                            weekRow_2.push(weekCounter * weekRates);
+                            weekRow_2.push(weekRates);
+                            weekRows.push(weekRow_2);
+                            //
+                            weekRowPrimary_1.push(week);
+                            weekRowPrimary_1.push(weekCounterPrimary);
+                            weekRowPrimary_1.push(weekCounterPrimary * weekRates);
+                            weekRowPrimary_1.push(weekRates);
+                            weekRowsPrimary.push(weekRowPrimary_1);
+                            week++;
+                            weekCounter = 0;
+                            weekCounterPrimary = 0;
+                            weekRates = 0;
+                        }
+                        dayRow.push(day);
+                        dayRow.push(dayCounter);
+                        dayRow.push(dayCounter * rates[day - 1]);
+                        dayRow.push(rates[day - 1]);
+                        dayRows.push(dayRow);
+                        //
+                        dayRowPrimary.push(day);
+                        dayRowPrimary.push(dayCounterPrimary);
+                        dayRowPrimary.push(dayCounterPrimary * rates[day - 1]);
+                        dayRowPrimary.push(rates[day - 1]);
+                        dayRowsPrimary.push(dayRowPrimary);
+                        day++;
+                        dayCounter = 0;
+                        dayCounterPrimary = 0;
+                        _timeLow = _timeHigh;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                        return [3 /*break*/, 7];
+                    case 12:
+                        weekRow = [];
+                        monthRow = [];
+                        weekRowPrimary = [];
+                        monthRowPrimary = [];
+                        weekRates = weekRates / (day - 29);
+                        weekRow.push(week);
+                        weekRow.push(weekCounter);
+                        weekRow.push(weekCounter * weekRates);
+                        weekRow.push(weekRates);
+                        weekRows.push(weekRow);
+                        weekRowPrimary.push(week);
+                        weekRowPrimary.push(weekCounterPrimary);
+                        weekRowPrimary.push(weekCounterPrimary * weekRates);
+                        weekRowPrimary.push(weekRates);
+                        weekRowsPrimary.push(weekRowPrimary);
+                        monthRates = monthRates / (day - 1);
+                        monthRow.push(month);
+                        monthRow.push(monthCounter);
+                        monthRow.push(monthCounter * monthRates);
+                        monthRow.push(monthRates);
+                        monthRows.push(monthRow);
+                        monthRowPrimary.push(month);
+                        monthRowPrimary.push(monthCounterPrimary);
+                        monthRowPrimary.push(monthCounterPrimary * monthRates);
+                        monthRowPrimary.push(monthRates);
+                        monthRowsPrimary.push(monthRowPrimary);
+                        tableDay = 'TablaDay' + tokensArray[i].symbol;
+                        tableWeek = 'TablaWeek' + tokensArray[i].symbol;
+                        tableMonth = 'TablaMonth' + tokensArray[i].symbol;
+                        tableDayPrimary = 'TablaDayPrimary' + tokensArray[i].symbol;
+                        tableWeekPrimary = 'TablaWeekPrimary' + tokensArray[i].symbol;
+                        tableMonthPrimary = 'TablaMonthPrimary' + tokensArray[i].symbol;
+                        addTable(sheet, tableDay, 'B3', [
+                            { name: 'Día', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], dayRows);
+                        addTable(sheet, tableWeek, 'G3', [
+                            { name: 'Semana', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], weekRows);
+                        addTable(sheet, tableMonth, 'L3', [
+                            { name: 'Mes', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], monthRows);
+                        addTable(sheet2, tableDayPrimary, 'B3', [
+                            { name: 'Día', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], dayRowsPrimary);
+                        addTable(sheet2, tableWeekPrimary, 'G3', [
+                            { name: 'Semana', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], weekRowsPrimary);
+                        addTable(sheet2, tableMonthPrimary, 'L3', [
+                            { name: 'Mes', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], monthRowsPrimary);
+                        if (!(offers.length > 0)) return [3 /*break*/, 16];
+                        rows = [];
+                        j = 0;
+                        _a.label = 13;
+                    case 13:
+                        if (!(j < offers.length)) return [3 /*break*/, 16];
+                        if (!(offers[j].deals.length > 0)) return [3 /*break*/, 15];
+                        deals = offers[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
+                            array.push(deals[k].offer.buyToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
+                            rows.push(array);
+                        }
+                        sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
+                        sheet.getCell('B36').font = { bold: true };
+                        tableName = 'Tabla' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet, tableName, 'B37', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 14:
+                        _a.sent();
+                        _a.label = 15;
+                    case 15:
+                        j++;
+                        return [3 /*break*/, 13];
+                    case 16:
+                        if (!(requests.length > 0)) return [3 /*break*/, 20];
+                        rows = [];
+                        j = 0;
+                        _a.label = 17;
+                    case 17:
+                        if (!(j < requests.length)) return [3 /*break*/, 20];
+                        if (!(requests[j].deals.length > 0)) return [3 /*break*/, 19];
+                        deals = requests[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
+                            array.push(deals[k].offer.sellToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
+                            rows.push(array);
+                        }
+                        sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
+                        sheet.getCell('K36').font = { bold: true };
+                        tableName = 'Tabla2' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet, tableName, 'K37', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 18:
+                        _a.sent();
+                        _a.label = 19;
+                    case 19:
+                        j++;
+                        return [3 /*break*/, 17];
+                    case 20:
+                        if (!(offersPrimary.length > 0)) return [3 /*break*/, 24];
+                        rows = [];
+                        j = 0;
+                        _a.label = 21;
+                    case 21:
+                        if (!(j < offersPrimary.length)) return [3 /*break*/, 24];
+                        if (!(offersPrimary[j].deals.length > 0)) return [3 /*break*/, 23];
+                        deals = offersPrimary[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
+                            array.push(deals[k].offer.buyToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
+                            rows.push(array);
+                        }
+                        sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
+                        sheet2.getCell('B36').font = { bold: true };
+                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet2, tableName, 'B37', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 22:
+                        _a.sent();
+                        _a.label = 23;
+                    case 23:
+                        j++;
+                        return [3 /*break*/, 21];
+                    case 24:
+                        if (!(requestsPrimary.length > 0)) return [3 /*break*/, 28];
+                        rows = [];
+                        j = 0;
+                        _a.label = 25;
+                    case 25:
+                        if (!(j < requestsPrimary.length)) return [3 /*break*/, 28];
+                        if (!(requestsPrimary[j].deals.length > 0)) return [3 /*break*/, 27];
+                        deals = requestsPrimary[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
+                            array.push(deals[k].offer.sellToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
+                            rows.push(array);
+                        }
+                        sheet2.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
+                        sheet2.getCell('K36').font = { bold: true };
+                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet2, tableName, 'K37', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 26:
+                        _a.sent();
+                        _a.label = 27;
+                    case 27:
+                        j++;
+                        return [3 /*break*/, 25];
+                    case 28:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 29:
+                        _a.trys.push([29, 31, , 37]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenDealsReportV2.xlsx')];
+                    case 30:
+                        _a.sent();
+                        return [3 /*break*/, 37];
+                    case 31:
+                        error_6 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 32:
+                        buffer = _a.sent();
+                        _a.label = 33;
+                    case 33:
+                        _a.trys.push([33, 35, , 36]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReportV2.xlsx')];
+                    case 34:
+                        _a.sent();
+                        return [3 /*break*/, 36];
+                    case 35:
+                        err_6 = _a.sent();
+                        console.error(err_6);
+                        return [3 /*break*/, 36];
+                    case 36: return [3 /*break*/, 37];
+                    case 37: return [2 /*return*/];
+                }
+            });
+        });
+    };
     Report.prototype.getTokenDealsReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_5, buffer, err_5;
+            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_7, buffer, err_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -749,7 +1422,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 30];
                     case 24:
-                        error_5 = _a.sent();
+                        error_7 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 25:
                         buffer = _a.sent();
@@ -761,8 +1434,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 29];
                     case 28:
-                        err_5 = _a.sent();
-                        console.error(err_5);
+                        err_7 = _a.sent();
+                        console.error(err_7);
                         return [3 /*break*/, 29];
                     case 29: return [3 /*break*/, 30];
                     case 30: return [2 /*return*/];
@@ -770,9 +1443,659 @@ var Report = /** @class */ (function () {
             });
         });
     };
+    Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var workbook, timeLow, timeHigh, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, day, week, month, dayCounter, dayCounterPrimary, dayRates, dayRatesPrimary, dayRatesOffers, dayRatesRequests, dayRatesPrimaryOffers, dayRatesPrimaryRequests, weekCounter, weekCounterPrimary, weekRates, weekRatesPrimary, monthCounter, monthCounterPrimary, monthRates, monthRatesPrimary, dayCounterUsd, dayCounterPrimaryUsd, weekCounterUsd, weekCounterPrimaryUsd, monthCounterUsd, monthCounterPrimaryUsd, dayRatesCounter, dayRatesPrimaryCounter, dayRatesCounter2, dayRatesPrimaryCounter2, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, dayRow, weekRow_3, dayRowPrimary, weekRowPrimary_2, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, buyAmount, usdAmount, p, deals, q, amount, buyAmount, usdAmount, p, deals, q, amount, sellAmount, usdAmount, p, deals, q, amount, sellAmount, usdAmount, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_8, buffer, err_8;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        workbook = new ExcelJS.Workbook();
+                        timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+                        timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
+                        i = 0;
+                        _a.label = 1;
+                    case 1:
+                        if (!(i < tokensArray.length)) return [3 /*break*/, 64];
+                        sheet = void 0;
+                        sheet2 = void 0;
+                        return [4 /*yield*/, getPackableOffers(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 2:
+                        offers = _a.sent();
+                        return [4 /*yield*/, getPackableOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 3:
+                        offersPrimary = _a.sent();
+                        return [4 /*yield*/, getPackableRequests(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 4:
+                        requests = _a.sent();
+                        return [4 /*yield*/, getPackableRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                    case 5:
+                        requestsPrimary = _a.sent();
+                        sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
+                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+                        sheet.getCell('C1').font = { bold: true };
+                        sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
+                        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
+                        sheet2.getCell('C1').font = { bold: true };
+                        sheet.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet.getCell('B2').font = { bold: true };
+                        sheet2.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet2.getCell('B2').font = { bold: true };
+                        sheet.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet.getCell('G2').font = { bold: true };
+                        sheet2.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet2.getCell('G2').font = { bold: true };
+                        sheet.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet.getCell('L2').font = { bold: true };
+                        sheet2.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet2.getCell('L2').font = { bold: true };
+                        day = 1;
+                        week = 1;
+                        month = 1;
+                        dayCounter = 0;
+                        dayCounterPrimary = 0;
+                        dayRates = 0;
+                        dayRatesPrimary = 0;
+                        dayRatesOffers = 0;
+                        dayRatesRequests = 0;
+                        dayRatesPrimaryOffers = 0;
+                        dayRatesPrimaryRequests = 0;
+                        weekCounter = 0;
+                        weekCounterPrimary = 0;
+                        weekRates = 0;
+                        weekRatesPrimary = 0;
+                        monthCounter = 0;
+                        monthCounterPrimary = 0;
+                        monthRates = 0;
+                        monthRatesPrimary = 0;
+                        dayCounterUsd = 0;
+                        dayCounterPrimaryUsd = 0;
+                        weekCounterUsd = 0;
+                        weekCounterPrimaryUsd = 0;
+                        monthCounterUsd = 0;
+                        monthCounterPrimaryUsd = 0;
+                        dayRatesCounter = 0;
+                        dayRatesPrimaryCounter = 0;
+                        dayRatesCounter2 = 0;
+                        dayRatesPrimaryCounter2 = 0;
+                        _timeLow = timeLow;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                        dayRows = [];
+                        weekRows = [];
+                        monthRows = [];
+                        dayRowsPrimary = [];
+                        weekRowsPrimary = [];
+                        monthRowsPrimary = [];
+                        _a.label = 6;
+                    case 6:
+                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 47];
+                        dayRow = [];
+                        weekRow_3 = [];
+                        dayRowPrimary = [];
+                        weekRowPrimary_2 = [];
+                        return [4 /*yield*/, getPackableOffers(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 7:
+                        dayOffers = _a.sent();
+                        return [4 /*yield*/, getPackableOffersPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 8:
+                        dayOffersPrimary = _a.sent();
+                        return [4 /*yield*/, getPackableRequests(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 9:
+                        dayRequests = _a.sent();
+                        return [4 /*yield*/, getPackableRequestsPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
+                    case 10:
+                        dayRequestsPrimary = _a.sent();
+                        if (!(dayOffers.length > 0)) return [3 /*break*/, 19];
+                        p = 0;
+                        _a.label = 11;
+                    case 11:
+                        if (!(p < dayOffers.length)) return [3 /*break*/, 19];
+                        if (!(dayOffers[p].deals.length > 0)) return [3 /*break*/, 18];
+                        deals = dayOffers[p].deals;
+                        q = 0;
+                        _a.label = 12;
+                    case 12:
+                        if (!(q < deals.length)) return [3 /*break*/, 17];
+                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+                        usdAmount = 0;
+                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
+                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 13];
+                        usdAmount = buyAmount;
+                        return [3 /*break*/, 15];
+                    case 13: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
+                    case 14:
+                        usdAmount = _a.sent();
+                        _a.label = 15;
+                    case 15:
+                        dayCounterUsd = dayCounterUsd + usdAmount;
+                        weekCounterUsd = weekCounterUsd + usdAmount;
+                        monthCounterUsd = monthCounterUsd + usdAmount;
+                        dayRatesOffers = dayRatesOffers + (usdAmount / amount);
+                        _a.label = 16;
+                    case 16:
+                        q++;
+                        return [3 /*break*/, 12];
+                    case 17:
+                        dayRatesOffers = dayRatesOffers / deals.length;
+                        _a.label = 18;
+                    case 18:
+                        p++;
+                        return [3 /*break*/, 11];
+                    case 19:
+                        if (!(dayOffersPrimary.length > 0)) return [3 /*break*/, 28];
+                        p = 0;
+                        _a.label = 20;
+                    case 20:
+                        if (!(p < dayOffersPrimary.length)) return [3 /*break*/, 28];
+                        if (!(dayOffersPrimary[p].deals.length > 0)) return [3 /*break*/, 27];
+                        deals = dayOffersPrimary[p].deals;
+                        q = 0;
+                        _a.label = 21;
+                    case 21:
+                        if (!(q < deals.length)) return [3 /*break*/, 26];
+                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                        dayCounterPrimary = dayCounterPrimary + amount;
+                        weekCounterPrimary = weekCounterPrimary + amount;
+                        monthCounterPrimary = monthCounterPrimary + amount;
+                        usdAmount = 0;
+                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
+                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 22];
+                        usdAmount = buyAmount;
+                        return [3 /*break*/, 24];
+                    case 22: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
+                    case 23:
+                        usdAmount = _a.sent();
+                        _a.label = 24;
+                    case 24:
+                        dayCounterPrimaryUsd = dayCounterPrimaryUsd + usdAmount;
+                        weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
+                        monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
+                        dayRatesPrimaryOffers = dayRatesPrimaryOffers + (usdAmount / amount);
+                        _a.label = 25;
+                    case 25:
+                        q++;
+                        return [3 /*break*/, 21];
+                    case 26:
+                        dayRatesPrimaryOffers = dayRatesPrimaryOffers / deals.length;
+                        _a.label = 27;
+                    case 27:
+                        p++;
+                        return [3 /*break*/, 20];
+                    case 28:
+                        if (!(dayRequests.length > 0)) return [3 /*break*/, 37];
+                        p = 0;
+                        _a.label = 29;
+                    case 29:
+                        if (!(p < dayRequests.length)) return [3 /*break*/, 37];
+                        if (!(dayRequests[p].deals.length > 0)) return [3 /*break*/, 36];
+                        deals = dayRequests[p].deals;
+                        q = 0;
+                        _a.label = 30;
+                    case 30:
+                        if (!(q < deals.length)) return [3 /*break*/, 35];
+                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+                        usdAmount = 0;
+                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
+                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 31];
+                        usdAmount = sellAmount;
+                        return [3 /*break*/, 33];
+                    case 31: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
+                    case 32:
+                        usdAmount = _a.sent();
+                        _a.label = 33;
+                    case 33:
+                        dayCounterUsd = dayCounterUsd + usdAmount;
+                        weekCounterUsd = weekCounterUsd + usdAmount;
+                        monthCounterUsd = monthCounterUsd + usdAmount;
+                        dayRatesRequests = dayRatesRequests + (usdAmount / amount);
+                        _a.label = 34;
+                    case 34:
+                        q++;
+                        return [3 /*break*/, 30];
+                    case 35:
+                        dayRatesRequests = dayRatesRequests / deals.length;
+                        _a.label = 36;
+                    case 36:
+                        p++;
+                        return [3 /*break*/, 29];
+                    case 37:
+                        if (!(dayRequestsPrimary.length > 0)) return [3 /*break*/, 46];
+                        p = 0;
+                        _a.label = 38;
+                    case 38:
+                        if (!(p < dayRequestsPrimary.length)) return [3 /*break*/, 46];
+                        if (!(dayRequestsPrimary[p].deals.length > 0)) return [3 /*break*/, 45];
+                        deals = dayRequestsPrimary[p].deals;
+                        q = 0;
+                        _a.label = 39;
+                    case 39:
+                        if (!(q < deals.length)) return [3 /*break*/, 44];
+                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                        dayCounterPrimary = dayCounterPrimary + amount;
+                        weekCounterPrimary = weekCounterPrimary + amount;
+                        monthCounterPrimary = monthCounterPrimary + amount;
+                        usdAmount = 0;
+                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
+                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 40];
+                        usdAmount = sellAmount;
+                        return [3 /*break*/, 42];
+                    case 40: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
+                    case 41:
+                        usdAmount = _a.sent();
+                        _a.label = 42;
+                    case 42:
+                        dayCounterUsd = dayCounterUsd + usdAmount;
+                        weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
+                        monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
+                        dayRatesPrimaryRequests = dayRatesPrimaryRequests + (usdAmount / amount);
+                        _a.label = 43;
+                    case 43:
+                        q++;
+                        return [3 /*break*/, 39];
+                    case 44:
+                        dayRatesPrimaryRequests = dayRatesPrimaryRequests / deals.length;
+                        _a.label = 45;
+                    case 45:
+                        p++;
+                        return [3 /*break*/, 38];
+                    case 46:
+                        if (dayRatesOffers == 0)
+                            dayRatesOffers = dayRatesRequests;
+                        if (dayRatesRequests == 0)
+                            dayRatesRequests = dayRatesOffers;
+                        if (dayRatesPrimaryOffers == 0)
+                            dayRatesPrimaryOffers = dayRatesPrimaryRequests;
+                        if (dayRatesPrimaryRequests == 0)
+                            dayRatesPrimaryRequests = dayRatesPrimaryOffers;
+                        dayRates = (dayRatesOffers + dayRatesRequests) / 2;
+                        dayRatesPrimary = (dayRatesPrimaryOffers + dayRatesPrimaryRequests) / 2;
+                        dayRatesOffers = 0;
+                        dayRatesRequests = 0;
+                        dayRatesPrimaryOffers = 0;
+                        dayRatesPrimaryRequests = 0;
+                        if (dayRates != 0) {
+                            dayRatesCounter++;
+                            dayRatesCounter2++;
+                        }
+                        if (dayRatesPrimary != 0) {
+                            dayRatesPrimaryCounter++;
+                            dayRatesPrimaryCounter2++;
+                        }
+                        weekRates = weekRates + dayRates;
+                        weekRatesPrimary = weekRatesPrimary + dayRatesPrimary;
+                        monthRates = monthRates + dayRates;
+                        monthRatesPrimary = monthRatesPrimary + dayRatesPrimary;
+                        if (day == 7 * week) {
+                            //WEEKS
+                            if (dayRatesCounter == 0)
+                                dayRatesCounter = 1;
+                            weekRates = weekRates / dayRatesCounter;
+                            dayRatesCounter = 0;
+                            weekRow_3.push(week);
+                            weekRow_3.push(weekCounter);
+                            weekRow_3.push(weekCounterUsd);
+                            weekRow_3.push(weekRates);
+                            weekRows.push(weekRow_3);
+                            //
+                            if (dayRatesPrimaryCounter == 0)
+                                dayRatesPrimaryCounter = 1;
+                            weekRatesPrimary = weekRatesPrimary / dayRatesPrimaryCounter;
+                            dayRatesPrimaryCounter = 0;
+                            weekRowPrimary_2.push(week);
+                            weekRowPrimary_2.push(weekCounterPrimary);
+                            weekRowPrimary_2.push(weekCounterPrimaryUsd);
+                            weekRowPrimary_2.push(weekRatesPrimary);
+                            weekRowsPrimary.push(weekRowPrimary_2);
+                            week++;
+                            weekCounter = 0;
+                            weekCounterPrimary = 0;
+                            weekCounterUsd = 0;
+                            weekCounterPrimaryUsd = 0;
+                            weekRates = 0;
+                            weekRatesPrimary = 0;
+                        }
+                        dayRow.push(day);
+                        dayRow.push(dayCounter);
+                        dayRow.push(dayCounterUsd);
+                        dayRow.push(dayRates);
+                        dayRows.push(dayRow);
+                        //
+                        dayRowPrimary.push(day);
+                        dayRowPrimary.push(dayCounterPrimary);
+                        dayRowPrimary.push(dayCounterPrimaryUsd);
+                        dayRowPrimary.push(dayRatesPrimary);
+                        dayRowsPrimary.push(dayRowPrimary);
+                        day++;
+                        dayCounter = 0;
+                        dayCounterPrimary = 0;
+                        dayCounterUsd = 0;
+                        dayCounterPrimaryUsd = 0;
+                        _timeLow = _timeHigh;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                        return [3 /*break*/, 6];
+                    case 47:
+                        weekRow = [];
+                        monthRow = [];
+                        weekRowPrimary = [];
+                        monthRowPrimary = [];
+                        if (dayRatesCounter == 0)
+                            dayRatesCounter = 1;
+                        weekRates = weekRates / dayRatesCounter;
+                        weekRow.push(week);
+                        weekRow.push(weekCounter);
+                        weekRow.push(weekCounterUsd);
+                        weekRow.push(weekRates);
+                        weekRows.push(weekRow);
+                        if (dayRatesPrimaryCounter == 0)
+                            dayRatesPrimaryCounter = 1;
+                        weekRatesPrimary = weekRatesPrimary / dayRatesPrimaryCounter;
+                        weekRowPrimary.push(week);
+                        weekRowPrimary.push(weekCounterPrimary);
+                        weekRowPrimary.push(weekCounterPrimaryUsd);
+                        weekRowPrimary.push(weekRatesPrimary);
+                        weekRowsPrimary.push(weekRowPrimary);
+                        if (dayRatesCounter2 == 0)
+                            dayRatesCounter2 = 1;
+                        monthRates = monthRates / dayRatesCounter2;
+                        monthRow.push(month);
+                        monthRow.push(monthCounter);
+                        monthRow.push(monthCounterUsd);
+                        monthRow.push(monthRates);
+                        monthRows.push(monthRow);
+                        if (dayRatesPrimaryCounter2 == 0)
+                            dayRatesPrimaryCounter2 = 1;
+                        monthRatesPrimary = monthRatesPrimary / dayRatesPrimaryCounter2;
+                        monthRowPrimary.push(month);
+                        monthRowPrimary.push(monthCounterPrimary);
+                        monthRowPrimary.push(monthCounterPrimaryUsd);
+                        monthRowPrimary.push(monthRatesPrimary);
+                        monthRowsPrimary.push(monthRowPrimary);
+                        tableDay = 'TablaDay' + tokensArray[i].symbol;
+                        tableWeek = 'TablaWeek' + tokensArray[i].symbol;
+                        tableMonth = 'TablaMonth' + tokensArray[i].symbol;
+                        tableDayPrimary = 'TablaDayPrimary' + tokensArray[i].symbol;
+                        tableWeekPrimary = 'TablaWeekPrimary' + tokensArray[i].symbol;
+                        tableMonthPrimary = 'TablaMonthPrimary' + tokensArray[i].symbol;
+                        addTable(sheet, tableDay, 'B3', [
+                            { name: 'Día', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], dayRows);
+                        addTable(sheet, tableWeek, 'G3', [
+                            { name: 'Semana', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], weekRows);
+                        addTable(sheet, tableMonth, 'L3', [
+                            { name: 'Mes', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], monthRows);
+                        addTable(sheet2, tableDayPrimary, 'B3', [
+                            { name: 'Día', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], dayRowsPrimary);
+                        addTable(sheet2, tableWeekPrimary, 'G3', [
+                            { name: 'Semana', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], weekRowsPrimary);
+                        addTable(sheet2, tableMonthPrimary, 'L3', [
+                            { name: 'Mes', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                            { name: 'Tipo de cambio' }
+                        ], monthRowsPrimary);
+                        if (!(offers.length > 0)) return [3 /*break*/, 51];
+                        rows = [];
+                        j = 0;
+                        _a.label = 48;
+                    case 48:
+                        if (!(j < offers.length)) return [3 /*break*/, 51];
+                        if (!(offers[j].deals.length > 0)) return [3 /*break*/, 50];
+                        deals = offers[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
+                            array.push(deals[k].offer.buyToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
+                            rows.push(array);
+                        }
+                        sheet.getCell('B36').value = tokensArray[i].symbol + ' OFERTADO';
+                        sheet.getCell('B36').font = { bold: true };
+                        tableName = 'Tabla' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet, tableName, 'B37', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 49:
+                        _a.sent();
+                        _a.label = 50;
+                    case 50:
+                        j++;
+                        return [3 /*break*/, 48];
+                    case 51:
+                        if (!(requests.length > 0)) return [3 /*break*/, 55];
+                        rows = [];
+                        j = 0;
+                        _a.label = 52;
+                    case 52:
+                        if (!(j < requests.length)) return [3 /*break*/, 55];
+                        if (!(requests[j].deals.length > 0)) return [3 /*break*/, 54];
+                        deals = requests[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(deals[k].offer.sellToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseInt(utils_1.weiToEther(deals[k].buyAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
+                            rows.push(array);
+                        }
+                        sheet.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet.getCell('K36').font = { bold: true };
+                        tableName = 'Tabla2' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet, tableName, 'K7', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 53:
+                        _a.sent();
+                        _a.label = 54;
+                    case 54:
+                        j++;
+                        return [3 /*break*/, 52];
+                    case 55:
+                        if (!(offersPrimary.length > 0)) return [3 /*break*/, 59];
+                        rows = [];
+                        j = 0;
+                        _a.label = 56;
+                    case 56:
+                        if (!(j < offersPrimary.length)) return [3 /*break*/, 59];
+                        if (!(offersPrimary[j].deals.length > 0)) return [3 /*break*/, 58];
+                        deals = offersPrimary[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
+                            array.push(deals[k].offer.buyToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
+                            rows.push(array);
+                        }
+                        sheet2.getCell('B36').value = tokensArray[i].symbol + ' OFERTADO';
+                        sheet2.getCell('B36').font = { bold: true };
+                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet2, tableName, 'B37', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 57:
+                        _a.sent();
+                        _a.label = 58;
+                    case 58:
+                        j++;
+                        return [3 /*break*/, 56];
+                    case 59:
+                        if (!(requestsPrimary.length > 0)) return [3 /*break*/, 63];
+                        rows = [];
+                        j = 0;
+                        _a.label = 60;
+                    case 60:
+                        if (!(j < requestsPrimary.length)) return [3 /*break*/, 63];
+                        if (!(requestsPrimary[j].deals.length > 0)) return [3 /*break*/, 62];
+                        deals = requestsPrimary[j].deals;
+                        for (k = 0; k < deals.length; k++) {
+                            array = [];
+                            array.push(new Date(deals[k].timestamp * 1000));
+                            array.push(timeConverter(deals[k].offer.timestamp));
+                            array.push(timeConverter(deals[k].timestamp));
+                            array.push(deals[k].offer.sellToken.tokenSymbol);
+                            if (deals[k].seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].seller.name);
+                            }
+                            if (deals[k].buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(deals[k].buyer.name);
+                            }
+                            array.push(parseInt(utils_1.weiToEther(deals[k].buyAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
+                            rows.push(array);
+                        }
+                        sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
+                        sheet2.getCell('K36').font = { bold: true };
+                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
+                        return [4 /*yield*/, addTable(sheet2, tableName, 'K37', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 61:
+                        _a.sent();
+                        _a.label = 62;
+                    case 62:
+                        j++;
+                        return [3 /*break*/, 60];
+                    case 63:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 64:
+                        _a.trys.push([64, 66, , 72]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableDealsReportV2.xlsx')];
+                    case 65:
+                        _a.sent();
+                        return [3 /*break*/, 72];
+                    case 66:
+                        error_8 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 67:
+                        buffer = _a.sent();
+                        _a.label = 68;
+                    case 68:
+                        _a.trys.push([68, 70, , 71]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReportV2.xlsx')];
+                    case 69:
+                        _a.sent();
+                        return [3 /*break*/, 71];
+                    case 70:
+                        err_8 = _a.sent();
+                        console.error(err_8);
+                        return [3 /*break*/, 71];
+                    case 71: return [3 /*break*/, 72];
+                    case 72: return [2 /*return*/];
+                }
+            });
+        });
+    };
     Report.prototype.getPackableDealsReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_6, buffer, err_6;
+            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_9, buffer, err_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1012,7 +2335,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 30];
                     case 24:
-                        error_6 = _a.sent();
+                        error_9 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 25:
                         buffer = _a.sent();
@@ -1024,8 +2347,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 29];
                     case 28:
-                        err_6 = _a.sent();
-                        console.error(err_6);
+                        err_9 = _a.sent();
+                        console.error(err_9);
                         return [3 /*break*/, 29];
                     case 29: return [3 /*break*/, 30];
                     case 30: return [2 /*return*/];
@@ -1265,7 +2588,7 @@ function getOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1277,7 +2600,7 @@ function getOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1298,7 +2621,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1310,7 +2633,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1331,7 +2654,7 @@ function getOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1343,7 +2666,7 @@ function getOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1364,7 +2687,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1376,7 +2699,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1397,7 +2720,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1409,7 +2732,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1430,7 +2753,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1442,7 +2765,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+                    query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1463,7 +2786,7 @@ function getPackableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1475,7 +2798,7 @@ function getPackableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1496,7 +2819,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1508,7 +2831,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1529,7 +2852,7 @@ function getPackableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1541,7 +2864,7 @@ function getPackableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1562,7 +2885,7 @@ function getPackableRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService = new graph_1.Query('p2p-primary', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -1574,7 +2897,7 @@ function getPackableRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
                 case 2:
                     if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
                     skip = offers.length;
-                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { sellToken { tokenSymbol } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+                    query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -1604,6 +2927,14 @@ function addTable(sheet, tableName, tablePosition, columns, rows) {
 function getTime() {
     return timeConverter(Date.now() / 1000);
 }
+function getUtcTime() {
+    return Date.now() / 1000;
+}
+function getUtcTimeFromDate(year, month, day) {
+    var timeDate = new Date(year, month - 1, day);
+    var utcTime = timeDate.getTime() / 1000;
+    return utcTime;
+}
 function timeConverter(UNIX_timestamp) {
     var a = new Date(UNIX_timestamp * 1000);
     var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1616,6 +2947,20 @@ function timeConverter(UNIX_timestamp) {
     var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
     return time;
 }
+function getEndPointDates(UNIX_timestamp) {
+    var a = new Date(UNIX_timestamp * 1000);
+    var year = a.getFullYear();
+    var month = a.getMonth() + 1;
+    var date = a.getDate();
+    var dayAfter = +UNIX_timestamp + +ONE_UTC_DAY;
+    var b = new Date(dayAfter * 1000);
+    var toYear = b.getFullYear();
+    var toMonth = b.getMonth() + 1;
+    var toDate = b.getDate();
+    var from = year + '-' + month + '-' + date;
+    var to = toYear + '-' + toMonth + '-' + toDate;
+    return [from, to];
+}
 function cleanEmptyDeals(array) {
     var cleanArray = [];
     for (var i = 0; i < array.length; i++) {
@@ -1624,6 +2969,148 @@ function cleanEmptyDeals(array) {
         }
     }
     return cleanArray;
+}
+function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
+    return __awaiter(this, void 0, void 0, function () {
+        var from, to, responseData, rates, factor, i, len, j, error_10;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!((tokenCategory == 1) &&
+                        (token != Constants.PI.address) &&
+                        (token != Constants.USD.address) &&
+                        (token != Constants.USC.address) &&
+                        (token != Constants.PEL.address))) return [3 /*break*/, 5];
+                    from = fromYear + "-" + fromMonth + "-01";
+                    to = toYear + "-" + toMonth + "-01";
+                    responseData = void 0;
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, requestRateEndPoint(from, to, token)];
+                case 2:
+                    responseData = _a.sent();
+                    rates = [];
+                    factor = 1;
+                    switch (token) {
+                        case Constants.GLDX.address:
+                            factor = 33.1034768;
+                            break;
+                        case Constants.GLDS.address:
+                            factor = 33.1034768;
+                            break;
+                        default:
+                            break;
+                    }
+                    for (i = 23; i < responseData.length; i = i + 24) {
+                        rates.push((1 / (responseData[i].rate)) / factor);
+                    }
+                    len = 31 - rates.length;
+                    if (len > 0) {
+                        for (j = 0; j < len; j++) {
+                            rates.push(0);
+                        }
+                    }
+                    return [2 /*return*/, rates];
+                case 3:
+                    error_10 = _a.sent();
+                    console.error(error_10);
+                    throw new Error(error_10);
+                case 4: return [3 /*break*/, 6];
+                case 5:
+                    if ((token == Constants.USD.address) ||
+                        (token == Constants.USC.address) ||
+                        (token == Constants.PEL.address)) {
+                        return [2 /*return*/, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
+                    }
+                    else {
+                        return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+                    }
+                    _a.label = 6;
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
+function convertToUsd(amount, token, timestamp) {
+    return __awaiter(this, void 0, void 0, function () {
+        var endPointDates, from, to, rates, rate, factor;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    endPointDates = getEndPointDates(timestamp);
+                    from = endPointDates[0];
+                    to = endPointDates[1];
+                    if (!(token == Constants.PI.address)) return [3 /*break*/, 1];
+                    return [2 /*return*/, 0];
+                case 1:
+                    if (!((token == Constants.USD.address) ||
+                        (token == Constants.USC.address) ||
+                        (token == Constants.PEL.address))) return [3 /*break*/, 2];
+                    return [2 /*return*/, amount];
+                case 2: return [4 /*yield*/, requestRateEndPoint(from, to, token)];
+                case 3:
+                    rates = _a.sent();
+                    if (rates.length == 0) {
+                        return [2 /*return*/, 0];
+                    }
+                    else {
+                        rate = rates[rates.length - 1].rate;
+                        factor = 1;
+                        switch (token) {
+                            case Constants.GLDX.address:
+                                factor = 33.1034768;
+                                break;
+                            case Constants.GLDS.address:
+                                factor = 33.1034768;
+                                break;
+                            default:
+                                break;
+                        }
+                        return [2 /*return*/, amount / (rate * factor)];
+                    }
+                    _a.label = 4;
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+function requestRateEndPoint(from, to, token) {
+    return __awaiter(this, void 0, void 0, function () {
+        var endPoint, body, response, responseData, error_11;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    endPoint = "https://api.pimarkets.io/v1/public/asset/exchange/rates/history";
+                    body = JSON.stringify({ "from": from, "to": to, "asset_id": token });
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 5, , 6]);
+                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                            "method": 'POST',
+                            "headers": {
+                                "Accept": 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            "body": body,
+                            "redirect": 'follow'
+                        })];
+                case 2:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    responseData = _a.sent();
+                    _a.label = 4;
+                case 4: return [2 /*return*/, responseData];
+                case 5:
+                    error_11 = _a.sent();
+                    console.error(error_11);
+                    throw new Error(error_11);
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
 }
 var DealsReportData = /** @class */ (function () {
     function DealsReportData(tokenAddress, tokenSymbol, offers, requests) {
