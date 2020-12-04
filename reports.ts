@@ -1663,6 +1663,10 @@ export class Report {
             let dayRatesPrimaryCounter = 0
             let dayRatesCounter2 = 0
             let dayRatesPrimaryCounter2 = 0
+            let meanCounter = 0;
+            let meanCounter2 = 0;
+            let meanCounter3 = 0;
+            let meanCounter4 = 0;
 
             let _timeLow = timeLow;
             let _timeHigh = _timeLow + ONE_UTC_DAY;
@@ -1718,7 +1722,8 @@ export class Report {
                                 dayRatesOffers = dayRatesOffers + (usdAmount / amount);
                             }
 
-                            dayRatesOffers = dayRatesOffers / deals.length;
+                            meanCounter++;
+                            dayRatesOffers = dayRatesOffers / (deals.length * meanCounter);
                         }
                     }
                 }
@@ -1756,7 +1761,8 @@ export class Report {
                                 dayRatesPrimaryOffers = dayRatesPrimaryOffers + (usdAmount / amount);
                             }
 
-                            dayRatesPrimaryOffers = dayRatesPrimaryOffers / deals.length;
+                            meanCounter2++;
+                            dayRatesPrimaryOffers = dayRatesPrimaryOffers / (deals.length * meanCounter2);
                         }
                     }
                 }
@@ -1794,7 +1800,8 @@ export class Report {
                                 dayRatesRequests = dayRatesRequests + (usdAmount / amount);
                             }
 
-                            dayRatesRequests = dayRatesRequests / deals.length;
+                            meanCounter3++;
+                            dayRatesRequests = dayRatesRequests / (deals.length * meanCounter3);
                         }
                     }
                 }
@@ -1832,7 +1839,8 @@ export class Report {
                                 dayRatesPrimaryRequests = dayRatesPrimaryRequests + (usdAmount / amount);
                             }
 
-                            dayRatesPrimaryRequests = dayRatesPrimaryRequests / deals.length;
+                            meanCounter4++;
+                            dayRatesPrimaryRequests = dayRatesPrimaryRequests / (deals.length * meanCounter4);
                         }
                     }
                 }
@@ -1848,6 +1856,10 @@ export class Report {
                 dayRatesRequests = 0;
                 dayRatesPrimaryOffers = 0;
                 dayRatesPrimaryRequests = 0;
+                meanCounter = 0;
+                meanCounter2 = 0;
+                meanCounter3 = 0;
+                meanCounter4 = 0;
 
                 if (dayRates != 0)  { dayRatesCounter++; dayRatesCounter2++; }
                 if (dayRatesPrimary != 0) { dayRatesPrimaryCounter++; dayRatesPrimaryCounter2++; }

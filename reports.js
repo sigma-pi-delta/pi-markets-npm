@@ -1489,7 +1489,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, timeLow, timeHigh, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, day, week, month, dayCounter, dayCounterPrimary, dayRates, dayRatesPrimary, dayRatesOffers, dayRatesRequests, dayRatesPrimaryOffers, dayRatesPrimaryRequests, weekCounter, weekCounterPrimary, weekRates, weekRatesPrimary, monthCounter, monthCounterPrimary, monthRates, monthRatesPrimary, dayCounterUsd, dayCounterPrimaryUsd, weekCounterUsd, weekCounterPrimaryUsd, monthCounterUsd, monthCounterPrimaryUsd, dayRatesCounter, dayRatesPrimaryCounter, dayRatesCounter2, dayRatesPrimaryCounter2, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, dayRow, weekRow_3, dayRowPrimary, weekRowPrimary_2, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, buyAmount, usdAmount, p, deals, q, amount, buyAmount, usdAmount, p, deals, q, amount, sellAmount, usdAmount, p, deals, q, amount, sellAmount, usdAmount, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_8, buffer, err_8;
+            var workbook, timeLow, timeHigh, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, day, week, month, dayCounter, dayCounterPrimary, dayRates, dayRatesPrimary, dayRatesOffers, dayRatesRequests, dayRatesPrimaryOffers, dayRatesPrimaryRequests, weekCounter, weekCounterPrimary, weekRates, weekRatesPrimary, monthCounter, monthCounterPrimary, monthRates, monthRatesPrimary, dayCounterUsd, dayCounterPrimaryUsd, weekCounterUsd, weekCounterPrimaryUsd, monthCounterUsd, monthCounterPrimaryUsd, dayRatesCounter, dayRatesPrimaryCounter, dayRatesCounter2, dayRatesPrimaryCounter2, meanCounter, meanCounter2, meanCounter3, meanCounter4, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, dayRow, weekRow_3, dayRowPrimary, weekRowPrimary_2, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, buyAmount, usdAmount, p, deals, q, amount, buyAmount, usdAmount, p, deals, q, amount, sellAmount, usdAmount, p, deals, q, amount, sellAmount, usdAmount, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_8, buffer, err_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1561,6 +1561,10 @@ var Report = /** @class */ (function () {
                         dayRatesPrimaryCounter = 0;
                         dayRatesCounter2 = 0;
                         dayRatesPrimaryCounter2 = 0;
+                        meanCounter = 0;
+                        meanCounter2 = 0;
+                        meanCounter3 = 0;
+                        meanCounter4 = 0;
                         _timeLow = timeLow;
                         _timeHigh = _timeLow + ONE_UTC_DAY;
                         dayRows = [];
@@ -1624,7 +1628,8 @@ var Report = /** @class */ (function () {
                         q++;
                         return [3 /*break*/, 12];
                     case 17:
-                        dayRatesOffers = dayRatesOffers / deals.length;
+                        meanCounter++;
+                        dayRatesOffers = dayRatesOffers / (deals.length * meanCounter);
                         _a.label = 18;
                     case 18:
                         p++;
@@ -1666,7 +1671,8 @@ var Report = /** @class */ (function () {
                         q++;
                         return [3 /*break*/, 21];
                     case 26:
-                        dayRatesPrimaryOffers = dayRatesPrimaryOffers / deals.length;
+                        meanCounter2++;
+                        dayRatesPrimaryOffers = dayRatesPrimaryOffers / (deals.length * meanCounter2);
                         _a.label = 27;
                     case 27:
                         p++;
@@ -1708,7 +1714,8 @@ var Report = /** @class */ (function () {
                         q++;
                         return [3 /*break*/, 30];
                     case 35:
-                        dayRatesRequests = dayRatesRequests / deals.length;
+                        meanCounter3++;
+                        dayRatesRequests = dayRatesRequests / (deals.length * meanCounter3);
                         _a.label = 36;
                     case 36:
                         p++;
@@ -1750,7 +1757,8 @@ var Report = /** @class */ (function () {
                         q++;
                         return [3 /*break*/, 39];
                     case 44:
-                        dayRatesPrimaryRequests = dayRatesPrimaryRequests / deals.length;
+                        meanCounter4++;
+                        dayRatesPrimaryRequests = dayRatesPrimaryRequests / (deals.length * meanCounter4);
                         _a.label = 45;
                     case 45:
                         p++;
@@ -1770,6 +1778,10 @@ var Report = /** @class */ (function () {
                         dayRatesRequests = 0;
                         dayRatesPrimaryOffers = 0;
                         dayRatesPrimaryRequests = 0;
+                        meanCounter = 0;
+                        meanCounter2 = 0;
+                        meanCounter3 = 0;
+                        meanCounter4 = 0;
                         if (dayRates != 0) {
                             dayRatesCounter++;
                             dayRatesCounter2++;
