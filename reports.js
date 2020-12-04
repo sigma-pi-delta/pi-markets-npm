@@ -52,7 +52,7 @@ var Report = /** @class */ (function () {
     }
     Report.prototype.getTransactionReportV2 = function (monthIndex, year, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, i, rates, sheet, day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, timeLow, timeHigh, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRow, weekRow_1, transactions_1, j, amount, weekRow, monthRow, tableDay, tableWeek, tableMonth, transactions, rows, j, array, tableName, error_1, buffer, err_1;
+            var workbook, toYear, toMonthIndex, i, rates, sheet, day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, weekZeros, monthZeros, timeLow, timeHigh, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRow, weekRow_1, transactions_1, j, amount, weekRow, monthRow, tableDay, tableWeek, tableMonth, transactions, rows, j, array, tableName, error_1, buffer, err_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -79,6 +79,8 @@ var Report = /** @class */ (function () {
                         weekRates = 0;
                         monthCounter = 0;
                         monthRates = 0;
+                        weekZeros = 0;
+                        monthZeros = 0;
                         timeLow = getUtcTimeFromDate(year, monthIndex, 1);
                         timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
                         _timeLow = timeLow;
@@ -104,9 +106,18 @@ var Report = /** @class */ (function () {
                         }
                         weekRates = weekRates + rates[day - 1];
                         monthRates = monthRates + rates[day - 1];
+                        if (rates[day - 1] == 0) {
+                            weekZeros++;
+                            monthZeros++;
+                        }
                         if (day == 7 * week) {
                             //WEEKS
-                            weekRates = weekRates / 7;
+                            if ((7 - weekZeros) == 0) {
+                                weekRates = 0;
+                            }
+                            else {
+                                weekRates = weekRates / (7 - weekZeros);
+                            }
                             weekRow_1.push(week);
                             weekRow_1.push(weekCounter);
                             weekRow_1.push(weekCounter * weekRates);
@@ -115,6 +126,7 @@ var Report = /** @class */ (function () {
                             week++;
                             weekCounter = 0;
                             weekRates = 0;
+                            weekZeros = 0;
                         }
                         dayRow.push(day);
                         dayRow.push(dayCounter);
@@ -129,13 +141,23 @@ var Report = /** @class */ (function () {
                     case 5:
                         weekRow = [];
                         monthRow = [];
-                        weekRates = weekRates / (day - 29);
+                        if ((day - 29 - weekZeros) == 0) {
+                            weekRates = 0;
+                        }
+                        else {
+                            weekRates = weekRates / (day - 29 - weekZeros);
+                        }
                         weekRow.push(week);
                         weekRow.push(weekCounter);
                         weekRow.push(weekCounter * weekRates);
                         weekRow.push(weekRates);
                         weekRows.push(weekRow);
-                        monthRates = monthRates / (day - 1);
+                        if ((day - 1 - monthZeros) == 0) {
+                            monthRates = 0;
+                        }
+                        else {
+                            monthRates = monthRates / (day - 1 - monthZeros);
+                        }
                         monthRow.push(month);
                         monthRow.push(monthCounter);
                         monthRow.push(monthCounter * monthRates);
@@ -200,11 +222,11 @@ var Report = /** @class */ (function () {
                             ], rows);
                             sheet.getCell('B35').value = 'TRANSFERENCIAS';
                             sheet.getCell('B35').font = { bold: true };
-                            sheet.getCell('B1').value = 'PROMEDIO (diario)';
+                            sheet.getCell('B1').value = 'TOTAL (diario)';
                             sheet.getCell('B1').font = { bold: true };
-                            sheet.getCell('G1').value = 'PROMEDIO (semanal)';
+                            sheet.getCell('G1').value = 'TOTAL (semanal)';
                             sheet.getCell('G1').font = { bold: true };
-                            sheet.getCell('L1').value = 'PROMEDIO (mensual)';
+                            sheet.getCell('L1').value = 'TOTAL (mensual)';
                             sheet.getCell('L1').font = { bold: true };
                         }
                         _a.label = 7;
@@ -699,7 +721,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getTokenDealsReportV2 = function (monthIndex, year, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, timeLow, timeHigh, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, toYear, toMonthIndex, rates, day, week, month, dayCounter, dayCounterPrimary, weekCounter, weekCounterPrimary, weekRates, monthCounter, monthCounterPrimary, monthRates, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, dayRow, weekRow_2, dayRowPrimary, weekRowPrimary_1, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, p, deals, q, amount, p, deals, q, amount, p, deals, q, amount, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_6, buffer, err_6;
+            var workbook, timeLow, timeHigh, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, toYear, toMonthIndex, rates, day, week, month, dayCounter, dayCounterPrimary, weekCounter, weekCounterPrimary, weekRates, monthCounter, monthCounterPrimary, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, dayRow, weekRow_2, dayRowPrimary, weekRowPrimary_1, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, p, deals, q, amount, p, deals, q, amount, p, deals, q, amount, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_6, buffer, err_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -730,17 +752,17 @@ var Report = /** @class */ (function () {
                         sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
                         sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
                         sheet2.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet.getCell('B2').value = 'TOTAL (diario)';
                         sheet.getCell('B2').font = { bold: true };
-                        sheet2.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet2.getCell('B2').value = 'TOTAL (diario)';
                         sheet2.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet.getCell('G2').value = 'TOTAL (semanal)';
                         sheet.getCell('G2').font = { bold: true };
-                        sheet2.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet2.getCell('G2').value = 'TOTAL (semanal)';
                         sheet2.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet.getCell('L2').value = 'TOTAL (mensual)';
                         sheet.getCell('L2').font = { bold: true };
-                        sheet2.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet2.getCell('L2').value = 'TOTAL (mensual)';
                         sheet2.getCell('L2').font = { bold: true };
                         toYear = year;
                         toMonthIndex = monthIndex + 1;
@@ -762,6 +784,8 @@ var Report = /** @class */ (function () {
                         monthCounter = 0;
                         monthCounterPrimary = 0;
                         monthRates = 0;
+                        weekZeros = 0;
+                        monthZeros = 0;
                         _timeLow = timeLow;
                         _timeHigh = _timeLow + ONE_UTC_DAY;
                         dayRows = [];
@@ -843,9 +867,18 @@ var Report = /** @class */ (function () {
                         }
                         weekRates = weekRates + rates[day - 1];
                         monthRates = monthRates + rates[day - 1];
+                        if (rates[day - 1] == 0) {
+                            weekZeros++;
+                            monthZeros++;
+                        }
                         if (day == 7 * week) {
                             //WEEKS
-                            weekRates = weekRates / 7;
+                            if ((7 - weekZeros) == 0) {
+                                weekRates = 0;
+                            }
+                            else {
+                                weekRates = weekRates / (7 - weekZeros);
+                            }
                             weekRow_2.push(week);
                             weekRow_2.push(weekCounter);
                             weekRow_2.push(weekCounter * weekRates);
@@ -861,6 +894,7 @@ var Report = /** @class */ (function () {
                             weekCounter = 0;
                             weekCounterPrimary = 0;
                             weekRates = 0;
+                            weekZeros = 0;
                         }
                         dayRow.push(day);
                         dayRow.push(dayCounter);
@@ -884,7 +918,12 @@ var Report = /** @class */ (function () {
                         monthRow = [];
                         weekRowPrimary = [];
                         monthRowPrimary = [];
-                        weekRates = weekRates / (day - 29);
+                        if ((day - 29 - weekZeros) == 0) {
+                            weekRates = 0;
+                        }
+                        else {
+                            weekRates = weekRates / (day - 29 - weekZeros);
+                        }
                         weekRow.push(week);
                         weekRow.push(weekCounter);
                         weekRow.push(weekCounter * weekRates);
@@ -895,7 +934,12 @@ var Report = /** @class */ (function () {
                         weekRowPrimary.push(weekCounterPrimary * weekRates);
                         weekRowPrimary.push(weekRates);
                         weekRowsPrimary.push(weekRowPrimary);
-                        monthRates = monthRates / (day - 1);
+                        if ((day - 1 - monthZeros) == 0) {
+                            monthRates = 0;
+                        }
+                        else {
+                            monthRates = monthRates / (day - 1 - monthZeros);
+                        }
                         monthRow.push(month);
                         monthRow.push(monthCounter);
                         monthRow.push(monthCounter * monthRates);
@@ -1476,17 +1520,17 @@ var Report = /** @class */ (function () {
                         sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
                         sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
                         sheet2.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet.getCell('B2').value = 'TOTAL (diario)';
                         sheet.getCell('B2').font = { bold: true };
-                        sheet2.getCell('B2').value = 'PROMEDIO (diario)';
+                        sheet2.getCell('B2').value = 'TOTAL (diario)';
                         sheet2.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet.getCell('G2').value = 'TOTAL (semanal)';
                         sheet.getCell('G2').font = { bold: true };
-                        sheet2.getCell('G2').value = 'PROMEDIO (semanal)';
+                        sheet2.getCell('G2').value = 'TOTAL (semanal)';
                         sheet2.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet.getCell('L2').value = 'TOTAL (mensual)';
                         sheet.getCell('L2').font = { bold: true };
-                        sheet2.getCell('L2').value = 'PROMEDIO (mensual)';
+                        sheet2.getCell('L2').value = 'TOTAL (mensual)';
                         sheet2.getCell('L2').font = { bold: true };
                         day = 1;
                         week = 1;
@@ -2910,6 +2954,39 @@ function getPackableRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
         });
     });
 }
+function getPiPrice(_timeLow, _timeHigh, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryPrices, prices, query_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }';
+                    queryService = new graph_1.Query('piprice', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryPrices = response.prices;
+                    prices = queryPrices;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryPrices.length >= 1000)) return [3 /*break*/, 4];
+                    skip = prices.length;
+                    query_1 = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }';
+                    queryService.setCustomQuery(query_1);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryPrices = response.offerPackables;
+                    prices = prices.concat(queryPrices);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, prices];
+            }
+        });
+    });
+}
 function addTable(sheet, tableName, tablePosition, columns, rows) {
     sheet.addTable({
         name: tableName,
@@ -2972,7 +3049,7 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_10;
+        var from, to, responseData, rates, factor, i, len, j, error_10, dates, rates, responseData, i, len, j, rates2, rates3, j, error_11;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3023,40 +3100,105 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     error_10 = _a.sent();
                     console.error(error_10);
                     throw new Error(error_10);
-                case 4: return [3 /*break*/, 6];
+                case 4: return [3 /*break*/, 13];
                 case 5:
-                    if ((token == Constants.USD.address) ||
+                    if (!((token == Constants.USD.address) ||
                         (token == Constants.USC.address) ||
-                        (token == Constants.PEL.address)) {
-                        return [2 /*return*/, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
+                        (token == Constants.PEL.address))) return [3 /*break*/, 6];
+                    return [2 /*return*/, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
+                case 6:
+                    if (!(token == Constants.PI.address)) return [3 /*break*/, 12];
+                    dates = convertMonthAndYearToUTC(fromYear, fromMonth, toYear, toMonth);
+                    rates = [];
+                    _a.label = 7;
+                case 7:
+                    _a.trys.push([7, 10, , 11]);
+                    return [4 /*yield*/, getPiPrice(dates[0], dates[1], 'mainnet')];
+                case 8:
+                    responseData = _a.sent();
+                    for (i = 23; i < responseData.length; i = i + 24) {
+                        rates.push(responseData[i].piPrice);
                     }
-                    else {
-                        return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+                    len = 31 - rates.length;
+                    if (len > 0) {
+                        for (j = 0; j < len; j++) {
+                            rates.push(0);
+                        }
                     }
-                    _a.label = 6;
-                case 6: return [2 /*return*/];
+                    return [4 /*yield*/, getDayRate(fromYear, fromMonth, toYear, toMonth, Constants.BTC.address, Constants.BTC.category)];
+                case 9:
+                    rates2 = _a.sent();
+                    rates3 = [];
+                    for (j = 0; j < rates.length; j++) {
+                        rates3.push(rates[j] * rates2[j]);
+                    }
+                    return [2 /*return*/, rates3];
+                case 10:
+                    error_11 = _a.sent();
+                    console.error(error_11);
+                    throw new Error(error_11);
+                case 11: return [3 /*break*/, 13];
+                case 12: return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+                case 13: return [2 /*return*/];
             }
         });
     });
 }
+function convertMonthAndYearToUTC(fromYear, fromMonth, toYear, toMonth) {
+    var fromDate = new Date();
+    fromDate.setFullYear(fromYear);
+    fromDate.setMonth(fromMonth - 1);
+    fromDate.setDate(1);
+    fromDate.setHours(0);
+    fromDate.setMinutes(0);
+    fromDate.setSeconds(0);
+    fromDate.setMilliseconds(0);
+    var toDate = new Date();
+    toDate.setFullYear(toYear);
+    toDate.setMonth(toMonth - 1);
+    toDate.setDate(1);
+    toDate.setHours(0);
+    toDate.setMinutes(0);
+    toDate.setSeconds(0);
+    toDate.setMilliseconds(0);
+    return [Math.floor(fromDate.getTime() / 1000), Math.floor(toDate.getTime() / 1000)];
+}
 function convertToUsd(amount, token, timestamp) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPointDates, from, to, rates, rate, factor;
+        var endPointDates, from, to, rates, rate, rates2, rate2, rates, rate, factor;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
                     endPointDates = getEndPointDates(timestamp);
                     from = endPointDates[0];
                     to = endPointDates[1];
-                    if (!(token == Constants.PI.address)) return [3 /*break*/, 1];
-                    return [2 /*return*/, 0];
+                    if (!(token == Constants.PI.address)) return [3 /*break*/, 5];
+                    return [4 /*yield*/, getPiPrice(timestamp, (timestamp + ONE_UTC_DAY), 'mainnet')];
                 case 1:
+                    rates = _a.sent();
+                    if (!(rates.length == 0)) return [3 /*break*/, 2];
+                    return [2 /*return*/, 0];
+                case 2:
+                    rate = rates[rates.length - 1].piPrice;
+                    return [4 /*yield*/, requestRateEndPoint(from, to, Constants.BTC.address)];
+                case 3:
+                    rates2 = _a.sent();
+                    if (rates2.length == 0) {
+                        return [2 /*return*/, 0];
+                    }
+                    else {
+                        rate2 = rates2[rates2.length - 1].rate;
+                        return [2 /*return*/, amount * rate * rate2];
+                    }
+                    _a.label = 4;
+                case 4: return [2 /*return*/, 0];
+                case 5:
                     if (!((token == Constants.USD.address) ||
                         (token == Constants.USC.address) ||
-                        (token == Constants.PEL.address))) return [3 /*break*/, 2];
+                        (token == Constants.PEL.address))) return [3 /*break*/, 6];
                     return [2 /*return*/, amount];
-                case 2: return [4 /*yield*/, requestRateEndPoint(from, to, token)];
-                case 3:
+                case 6: return [4 /*yield*/, requestRateEndPoint(from, to, token)];
+                case 7:
                     rates = _a.sent();
                     if (rates.length == 0) {
                         return [2 /*return*/, 0];
@@ -3081,15 +3223,15 @@ function convertToUsd(amount, token, timestamp) {
                         }
                         return [2 /*return*/, amount / (rate * factor)];
                     }
-                    _a.label = 4;
-                case 4: return [2 /*return*/];
+                    _a.label = 8;
+                case 8: return [2 /*return*/];
             }
         });
     });
 }
 function requestRateEndPoint(from, to, token) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPoint, body, response, responseData, error_11;
+        var endPoint, body, response, responseData, error_12;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3116,9 +3258,9 @@ function requestRateEndPoint(from, to, token) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_11 = _a.sent();
-                    console.error(error_11);
-                    throw new Error(error_11);
+                    error_12 = _a.sent();
+                    console.error(error_12);
+                    throw new Error(error_12);
                 case 6: return [2 /*return*/];
             }
         });

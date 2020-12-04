@@ -103,6 +103,9 @@ var Query = /** @class */ (function () {
             else if (subgraph == 'auction') {
                 this.subgraph = Constants.AUCTION_SUBGRAPH;
             }
+            else if (subgraph == 'piprice') {
+                this.subgraph = Constants.PIPRICE_SUBGRAPH;
+            }
             else {
                 this.subgraph = subgraph;
             }
@@ -123,6 +126,9 @@ var Query = /** @class */ (function () {
             }
             else if (subgraph == 'auction') {
                 this.subgraph = Constants.AUCTION_SUBGRAPH_TESTNET;
+            }
+            else if (subgraph == 'piprice') {
+                this.subgraph = Constants.PIPRICE_SUBGRAPH_TESTNET;
             }
             else {
                 this.subgraph = subgraph;

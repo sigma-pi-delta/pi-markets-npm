@@ -52,6 +52,8 @@ export class Report {
             let weekRates = 0;
             let monthCounter = 0;
             let monthRates = 0;
+            let weekZeros = 0;
+            let monthZeros = 0;
             let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
             let timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
 
@@ -80,10 +82,18 @@ export class Report {
 
                 weekRates = weekRates + rates[day - 1];
                 monthRates = monthRates + rates[day - 1];
+                if (rates[day - 1] == 0) {
+                    weekZeros++;
+                    monthZeros++;
+                }
 
                 if (day == 7 * week) {
                     //WEEKS
-                    weekRates = weekRates / 7;
+                    if ((7 - weekZeros) == 0){
+                        weekRates = 0;
+                    } else {
+                        weekRates = weekRates / (7 - weekZeros);
+                    }
                     weekRow.push(week);
                     weekRow.push(weekCounter);
                     weekRow.push(weekCounter * weekRates);
@@ -92,6 +102,7 @@ export class Report {
                     week++;
                     weekCounter = 0;
                     weekRates = 0;
+                    weekZeros = 0;
                 }
 
                 dayRow.push(day);
@@ -107,13 +118,22 @@ export class Report {
             //MONTH
             let weekRow = [];
             let monthRow = [];
-            weekRates = weekRates / (day - 29);
+            if ((day - 29 - weekZeros) == 0){
+                weekRates = 0;
+            } else {
+                weekRates = weekRates / (day - 29 - weekZeros);
+            }
             weekRow.push(week);
             weekRow.push(weekCounter);
             weekRow.push(weekCounter * weekRates);
             weekRow.push(weekRates);
             weekRows.push(weekRow);
-            monthRates = monthRates / (day - 1);
+
+            if ((day - 1 - monthZeros) == 0){
+                monthRates = 0;
+            } else {
+                monthRates = monthRates / (day - 1 - monthZeros);
+            }
             monthRow.push(month);
             monthRow.push(monthCounter);
             monthRow.push(monthCounter * monthRates);
@@ -215,13 +235,13 @@ export class Report {
                 sheet.getCell('B35').value = 'TRANSFERENCIAS';
                 sheet.getCell('B35').font = {bold: true};
                 
-                sheet.getCell('B1').value = 'PROMEDIO (diario)';
+                sheet.getCell('B1').value = 'TOTAL (diario)';
                 sheet.getCell('B1').font = {bold: true};
                 
-                sheet.getCell('G1').value = 'PROMEDIO (semanal)';
+                sheet.getCell('G1').value = 'TOTAL (semanal)';
                 sheet.getCell('G1').font = {bold: true};
 
-                sheet.getCell('L1').value = 'PROMEDIO (mensual)';
+                sheet.getCell('L1').value = 'TOTAL (mensual)';
                 sheet.getCell('L1').font = {bold: true};
             }
         }
@@ -761,19 +781,19 @@ export class Report {
             sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
             sheet2.getCell('C1').font = {bold: true};
 
-            sheet.getCell('B2').value = 'PROMEDIO (diario)';
+            sheet.getCell('B2').value = 'TOTAL (diario)';
             sheet.getCell('B2').font = {bold: true};
-            sheet2.getCell('B2').value = 'PROMEDIO (diario)';
+            sheet2.getCell('B2').value = 'TOTAL (diario)';
             sheet2.getCell('B2').font = {bold: true};
             
-            sheet.getCell('G2').value = 'PROMEDIO (semanal)';
+            sheet.getCell('G2').value = 'TOTAL (semanal)';
             sheet.getCell('G2').font = {bold: true};
-            sheet2.getCell('G2').value = 'PROMEDIO (semanal)';
+            sheet2.getCell('G2').value = 'TOTAL (semanal)';
             sheet2.getCell('G2').font = {bold: true};
 
-            sheet.getCell('L2').value = 'PROMEDIO (mensual)';
+            sheet.getCell('L2').value = 'TOTAL (mensual)';
             sheet.getCell('L2').font = {bold: true};
-            sheet2.getCell('L2').value = 'PROMEDIO (mensual)';
+            sheet2.getCell('L2').value = 'TOTAL (mensual)';
             sheet2.getCell('L2').font = {bold: true};
 
             let toYear = year;
@@ -806,6 +826,8 @@ export class Report {
             let monthCounter = 0;
             let monthCounterPrimary = 0;
             let monthRates = 0;
+            let weekZeros = 0;
+            let monthZeros = 0;
 
             let _timeLow = timeLow;
             let _timeHigh = _timeLow + ONE_UTC_DAY;
@@ -886,10 +908,18 @@ export class Report {
 
                 weekRates = weekRates + rates[day - 1];
                 monthRates = monthRates + rates[day - 1];
+                if (rates[day - 1] == 0) {
+                    weekZeros++;
+                    monthZeros++;
+                }
 
                 if (day == 7 * week) {
                     //WEEKS
-                    weekRates = weekRates / 7;
+                    if ((7 - weekZeros) == 0){
+                        weekRates = 0;
+                    } else {
+                        weekRates = weekRates / (7 - weekZeros);
+                    }
                     weekRow.push(week);
                     weekRow.push(weekCounter);
                     weekRow.push(weekCounter * weekRates);
@@ -906,6 +936,7 @@ export class Report {
                     weekCounter = 0;
                     weekCounterPrimary = 0;
                     weekRates = 0
+                    weekZeros = 0;
                 }
 
                 dayRow.push(day);
@@ -932,7 +963,11 @@ export class Report {
             let weekRowPrimary = [];
             let monthRowPrimary = [];
 
-            weekRates = weekRates / (day - 29);
+            if ((day - 29 - weekZeros) == 0){
+                weekRates = 0;
+            } else {
+                weekRates = weekRates / (day - 29 - weekZeros);
+            }
             weekRow.push(week);
             weekRow.push(weekCounter);
             weekRow.push(weekCounter * weekRates);
@@ -945,7 +980,11 @@ export class Report {
             weekRowPrimary.push(weekRates);
             weekRowsPrimary.push(weekRowPrimary);
 
-            monthRates = monthRates / (day - 1);
+            if ((day - 1 - monthZeros) == 0){
+                monthRates = 0;
+            } else {
+                monthRates = monthRates / (day - 1 - monthZeros);
+            }
             monthRow.push(month);
             monthRow.push(monthCounter);
             monthRow.push(monthCounter * monthRates);
@@ -1578,19 +1617,19 @@ export class Report {
             sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
             sheet2.getCell('C1').font = {bold: true};
 
-            sheet.getCell('B2').value = 'PROMEDIO (diario)';
+            sheet.getCell('B2').value = 'TOTAL (diario)';
             sheet.getCell('B2').font = {bold: true};
-            sheet2.getCell('B2').value = 'PROMEDIO (diario)';
+            sheet2.getCell('B2').value = 'TOTAL (diario)';
             sheet2.getCell('B2').font = {bold: true};
             
-            sheet.getCell('G2').value = 'PROMEDIO (semanal)';
+            sheet.getCell('G2').value = 'TOTAL (semanal)';
             sheet.getCell('G2').font = {bold: true};
-            sheet2.getCell('G2').value = 'PROMEDIO (semanal)';
+            sheet2.getCell('G2').value = 'TOTAL (semanal)';
             sheet2.getCell('G2').font = {bold: true};
 
-            sheet.getCell('L2').value = 'PROMEDIO (mensual)';
+            sheet.getCell('L2').value = 'TOTAL (mensual)';
             sheet.getCell('L2').font = {bold: true};
-            sheet2.getCell('L2').value = 'PROMEDIO (mensual)';
+            sheet2.getCell('L2').value = 'TOTAL (mensual)';
             sheet2.getCell('L2').font = {bold: true};
 
             //stats
@@ -2988,6 +3027,31 @@ async function getPackableRequestsPrimary(
     return offers;
 }
 
+async function getPiPrice(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }'
+    let queryService = new Query('piprice', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryPrices = response.prices;
+    let prices = queryPrices;
+
+    while(queryPrices.length >= 1000) {
+        skip = prices.length;
+        let query = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }'
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryPrices = response.offerPackables;
+        prices = prices.concat(queryPrices);
+    }
+
+    return prices;
+}
+
 function addTable(
     sheet: any,
     tableName: string,
@@ -3135,9 +3199,67 @@ async function getDayRate(
         (token == Constants.PEL.address)
     ) {
         return [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
+    } else if (token == Constants.PI.address) {
+        let dates = convertMonthAndYearToUTC(fromYear, fromMonth, toYear, toMonth);
+        let rates = [];
+
+        try {
+            let responseData = await getPiPrice(dates[0], dates[1], 'mainnet');
+
+            for (let i = 23; i < responseData.length; i=i+24) {
+                rates.push(responseData[i].piPrice);
+            }
+
+            let len = 31 - rates.length;
+
+            if (len > 0) {
+                for (let j = 0; j < len; j++) {
+                    rates.push(0);
+                }
+            }
+
+            let rates2 = await getDayRate(fromYear, fromMonth, toYear, toMonth, Constants.BTC.address, Constants.BTC.category);
+
+            let rates3 = [];
+
+            for (let j = 0; j < rates.length; j++) {
+                rates3.push(rates[j] * rates2[j]);
+            }
+
+            return rates3;
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        }
     } else {
         return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     }
+}
+
+function convertMonthAndYearToUTC(
+    fromYear: number,
+    fromMonth: number,
+    toYear: number,
+    toMonth: number
+) {
+    let fromDate = new Date();
+    fromDate.setFullYear(fromYear);
+    fromDate.setMonth(fromMonth - 1);
+    fromDate.setDate(1);
+    fromDate.setHours(0);
+    fromDate.setMinutes(0);
+    fromDate.setSeconds(0);
+    fromDate.setMilliseconds(0);
+    let toDate = new Date();
+    toDate.setFullYear(toYear);
+    toDate.setMonth(toMonth - 1);
+    toDate.setDate(1);
+    toDate.setHours(0);
+    toDate.setMinutes(0);
+    toDate.setSeconds(0);
+    toDate.setMilliseconds(0);
+
+    return [Math.floor(fromDate.getTime()/1000), Math.floor(toDate.getTime()/1000)];
 }
 
 async function convertToUsd(
@@ -3150,6 +3272,23 @@ async function convertToUsd(
     let to = endPointDates[1];
     
     if (token == Constants.PI.address) {
+        let rates = await getPiPrice(timestamp, (timestamp + ONE_UTC_DAY), 'mainnet');
+
+        if (rates.length == 0) {
+            return 0;
+        } else {
+            let rate = rates[rates.length - 1].piPrice;
+
+            let rates2 = await requestRateEndPoint(from, to, Constants.BTC.address);
+
+            if (rates2.length == 0) {
+                return 0;
+            } else {
+                let rate2 = rates2[rates2.length - 1].rate;
+
+                return amount * rate * rate2;
+            }
+        }
         return 0;
     } else if (
         (token == Constants.USD.address) ||
