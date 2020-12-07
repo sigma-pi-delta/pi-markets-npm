@@ -43,6 +43,7 @@ var contracts_1 = require("./contracts");
 var wallets_1 = require("./wallets");
 var transactions_1 = require("./transactions");
 var graph_1 = require("./graph");
+var blockchain_1 = require("./blockchain");
 var SmartID = /** @class */ (function () {
     function SmartID(signer, identity, wallet, network) {
         if (network === void 0) { network = 'mainnet'; }
@@ -52,6 +53,10 @@ var SmartID = /** @class */ (function () {
         this.network = network;
         this.contractsService = new contracts_1.Contracts(this.network);
         this.transactionsService = new transactions_1.Transactions();
+        if (this.signer.provider == undefined) {
+            var bc = new blockchain_1.Blockchain(this.network);
+            this.signer = this.signer.connect(bc.getProvider());
+        }
     }
     SmartID.prototype.forward = function (destination, data) {
         return __awaiter(this, void 0, void 0, function () {

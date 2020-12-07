@@ -39,11 +39,18 @@ exports.__esModule = true;
 exports.Contracts = void 0;
 var ethers_1 = require("ethers");
 var blockchain_1 = require("./blockchain");
+var Constants = require("./constants");
 var Contracts = /** @class */ (function () {
     function Contracts(_url) {
         if (_url === void 0) { _url = 'mainnet'; }
         this.blockchain = new blockchain_1.Blockchain(_url);
         this.provider = this.blockchain.getProvider();
+        if (_url == 'mainnet') {
+            this.controller = Constants.CONTROLLER_ADDRESS;
+        }
+        else if (_url == 'testnet') {
+            this.controller = Constants.CONTROLLER_ADDRESS_TESTNET;
+        }
     }
     Contracts.prototype.getContractCaller = function (_address, _abi) {
         return new ethers_1.ethers.Contract(_address, _abi, this.provider);
@@ -75,6 +82,19 @@ var Contracts = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, _contract.interface.parseLog(_log).values];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
+    };
+    Contracts.prototype.getControllerAddress = function (index) {
+        return __awaiter(this, void 0, void 0, function () {
+            var controllerContract;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        controllerContract = this.getContractCaller(this.controller, Constants.CONTROLLER_ABI);
+                        return [4 /*yield*/, controllerContract.addresses(index)];
                     case 1: return [2 /*return*/, _a.sent()];
                 }
             });

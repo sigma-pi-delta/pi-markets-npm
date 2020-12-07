@@ -4,6 +4,7 @@ import { Contracts } from './contracts';
 import { Wallets, WalletPair } from './wallets';
 import { Transactions } from './transactions';
 import { Query } from './graph';
+import { Blockchain } from './blockchain';
 
 export class SmartID {
     readonly signer: ethers.Wallet;
@@ -25,6 +26,11 @@ export class SmartID {
         this.network = network;
         this.contractsService = new Contracts(this.network);
         this.transactionsService = new Transactions();
+
+        if (this.signer.provider == undefined) {
+            let bc = new Blockchain(this.network);
+            this.signer = this.signer.connect(bc.getProvider());
+        }
     }
 
     async forward(destination: string, data: string) {

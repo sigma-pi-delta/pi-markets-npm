@@ -1,14 +1,22 @@
 import { ethers } from 'ethers';
 import {Blockchain} from './blockchain';
+import * as Constants from './constants';
 
 export class Contracts {
 
     readonly blockchain: Blockchain;
     readonly provider: ethers.providers.Provider;
+    readonly controller: string;
 
     constructor(_url: string = 'mainnet') {
         this.blockchain = new Blockchain(_url)
         this.provider = this.blockchain.getProvider();
+
+        if (_url == 'mainnet') {
+            this.controller = Constants.CONTROLLER_ADDRESS;
+        } else if (_url == 'testnet') {
+            this.controller = Constants.CONTROLLER_ADDRESS_TESTNET;
+        }
     }
 
     getContractCaller(_address: string, _abi: any | ethers.utils.Interface): ethers.Contract {
@@ -43,5 +51,13 @@ export class Contracts {
 
     async decodeEvent(_contract: ethers.Contract, _log: {topics: string [], data: string}) {
         return await _contract.interface.parseLog(_log).values;
+    }
+
+    async getControllerAddress(index: string) {
+        let controllerContract = this.getContractCaller(
+            this.controller, 
+            Constants.CONTROLLER_ABI
+        );
+        return await controllerContract.addresses(index);
     }
 }
