@@ -33,17 +33,13 @@ export class Report {
             toMonthIndex = 1;
         }
 
+        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+
         for (let i = 0; i < tokensArray.length; i++) {
-            let rates = await getDayRate(
-                year, 
-                monthIndex, 
-                toYear, 
-                toMonthIndex, 
-                tokensArray[i].address,
-                tokensArray[i].category
-            );
-            let sheet = workbook.addWorksheet(tokensArray[i].symbol);
-            /************************* */
+            //1 TOKEN per iteration
+
+            //define vars
             let day = 1;
             let week = 1;
             let month = 1;
@@ -54,32 +50,70 @@ export class Report {
             let monthRates = 0;
             let weekZeros = 0;
             let monthZeros = 0;
-            let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-            let timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
-
             let _timeLow = timeLow;
             let _timeHigh = _timeLow + ONE_UTC_DAY;
             let dayRows = [];
             let weekRows = [];
             let monthRows = [];
+            let txRows = [];
+
+            //1 sheet per token
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol);
+
+            //rates: array[31] with USD price (padded with 0s)
+            let rates = await getDayRate(
+                year, 
+                monthIndex, 
+                toYear, 
+                toMonthIndex, 
+                tokensArray[i].address,
+                tokensArray[i].category
+            );
 
             while(_timeHigh <= timeHigh) {
-                //DAYS
+                //1 DAY per iteration
+
+                //define vars
                 let dayRow = [];
                 let weekRow = [];
-                
+
+                //day transactions
                 let transactions = await getTransactions(_timeLow, _timeHigh, tokensArray[i].address, this.url);
 
                 if (transactions.length > 0) {
-                    
                     for (let j = 0; j < transactions.length; j++) {
+                        //1 TX per iteration
+                        let txDayRow = [];
                         let amount = parseFloat(weiToEther(transactions[j].amount));
                         dayCounter = dayCounter + amount;
                         weekCounter = weekCounter + amount;
                         monthCounter = monthCounter + amount;
+                    
+                        //TXs Table
+                        txDayRow.push(new Date(transactions[j].timestamp * 1000));
+                        txDayRow.push(transactions[j].currency.tokenSymbol);
+                        txDayRow.push(transactions[j].from.id);
+
+                        if (transactions[j].from.name == null) {
+                            txDayRow.push("");
+                        } else {
+                            txDayRow.push(transactions[j].from.name.id);
+                        }
+
+                        txDayRow.push(transactions[j].to.id);
+
+                        if (transactions[j].to.name == null) {
+                            txDayRow.push("");
+                        } else {
+                            txDayRow.push(transactions[j].to.name.id);
+                        }
+
+                        txDayRow.push(parseFloat(weiToEther(transactions[j].amount)));
+                        txRows.push(txDayRow);
                     }
                 }
 
+                //update week and month rate counters
                 weekRates = weekRates + rates[day - 1];
                 monthRates = monthRates + rates[day - 1];
                 if (rates[day - 1] == 0) {
@@ -88,58 +122,78 @@ export class Report {
                 }
 
                 if (day == 7 * week) {
-                    //WEEKS
+                    //1 WEEK per iteration
+
+                    //calc this week rate
                     if ((7 - weekZeros) == 0){
                         weekRates = 0;
                     } else {
                         weekRates = weekRates / (7 - weekZeros);
                     }
+
+                    //update week arrays
                     weekRow.push(week);
                     weekRow.push(weekCounter);
                     weekRow.push(weekCounter * weekRates);
                     weekRow.push(weekRates);
                     weekRows.push(weekRow);
+
+                    //reset and update counters
                     week++;
                     weekCounter = 0;
                     weekRates = 0;
                     weekZeros = 0;
                 }
 
+                //update day arrays
                 dayRow.push(day);
                 dayRow.push(dayCounter);
                 dayRow.push(dayCounter * rates[day - 1]);
                 dayRow.push(rates[day - 1]);
                 dayRows.push(dayRow);
+
+                //update and reset day counters
                 day++;
                 dayCounter = 0;
                 _timeLow = _timeHigh;
                 _timeHigh = _timeLow + ONE_UTC_DAY;
             }
-            //MONTH
+
+            //5th WEEK (days 29-31)
             let weekRow = [];
-            let monthRow = [];
+            
+            //calc 5th week rate
             if ((day - 29 - weekZeros) == 0){
                 weekRates = 0;
             } else {
                 weekRates = weekRates / (day - 29 - weekZeros);
             }
+
+            //update week arrays
             weekRow.push(week);
             weekRow.push(weekCounter);
             weekRow.push(weekCounter * weekRates);
             weekRow.push(weekRates);
             weekRows.push(weekRow);
 
+            //1 MONTH per iteration
+            let monthRow = [];
+
+            //calc month rate
             if ((day - 1 - monthZeros) == 0){
                 monthRates = 0;
             } else {
                 monthRates = monthRates / (day - 1 - monthZeros);
             }
+
+            //update month arrays
             monthRow.push(month);
             monthRow.push(monthCounter);
             monthRow.push(monthCounter * monthRates);
             monthRow.push(monthRates);
             monthRows.push(monthRow);
 
+            //ADD SHEET TABLES
             let tableDay = 'TablaDay' + tokensArray[i].symbol;
             let tableWeek = 'TablaWeek' + tokensArray[i].symbol;
             let tableMonth = 'TablaMonth' + tokensArray[i].symbol;
@@ -182,77 +236,47 @@ export class Report {
                 ],
                 monthRows
             );
-            /************************* */
-            let transactions = await getTransactions(timeLow, timeHigh, tokensArray[i].address, this.url);
 
-            if (transactions.length > 0) {
-                let rows = [];
+            //TXs TABLE
+            let tableName = 'Tabla' + tokensArray[i].symbol;
 
-                for (let j = 0; j < transactions.length; j++) {
-                    let array = [];
-                    
-                    
-                    array.push(new Date(transactions[j].timestamp * 1000));
-                    array.push(transactions[j].currency.tokenSymbol);
-                    array.push(transactions[j].from.id);
+            addTable(
+                sheet,
+                tableName,
+                'B36',
+                [
+                    {name: 'Fecha', filterButton: true},
+                    {name: 'Divisa'},
+                    {name: 'Origen (wallet)'},
+                    {name: 'Origen (usuario)', filterButton: true},
+                    {name: 'Destino (wallet)'},
+                    {name: 'Destino (usuario)', filterButton: true},
+                    {name: 'Monto', totalsRowFunction: 'sum'}
+                ],
+                txRows
+            );
 
-                    if (transactions[j].from.name == null) {
-                        array.push("");
-                    } else {
-                        array.push(transactions[j].from.name.id);
-                    }
+            //CELL LABELS
+            sheet.getCell('B35').value = 'TRANSFERENCIAS';
+            sheet.getCell('B35').font = {bold: true};
+            
+            sheet.getCell('B1').value = 'TOTAL (diario)';
+            sheet.getCell('B1').font = {bold: true};
+            
+            sheet.getCell('G1').value = 'TOTAL (semanal)';
+            sheet.getCell('G1').font = {bold: true};
 
-                    array.push(transactions[j].to.id);
-
-                    if (transactions[j].to.name == null) {
-                        array.push("");
-                    } else {
-                        array.push(transactions[j].to.name.id);
-                    }
-
-                    array.push(parseFloat(weiToEther(transactions[j].amount)));
-                    rows.push(array);
-                }
-
-                let tableName = 'Tabla' + tokensArray[i].symbol;
-
-                addTable(
-                    sheet,
-                    tableName,
-                    'B36',
-                    [
-                        {name: 'Fecha', filterButton: true},
-                        {name: 'Divisa'},
-                        {name: 'Origen (wallet)'},
-                        {name: 'Origen (usuario)', filterButton: true},
-                        {name: 'Destino (wallet)'},
-                        {name: 'Destino (usuario)', filterButton: true},
-                        {name: 'Monto', totalsRowFunction: 'sum'}
-                    ],
-                    rows
-                );
-
-                sheet.getCell('B35').value = 'TRANSFERENCIAS';
-                sheet.getCell('B35').font = {bold: true};
-                
-                sheet.getCell('B1').value = 'TOTAL (diario)';
-                sheet.getCell('B1').font = {bold: true};
-                
-                sheet.getCell('G1').value = 'TOTAL (semanal)';
-                sheet.getCell('G1').font = {bold: true};
-
-                sheet.getCell('L1').value = 'TOTAL (mensual)';
-                sheet.getCell('L1').font = {bold: true};
-            }
+            sheet.getCell('L1').value = 'TOTAL (mensual)';
+            sheet.getCell('L1').font = {bold: true};
         }
 
         try {
-            await workbook.xlsx.writeFile('PiMarketsTransactionsReportV2.xlsx');
+            await workbook.xlsx.writeFile('PiMarketsMonthTransactionsReport.xlsx');
         } catch (error) {
             let buffer = await workbook.xlsx.writeBuffer();
             
             try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReportV2.xlsx');
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthTransactionsReport.xlsx');
             } catch (err) {
                 console.error(err);
             }
@@ -755,66 +779,28 @@ export class Report {
         }
     }
 
-    async getTokenDealsReportV2 (
+    async getTokenDealsReportV2(
         monthIndex: number,
         year: number,
         tokensArray: any[]
     ) {
         const workbook = new ExcelJS.Workbook();
+
+        let toYear = year;
+        let toMonthIndex = monthIndex + 1;
+
+        if (monthIndex == 12) {
+            toYear = year + 1;
+            toMonthIndex = 1;
+        }
+
         let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-        let timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
 
         for (let i = 0; i < tokensArray.length; i++) {
-            //init
-            let sheet: any;
-            let sheet2: any;
+            //1 TOKEN per iteration
 
-            let offers = await getOffers(timeLow, timeHigh, tokensArray[i].address, this.url);
-            let offersPrimary = await getOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
-            let requests = await getRequests(timeLow, timeHigh, tokensArray[i].address, this.url);
-            let requestsPrimary = await getRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
-    
-            sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-            sheet.getCell('C1').font = {bold: true};
-            sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-            sheet2.getCell('C1').font = {bold: true};
-
-            sheet.getCell('B2').value = 'TOTAL (diario)';
-            sheet.getCell('B2').font = {bold: true};
-            sheet2.getCell('B2').value = 'TOTAL (diario)';
-            sheet2.getCell('B2').font = {bold: true};
-            
-            sheet.getCell('G2').value = 'TOTAL (semanal)';
-            sheet.getCell('G2').font = {bold: true};
-            sheet2.getCell('G2').value = 'TOTAL (semanal)';
-            sheet2.getCell('G2').font = {bold: true};
-
-            sheet.getCell('L2').value = 'TOTAL (mensual)';
-            sheet.getCell('L2').font = {bold: true};
-            sheet2.getCell('L2').value = 'TOTAL (mensual)';
-            sheet2.getCell('L2').font = {bold: true};
-
-            let toYear = year;
-            let toMonthIndex = monthIndex + 1;
-
-            if (monthIndex == 12) {
-                toYear = year + 1;
-                toMonthIndex = 1;
-            }
-
-            let rates = await getDayRate(
-                year, 
-                monthIndex, 
-                toYear, 
-                toMonthIndex, 
-                tokensArray[i].address,
-                tokensArray[i].category
-            );
-
-            //stats
-            /************************* */
+            //define vars
             let day = 1;
             let week = 1;
             let month = 1;
@@ -828,7 +814,6 @@ export class Report {
             let monthRates = 0;
             let weekZeros = 0;
             let monthZeros = 0;
-
             let _timeLow = timeLow;
             let _timeHigh = _timeLow + ONE_UTC_DAY;
             let dayRows = [];
@@ -837,9 +822,29 @@ export class Report {
             let dayRowsPrimary = [];
             let weekRowsPrimary = [];
             let monthRowsPrimary = [];
+            let offersRows = [];
+            let requestsRows = [];
+            let offersPrimaryRows = [];
+            let requestsPrimaryRows = [];
+
+            //2 sheets per token (1 per market)
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
+            let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
+
+            //rates: array[31] with USD price (padded with 0s)
+            let rates = await getDayRate(
+                year, 
+                monthIndex, 
+                toYear, 
+                toMonthIndex, 
+                tokensArray[i].address,
+                tokensArray[i].category
+            );
 
             while(_timeHigh <= timeHigh) {
-                //DAYS
+                //1 DAY per iteration
+
+                //define vars
                 let dayRow = [];
                 let weekRow = [];
                 let dayRowPrimary = [];
@@ -859,6 +864,30 @@ export class Report {
                                 dayCounter = dayCounter + amount;
                                 weekCounter = weekCounter + amount;
                                 monthCounter = monthCounter + amount;
+
+                                //DEALS TABLE
+                                let array = [];
+
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.buyToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                offersRows.push(array);
                             }
                         }
                     }
@@ -873,6 +902,29 @@ export class Report {
                                 dayCounterPrimary = dayCounterPrimary + amount;
                                 weekCounterPrimary = weekCounterPrimary + amount;
                                 monthCounterPrimary = monthCounterPrimary + amount;
+
+                                let array = [];
+    
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.buyToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                offersPrimaryRows.push(array);
                             }
                         }
                     }
@@ -887,6 +939,29 @@ export class Report {
                                 dayCounter = dayCounter + amount;
                                 weekCounter = weekCounter + amount;
                                 monthCounter = monthCounter + amount;
+
+                                let array = [];
+    
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.sellToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                requestsRows.push(array);
                             }
                         }
                     }
@@ -901,11 +976,35 @@ export class Report {
                                 dayCounterPrimary = dayCounterPrimary + amount;
                                 weekCounterPrimary = weekCounterPrimary + amount;
                                 monthCounterPrimary = monthCounterPrimary + amount;
+
+                                let array = [];
+    
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.sellToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                requestsPrimaryRows.push(array);
                             }
                         }
                     }
                 }
 
+                //update week and month rates
                 weekRates = weekRates + rates[day - 1];
                 monthRates = monthRates + rates[day - 1];
                 if (rates[day - 1] == 0) {
@@ -914,24 +1013,30 @@ export class Report {
                 }
 
                 if (day == 7 * week) {
-                    //WEEKS
+                    //1 WEEK per iteration
+
+                    //calc week rate
                     if ((7 - weekZeros) == 0){
                         weekRates = 0;
                     } else {
                         weekRates = weekRates / (7 - weekZeros);
                     }
+
+                    //update week secondary arrays
                     weekRow.push(week);
                     weekRow.push(weekCounter);
                     weekRow.push(weekCounter * weekRates);
                     weekRow.push(weekRates);
                     weekRows.push(weekRow);
-                    //
+                    
+                    //update week primary arrays
                     weekRowPrimary.push(week);
                     weekRowPrimary.push(weekCounterPrimary);
                     weekRowPrimary.push(weekCounterPrimary * weekRates);
                     weekRowPrimary.push(weekRates);
                     weekRowsPrimary.push(weekRowPrimary);
 
+                    //update and reset week counters
                     week++;
                     weekCounter = 0;
                     weekCounterPrimary = 0;
@@ -939,64 +1044,76 @@ export class Report {
                     weekZeros = 0;
                 }
 
+                //update day secondary arrays
                 dayRow.push(day);
                 dayRow.push(dayCounter);
                 dayRow.push(dayCounter * rates[day - 1]);
                 dayRow.push(rates[day - 1]);
                 dayRows.push(dayRow);
-                //
+                
+                //update day primary arrays
                 dayRowPrimary.push(day);
                 dayRowPrimary.push(dayCounterPrimary);
                 dayRowPrimary.push(dayCounterPrimary * rates[day - 1]);
                 dayRowPrimary.push(rates[day - 1]);
                 dayRowsPrimary.push(dayRowPrimary);
 
+                //update and reset day counters
                 day++;
                 dayCounter = 0;
                 dayCounterPrimary = 0;
                 _timeLow = _timeHigh;
                 _timeHigh = _timeLow + ONE_UTC_DAY;
             }
-            //MONTH
-            let weekRow = [];
-            let monthRow = [];
-            let weekRowPrimary = [];
-            let monthRowPrimary = [];
 
+            //5th WEEK (days 29-31)
+            let weekRow = [];
+            let weekRowPrimary = [];
+
+            //calc 5th week rates
             if ((day - 29 - weekZeros) == 0){
                 weekRates = 0;
             } else {
                 weekRates = weekRates / (day - 29 - weekZeros);
             }
+
+            //update 5th week secondary array
             weekRow.push(week);
             weekRow.push(weekCounter);
             weekRow.push(weekCounter * weekRates);
             weekRow.push(weekRates);
             weekRows.push(weekRow);
 
+            //update 5th week primary array
             weekRowPrimary.push(week);
             weekRowPrimary.push(weekCounterPrimary);
             weekRowPrimary.push(weekCounterPrimary * weekRates);
             weekRowPrimary.push(weekRates);
             weekRowsPrimary.push(weekRowPrimary);
 
+            //MONTH
+            let monthRow = [];
+            let monthRowPrimary = [];
+
             if ((day - 1 - monthZeros) == 0){
                 monthRates = 0;
             } else {
                 monthRates = monthRates / (day - 1 - monthZeros);
             }
+            //secondary
             monthRow.push(month);
             monthRow.push(monthCounter);
             monthRow.push(monthCounter * monthRates);
             monthRow.push(monthRates);
             monthRows.push(monthRow);
-
+            //primary
             monthRowPrimary.push(month);
             monthRowPrimary.push(monthCounterPrimary);
             monthRowPrimary.push(monthCounterPrimary * monthRates);
             monthRowPrimary.push(monthRates);
             monthRowsPrimary.push(monthRowPrimary);
 
+            //ADD TABLES
             let tableDay = 'TablaDay' + tokensArray[i].symbol;
             let tableWeek = 'TablaWeek' + tokensArray[i].symbol;
             let tableMonth = 'TablaMonth' + tokensArray[i].symbol;
@@ -1082,244 +1199,134 @@ export class Report {
                 monthRowsPrimary
             );
 
-            /************************* */
+            sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
+            sheet.getCell('B36').font = {bold: true};
+            let tableName = 'Tabla' + tokensArray[i].symbol;
 
-            //offers
-            if (offers.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < offers.length; j++) {
-                    if (offers[j].deals.length > 0) {
-                        let deals = offers[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[k].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].buyAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = {bold: true};
-                        let tableName = 'Tabla' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet,
-                            tableName,
-                            'B37',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            if (offersRows.length == 0) {
+                offersRows = getEmtpyDeal();
             }
 
-            //requests
-            if (requests.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < requests.length; j++) {
-                    if (requests[j].deals.length > 0) {
-                        let deals = requests[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[k].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
-                        sheet.getCell('K36').font = {bold: true};
-                        let tableName = 'Tabla2' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet,
-                            tableName,
-                            'K37',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            await addTable(
+                sheet,
+                tableName,
+                'B37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                offersRows
+            );
+
+            sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
+            sheet.getCell('K36').font = {bold: true};
+            let tableName2 = 'Tabla2' + tokensArray[i].symbol;
+
+            if (requestsRows.length == 0) {
+                requestsRows = getEmtpyDeal();
             }
 
-            //primaryoffers
-            if (offersPrimary.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < offersPrimary.length; j++) {
-                    if (offersPrimary[j].deals.length > 0) {
-                        let deals = offersPrimary[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[k].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].buyAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-                        sheet2.getCell('B36').font = {bold: true};
-                        let tableName = 'TablaPrimario' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet2,
-                            tableName,
-                            'B37',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            await addTable(
+                sheet,
+                tableName2,
+                'K37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                requestsRows
+            );
+
+            sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
+            sheet2.getCell('B36').font = {bold: true};
+            let tableName3 = 'TablaPrimario' + tokensArray[i].symbol;
+
+            if (offersPrimaryRows.length == 0) {
+                offersPrimaryRows = getEmtpyDeal();
             }
 
-            //primaryrequests
-            if (requestsPrimary.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < requestsPrimary.length; j++) {
-                    if (requestsPrimary[j].deals.length > 0) {
-                        let deals = requestsPrimary[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[k].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet2.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
-                        sheet2.getCell('K36').font = {bold: true};
-                        let tableName = 'TablaPrimario' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet2,
-                            tableName,
-                            'K37',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            await addTable(
+                sheet2,
+                tableName3,
+                'B37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                offersPrimaryRows
+            );
+
+            sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
+            sheet2.getCell('K36').font = {bold: true};
+            let tableName4 = 'TablaPrimario2' + tokensArray[i].symbol;
+
+            if (requestsPrimaryRows.length == 0) {
+                requestsPrimaryRows = getEmtpyDeal();
             }
+
+            await addTable(
+                sheet2,
+                tableName4,
+                'K37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                requestsPrimaryRows
+            );
+
+            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+            sheet.getCell('C1').font = {bold: true};
+            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
+            sheet2.getCell('C1').font = {bold: true};
+
+            sheet.getCell('B2').value = 'TOTAL (diario)';
+            sheet.getCell('B2').font = {bold: true};
+            sheet2.getCell('B2').value = 'TOTAL (diario)';
+            sheet2.getCell('B2').font = {bold: true};
+            
+            sheet.getCell('G2').value = 'TOTAL (semanal)';
+            sheet.getCell('G2').font = {bold: true};
+            sheet2.getCell('G2').value = 'TOTAL (semanal)';
+            sheet2.getCell('G2').font = {bold: true};
+
+            sheet.getCell('L2').value = 'TOTAL (mensual)';
+            sheet.getCell('L2').font = {bold: true};
+            sheet2.getCell('L2').value = 'TOTAL (mensual)';
+            sheet2.getCell('L2').font = {bold: true};
         }
 
         try {
-            await workbook.xlsx.writeFile('PiMarketsTokenDealsReportV2.xlsx');
+            await workbook.xlsx.writeFile('PiMarketsMonthTokenDealsReport.xlsx');
         } catch (error) {
             let buffer = await workbook.xlsx.writeBuffer();
             
             try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReportV2.xlsx');
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthTokenDealsReport.xlsx');
             } catch (err) {
                 console.error(err);
             }
@@ -1592,82 +1599,43 @@ export class Report {
         }
     }
 
-    async getPackableDealsReportV2 (
+    async getPackableDealsReportV2(
         monthIndex: number,
         year: number,
         tokensArray: any[]
     ) {
         const workbook = new ExcelJS.Workbook();
+
+        let toYear = year;
+        let toMonthIndex = monthIndex + 1;
+
+        if (monthIndex == 12) {
+            toYear = year + 1;
+            toMonthIndex = 1;
+        }
+
         let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-        let timeHigh = getUtcTimeFromDate(year, monthIndex + 1, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
 
         for (let i = 0; i < tokensArray.length; i++) {
-            //init
-            let sheet: any;
-            let sheet2: any;
-            let offers = await getPackableOffers(timeLow, timeHigh, tokensArray[i].address, this.url);
-            let offersPrimary = await getPackableOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
-            let requests = await getPackableRequests(timeLow, timeHigh, tokensArray[i].address, this.url);
-            let requestsPrimary = await getPackableRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url);
-    
-            sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-            sheet.getCell('C1').font = {bold: true};
-            sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-            sheet2.getCell('C1').font = {bold: true};
+            //1 TOKEN per iteration
 
-            sheet.getCell('B2').value = 'TOTAL (diario)';
-            sheet.getCell('B2').font = {bold: true};
-            sheet2.getCell('B2').value = 'TOTAL (diario)';
-            sheet2.getCell('B2').font = {bold: true};
-            
-            sheet.getCell('G2').value = 'TOTAL (semanal)';
-            sheet.getCell('G2').font = {bold: true};
-            sheet2.getCell('G2').value = 'TOTAL (semanal)';
-            sheet2.getCell('G2').font = {bold: true};
-
-            sheet.getCell('L2').value = 'TOTAL (mensual)';
-            sheet.getCell('L2').font = {bold: true};
-            sheet2.getCell('L2').value = 'TOTAL (mensual)';
-            sheet2.getCell('L2').font = {bold: true};
-
-            //stats
-            /************************* */
+            //define vars
             let day = 1;
             let week = 1;
             let month = 1;
             let dayCounter = 0;
             let dayCounterPrimary = 0;
-            let dayRates = 0;
-            let dayRatesPrimary = 0;
-            let dayRatesOffers = 0;
-            let dayRatesRequests = 0;
-            let dayRatesPrimaryOffers = 0;
-            let dayRatesPrimaryRequests = 0;
             let weekCounter = 0;
             let weekCounterPrimary = 0;
-            let weekRates = 0;
-            let weekRatesPrimary = 0;
             let monthCounter = 0;
             let monthCounterPrimary = 0;
-            let monthRates = 0;
-            let monthRatesPrimary = 0;
             let dayCounterUsd = 0;
             let dayCounterPrimaryUsd = 0;
             let weekCounterUsd = 0;
             let weekCounterPrimaryUsd = 0;
             let monthCounterUsd = 0;
             let monthCounterPrimaryUsd = 0;
-            let dayRatesCounter = 0
-            let dayRatesPrimaryCounter = 0
-            let dayRatesCounter2 = 0
-            let dayRatesPrimaryCounter2 = 0
-            let meanCounter = 0;
-            let meanCounter2 = 0;
-            let meanCounter3 = 0;
-            let meanCounter4 = 0;
-
             let _timeLow = timeLow;
             let _timeHigh = _timeLow + ONE_UTC_DAY;
             let dayRows = [];
@@ -1676,9 +1644,19 @@ export class Report {
             let dayRowsPrimary = [];
             let weekRowsPrimary = [];
             let monthRowsPrimary = [];
+            let offersRows = [];
+            let requestsRows = [];
+            let offersPrimaryRows = [];
+            let requestsPrimaryRows = [];
+
+            //2 sheets per token (1 per market)
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
+            let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
 
             while(_timeHigh <= timeHigh) {
-                //DAYS
+                //1 DAY per iteration
+
+                //define vars
                 let dayRow = [];
                 let weekRow = [];
                 let dayRowPrimary = [];
@@ -1691,9 +1669,12 @@ export class Report {
 
                 if (dayOffers.length > 0) {
                     for (let p = 0; p < dayOffers.length; p++) {
+                        //1 OFFER per iteration
                         if (dayOffers[p].deals.length > 0) {
+                            //1 DEALS ARRAY per iteration
                             let deals = dayOffers[p].deals;
                             for (let q = 0; q < deals.length; q++) {
+                                //1 DEAL per iteration
                                 let amount = parseFloat(weiToEther(deals[q].sellAmount));
                                 let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
                                 dayCounter = dayCounter + amount;
@@ -1719,12 +1700,35 @@ export class Report {
                                 dayCounterUsd = dayCounterUsd + usdAmount;
                                 weekCounterUsd = weekCounterUsd + usdAmount;
                                 monthCounterUsd = monthCounterUsd + usdAmount;
-                                dayRatesOffers = dayRatesOffers + (usdAmount / amount);
-                            }
 
-                            meanCounter++;
-                            dayRatesOffers = dayRatesOffers / (deals.length * meanCounter);
+                                //DEALS TABLE
+                                let array = [];
+
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.buyToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                offersRows.push(array);
+                                //1 DEAL per iteration
+                            }
+                            //1 DEALS ARRAY per iteration
                         }
+                        //1 OFFER per iteration
                     }
                 }
 
@@ -1758,12 +1762,34 @@ export class Report {
                                 dayCounterPrimaryUsd = dayCounterPrimaryUsd + usdAmount;
                                 weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
                                 monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-                                dayRatesPrimaryOffers = dayRatesPrimaryOffers + (usdAmount / amount);
-                            }
 
-                            meanCounter2++;
-                            dayRatesPrimaryOffers = dayRatesPrimaryOffers / (deals.length * meanCounter2);
+                                let array = [];
+    
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.buyToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                offersPrimaryRows.push(array);
+                                //1 DEAL per iteration
+                            }
+                            //1 DEALS ARRAY per iteration
                         }
+                        //1 OFFER per iteration
                     }
                 }
 
@@ -1797,12 +1823,34 @@ export class Report {
                                 dayCounterUsd = dayCounterUsd + usdAmount;
                                 weekCounterUsd = weekCounterUsd + usdAmount;
                                 monthCounterUsd = monthCounterUsd + usdAmount;
-                                dayRatesRequests = dayRatesRequests + (usdAmount / amount);
-                            }
 
-                            meanCounter3++;
-                            dayRatesRequests = dayRatesRequests / (deals.length * meanCounter3);
+                                let array = [];
+    
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.sellToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                requestsRows.push(array);
+                                //1 DEAL per iteration
+                            }
+                            //1 DEALS ARRAY per iteration
                         }
+                        //1 OFFER per iteration
                     }
                 }
 
@@ -1836,127 +1884,132 @@ export class Report {
                                 dayCounterUsd = dayCounterUsd + usdAmount;
                                 weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
                                 monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-                                dayRatesPrimaryRequests = dayRatesPrimaryRequests + (usdAmount / amount);
-                            }
 
-                            meanCounter4++;
-                            dayRatesPrimaryRequests = dayRatesPrimaryRequests / (deals.length * meanCounter4);
+                                let array = [];
+    
+                                array.push(new Date(deals[q].timestamp * 1000));
+                                array.push(timeConverter(deals[q].offer.timestamp));
+                                array.push(timeConverter(deals[q].timestamp));
+                                array.push(deals[q].offer.sellToken.tokenSymbol);
+        
+                                if (deals[q].seller.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].seller.name);
+                                }
+        
+                                if (deals[q].buyer.name == null) {
+                                    array.push("");
+                                } else {
+                                    array.push(deals[q].buyer.name);
+                                }
+        
+                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                                requestsPrimaryRows.push(array);
+                            }
                         }
                     }
                 }
 
-                if (dayRatesOffers == 0) dayRatesOffers = dayRatesRequests;
-                if (dayRatesRequests == 0) dayRatesRequests = dayRatesOffers;
-                if (dayRatesPrimaryOffers == 0) dayRatesPrimaryOffers = dayRatesPrimaryRequests;
-                if (dayRatesPrimaryRequests == 0) dayRatesPrimaryRequests = dayRatesPrimaryOffers;
-
-                dayRates = (dayRatesOffers + dayRatesRequests) / 2;
-                dayRatesPrimary = (dayRatesPrimaryOffers + dayRatesPrimaryRequests) / 2;
-                dayRatesOffers = 0;
-                dayRatesRequests = 0;
-                dayRatesPrimaryOffers = 0;
-                dayRatesPrimaryRequests = 0;
-                meanCounter = 0;
-                meanCounter2 = 0;
-                meanCounter3 = 0;
-                meanCounter4 = 0;
-
-                if (dayRates != 0)  { dayRatesCounter++; dayRatesCounter2++; }
-                if (dayRatesPrimary != 0) { dayRatesPrimaryCounter++; dayRatesPrimaryCounter2++; }
-
-                weekRates = weekRates + dayRates;
-                weekRatesPrimary = weekRatesPrimary + dayRatesPrimary;
-                monthRates = monthRates + dayRates;
-                monthRatesPrimary = monthRatesPrimary + dayRatesPrimary;
-
                 if (day == 7 * week) {
-                    //WEEKS
-                    if (dayRatesCounter == 0) dayRatesCounter = 1;
-                    weekRates = weekRates / dayRatesCounter;
-                    dayRatesCounter = 0;
+                    //1 WEEK per iteration
+
+                    //SECONDARY
                     weekRow.push(week);
                     weekRow.push(weekCounter);
                     weekRow.push(weekCounterUsd);
-                    weekRow.push(weekRates);
+                    if (weekCounter == 0) weekCounter = 1;
+                    weekRow.push(weekCounterUsd / weekCounter);
                     weekRows.push(weekRow);
-                    //
-                    if (dayRatesPrimaryCounter == 0) dayRatesPrimaryCounter = 1;
-                    weekRatesPrimary = weekRatesPrimary / dayRatesPrimaryCounter;
-                    dayRatesPrimaryCounter = 0;
+
+                    weekCounter = 0;
+                    weekCounterUsd = 0;
+
+                    //PRIMARY
                     weekRowPrimary.push(week);
                     weekRowPrimary.push(weekCounterPrimary);
                     weekRowPrimary.push(weekCounterPrimaryUsd);
-                    weekRowPrimary.push(weekRatesPrimary);
+                    if (weekCounterPrimary == 0) weekCounterPrimary = 1;
+                    weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
                     weekRowsPrimary.push(weekRowPrimary);
 
-                    week++;
-                    weekCounter = 0;
                     weekCounterPrimary = 0;
-                    weekCounterUsd = 0;
                     weekCounterPrimaryUsd = 0;
-                    weekRates = 0;
-                    weekRatesPrimary = 0;
+
+                    week++;
+                    //1 WEEK per iteration
                 }
 
+                //secondary
                 dayRow.push(day);
                 dayRow.push(dayCounter);
                 dayRow.push(dayCounterUsd);
-                dayRow.push(dayRates);
+                if (dayCounter == 0) dayCounter = 1;
+                dayRow.push(dayCounterUsd / dayCounter);
                 dayRows.push(dayRow);
-                //
+
+                dayCounter = 0;
+                dayCounterUsd = 0;
+
+                //primary
                 dayRowPrimary.push(day);
                 dayRowPrimary.push(dayCounterPrimary);
                 dayRowPrimary.push(dayCounterPrimaryUsd);
-                dayRowPrimary.push(dayRatesPrimary);
+                if (dayCounterPrimary == 0) dayCounterPrimary = 1;
+                dayRowPrimary.push(dayCounterPrimaryUsd / dayCounterPrimary);
                 dayRowsPrimary.push(dayRowPrimary);
 
-                day++;
-                dayCounter = 0;
                 dayCounterPrimary = 0;
-                dayCounterUsd = 0;
                 dayCounterPrimaryUsd = 0;
-
+                
+                day++;
                 _timeLow = _timeHigh;
                 _timeHigh = _timeLow + ONE_UTC_DAY;
+                //1 DAY per iteration
             }
-            //MONTH
+
+            //5th week...days (29-31)
+            //secondary
             let weekRow = [];
             let monthRow = [];
-            let weekRowPrimary = [];
-            let monthRowPrimary = [];
 
-            if (dayRatesCounter == 0) dayRatesCounter = 1;
-            weekRates = weekRates / dayRatesCounter;
             weekRow.push(week);
             weekRow.push(weekCounter);
             weekRow.push(weekCounterUsd);
-            weekRow.push(weekRates);
+            if (weekCounter == 0) weekCounter = 1;
+            weekRow.push(weekCounterUsd / weekCounter);
             weekRows.push(weekRow);
 
-            if (dayRatesPrimaryCounter == 0) dayRatesPrimaryCounter = 1;
-            weekRatesPrimary = weekRatesPrimary / dayRatesPrimaryCounter;
+            //primary
+            let weekRowPrimary = [];
+            let monthRowPrimary = []; 
+
             weekRowPrimary.push(week);
             weekRowPrimary.push(weekCounterPrimary);
             weekRowPrimary.push(weekCounterPrimaryUsd);
-            weekRowPrimary.push(weekRatesPrimary);
+            if (weekCounterPrimary == 0) weekCounterPrimary = 1;
+            weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
             weekRowsPrimary.push(weekRowPrimary);
 
-            if (dayRatesCounter2 == 0) dayRatesCounter2 = 1;
-            monthRates = monthRates / dayRatesCounter2;
+            //MONTH
+            //secondary
             monthRow.push(month);
             monthRow.push(monthCounter);
             monthRow.push(monthCounterUsd);
-            monthRow.push(monthRates);
+            if (monthCounter == 0) monthCounter = 1;
+            monthRow.push(monthCounterUsd / monthCounter);
             monthRows.push(monthRow);
 
-            if (dayRatesPrimaryCounter2 == 0) dayRatesPrimaryCounter2 = 1;
-            monthRatesPrimary = monthRatesPrimary / dayRatesPrimaryCounter2;
+            //primary
             monthRowPrimary.push(month);
             monthRowPrimary.push(monthCounterPrimary);
             monthRowPrimary.push(monthCounterPrimaryUsd);
-            monthRowPrimary.push(monthRatesPrimary);
+            if (monthCounterPrimary == 0) monthCounterPrimary = 1;
+            monthRowPrimary.push(monthCounterPrimaryUsd / monthCounterPrimary);
             monthRowsPrimary.push(monthRowPrimary);
 
+            //ADD TABLES
             let tableDay = 'TablaDay' + tokensArray[i].symbol;
             let tableWeek = 'TablaWeek' + tokensArray[i].symbol;
             let tableMonth = 'TablaMonth' + tokensArray[i].symbol;
@@ -2042,242 +2095,134 @@ export class Report {
                 monthRowsPrimary
             );
 
-            /************************* */
+            sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
+            sheet.getCell('B36').font = {bold: true};
+            let tableName = 'Tabla' + tokensArray[i].symbol;
 
-            //offers
-            if (offers.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < offers.length; j++) {
-                    if (offers[j].deals.length > 0) {
-                        let deals = offers[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseInt(weiToEther(deals[k].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].buyAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet.getCell('B36').value = tokensArray[i].symbol + ' OFERTADO';
-                        sheet.getCell('B36').font = {bold: true};
-                        let tableName = 'Tabla' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet,
-                            tableName,
-                            'B37',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            if (offersRows.length == 0) {
+                offersRows = getEmtpyDeal();
             }
 
-            //requests
-            if (requests.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < requests.length; j++) {
-                    if (requests[j].deals.length > 0) {
-                        let deals = requests[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseInt(weiToEther(deals[k].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet.getCell('K36').font = {bold: true};
-                        let tableName = 'Tabla2' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet,
-                            tableName,
-                            'K7',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            await addTable(
+                sheet,
+                tableName,
+                'B37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                offersRows
+            );
+
+            sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
+            sheet.getCell('K36').font = {bold: true};
+            let tableName2 = 'Tabla2' + tokensArray[i].symbol;
+
+            if (requestsRows.length == 0) {
+                requestsRows = getEmtpyDeal();
             }
 
-            //primaryoffers
-            if (offersPrimary.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < offersPrimary.length; j++) {
-                    if (offersPrimary[j].deals.length > 0) {
-                        let deals = offersPrimary[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseInt(weiToEther(deals[k].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].buyAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet2.getCell('B36').value = tokensArray[i].symbol + ' OFERTADO';
-                        sheet2.getCell('B36').font = {bold: true};
-                        let tableName = 'TablaPrimario' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet2,
-                            tableName,
-                            'B37',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            await addTable(
+                sheet,
+                tableName2,
+                'K37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                requestsRows
+            );
+
+            sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
+            sheet2.getCell('B36').font = {bold: true};
+            let tableName3 = 'TablaPrimario' + tokensArray[i].symbol;
+
+            if (offersPrimaryRows.length == 0) {
+                offersPrimaryRows = getEmtpyDeal();
             }
 
-            //primaryrequests
-            if (requestsPrimary.length > 0) {
-                let rows = [];
-    
-                for (let j = 0; j < requestsPrimary.length; j++) {
-                    if (requestsPrimary[j].deals.length > 0) {
-                        let deals = requestsPrimary[j].deals;
-    
-                        for (let k = 0; k < deals.length; k++) {
-                            let array = [];
-    
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-    
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].seller.name);
-                            }
-    
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[k].buyer.name);
-                            }
-    
-                            array.push(parseInt(weiToEther(deals[k].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }      
-                        
-                        sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('K36').font = {bold: true};
-                        let tableName = 'TablaPrimario' + tokensArray[i].symbol;
-    
-                        await addTable(
-                            sheet2,
-                            tableName,
-                            'K37',
-                            [
-                                {name: 'Fecha (pacto)', filterButton: true},
-                                {name: 'Hora (oferta)'},
-                                {name: 'Hora (pacto)'},
-                                {name: 'Contrapartida', filterButton: true},
-                                {name: 'Vendedor (usuario)', filterButton: true},
-                                {name: 'Comprador (usuario)', filterButton: true},
-                                {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                            ],
-                            rows
-                        );
-                    }
-                }
+            await addTable(
+                sheet2,
+                tableName3,
+                'B37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                offersPrimaryRows
+            );
+
+            sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
+            sheet2.getCell('K36').font = {bold: true};
+            let tableName4 = 'TablaPrimario2' + tokensArray[i].symbol;
+
+            if (requestsPrimaryRows.length == 0) {
+                requestsPrimaryRows = getEmtpyDeal();
             }
+
+            await addTable(
+                sheet2,
+                tableName4,
+                'K37',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
+                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+                ],
+                requestsPrimaryRows
+            );
+
+            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+            sheet.getCell('C1').font = {bold: true};
+            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
+            sheet2.getCell('C1').font = {bold: true};
+
+            sheet.getCell('B2').value = 'TOTAL (diario)';
+            sheet.getCell('B2').font = {bold: true};
+            sheet2.getCell('B2').value = 'TOTAL (diario)';
+            sheet2.getCell('B2').font = {bold: true};
+            
+            sheet.getCell('G2').value = 'TOTAL (semanal)';
+            sheet.getCell('G2').font = {bold: true};
+            sheet2.getCell('G2').value = 'TOTAL (semanal)';
+            sheet2.getCell('G2').font = {bold: true};
+
+            sheet.getCell('L2').value = 'TOTAL (mensual)';
+            sheet.getCell('L2').font = {bold: true};
+            sheet2.getCell('L2').value = 'TOTAL (mensual)';
+            sheet2.getCell('L2').font = {bold: true};
         }
 
         try {
-            await workbook.xlsx.writeFile('PiMarketsPackableDealsReportV2.xlsx');
+            await workbook.xlsx.writeFile('PiMarketsMonthPackableDealsReport.xlsx');
         } catch (error) {
             let buffer = await workbook.xlsx.writeBuffer();
             
             try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReportV2.xlsx');
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthPackableDealsReport.xlsx');
             } catch (err) {
                 console.error(err);
             }
@@ -3110,6 +3055,24 @@ function timeConverter(UNIX_timestamp: number) {
     var sec = a.getSeconds();
     var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec;
     return time;
+}
+
+function getEmtpyDeal() {
+    let rows: any[] = [];
+    let array: any[] = [];
+
+    array.push(new Date());
+    array.push("");
+    array.push("");
+    array.push("");
+    array.push("");
+    array.push("");
+    array.push(0);
+    array.push(0);
+
+    rows.push(array);
+
+    return rows;
 }
 
 function getEndPointDates(UNIX_timestamp: number) {
