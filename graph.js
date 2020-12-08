@@ -910,7 +910,7 @@ var QueryTemplates = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder timestamp isCancel auctionToken { id tokenSymbol } bidToken { id tokenSymbol } auction { auctionToken { id tokenSymbol } bidToken { id tokenSymbol } maxBid maxBidder { name id } bids (orderBy:bid, orderDirection:desc) { bid bidder { id name } timestamp } endTime isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
+                        customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder { id name } timestamp isCancel auctionToken { id tokenSymbol } bidToken { id tokenSymbol } auction { auctionToken { id tokenSymbol } bidToken { id tokenSymbol } maxBid maxBidder { name id } bids (orderBy:bid, orderDirection:desc) { bid bidder { id name } timestamp } endTime isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
                         query = new Query("auction", this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
