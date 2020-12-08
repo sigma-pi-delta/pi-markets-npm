@@ -240,6 +240,10 @@ export class Report {
             //TXs TABLE
             let tableName = 'Tabla' + tokensArray[i].symbol;
 
+            if (txRows.length == 0) {
+                txRows = getEmptyTransaction();
+            }
+
             addTable(
                 sheet,
                 tableName,
@@ -3068,6 +3072,23 @@ function getEmtpyDeal() {
     array.push("");
     array.push("");
     array.push(0);
+    array.push(0);
+
+    rows.push(array);
+
+    return rows;
+}
+
+function getEmptyTransaction() {
+    let rows: any[] = [];
+    let array: any[] = [];
+
+    array.push(new Date());
+    array.push("");
+    array.push("");
+    array.push("");
+    array.push("");
+    array.push("");
     array.push(0);
 
     rows.push(array);

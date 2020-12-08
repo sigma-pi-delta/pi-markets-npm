@@ -216,6 +216,9 @@ var Report = /** @class */ (function () {
                             { name: 'Tipo de cambio' }
                         ], monthRows);
                         tableName = 'Tabla' + tokensArray[i].symbol;
+                        if (txRows.length == 0) {
+                            txRows = getEmptyTransaction();
+                        }
                         addTable(sheet, tableName, 'B36', [
                             { name: 'Fecha', filterButton: true },
                             { name: 'Divisa' },
@@ -2890,6 +2893,19 @@ function getEmtpyDeal() {
     array.push("");
     array.push("");
     array.push(0);
+    array.push(0);
+    rows.push(array);
+    return rows;
+}
+function getEmptyTransaction() {
+    var rows = [];
+    var array = [];
+    array.push(new Date());
+    array.push("");
+    array.push("");
+    array.push("");
+    array.push("");
+    array.push("");
     array.push(0);
     rows.push(array);
     return rows;
