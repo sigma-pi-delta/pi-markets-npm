@@ -1075,6 +1075,1316 @@ export class Report {
         }
     }
 
+    async getTokenDealsReportV3(
+        monthIndex: number,
+        year: number,
+        tokensArray: any[]
+    ) {
+        const workbook = new ExcelJS.Workbook();
+
+        let toYear = year;
+        let toMonthIndex = monthIndex + 1;
+
+        if (monthIndex == 12) {
+            toYear = year + 1;
+            toMonthIndex = 1;
+        }
+
+        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+
+        let promises: any = [];
+
+        for (let i = 0; i < tokensArray.length; i++) {
+            //2 sheets per token (1 per market)
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
+            let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
+
+            promises.push(this.setTokenDealsSheetV2(
+                sheet, 
+                timeLow, 
+                timeHigh, 
+                monthIndex,
+                year,
+                toMonthIndex,
+                toYear,
+                tokensArray[i]
+            ));
+
+            promises.push(this.setPrimaryTokenDealsSheetV2(
+                sheet2, 
+                timeLow, 
+                timeHigh, 
+                monthIndex,
+                year,
+                toMonthIndex,
+                toYear,
+                tokensArray[i]
+            ));
+        }
+
+        await Promise.all(promises);
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsTokenDealsReportV3.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReportV3.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
+    async setTokenDealsSheet(
+        sheet: any,
+        sheet2: any,
+        timeLow: number,
+        timeHigh: number,
+        monthIndex: number,
+        year: number,
+        toMonthIndex: number,
+        toYear: number,
+        token: any
+    ) {
+        //define vars
+        let day = 1;
+        let week = 1;
+        let month = 1;
+        let dayCounter = 0;
+        let dayCounterPrimary = 0;
+        let weekCounter = 0;
+        let weekCounterPrimary = 0;
+        let weekRates = 0;
+        let monthCounter = 0;
+        let monthCounterPrimary = 0;
+        let monthRates = 0;
+        let weekZeros = 0;
+        let monthZeros = 0;
+        let _timeLow = timeLow;
+        let _timeHigh = _timeLow + ONE_UTC_DAY;
+        let dayRows = [];
+        let weekRows = [];
+        let monthRows = [];
+        let dayRowsPrimary = [];
+        let weekRowsPrimary = [];
+        let monthRowsPrimary = [];
+        let offersRows = [];
+        let requestsRows = [];
+        let offersPrimaryRows = [];
+        let requestsPrimaryRows = [];
+
+        //rates: array[31] with USD price (padded with 0s)
+        let rates = await getDayRate(
+            year, 
+            monthIndex, 
+            toYear, 
+            toMonthIndex, 
+            token.address,
+            token.category
+        );
+
+        while(_timeHigh <= timeHigh) {
+            //1 DAY per iteration
+
+            //define vars
+            let dayRow = [];
+            let weekRow = [];
+            let dayRowPrimary = [];
+            let weekRowPrimary = [];
+
+            let dayOffers = await try_getOffers(_timeLow, _timeHigh, token.address, this.url);
+            let dayOffersPrimary = await try_getOffersPrimary(_timeLow, _timeHigh, token.address, this.url);
+            let dayRequests = await try_getRequests(_timeLow, _timeHigh, token.address, this.url);
+            let dayRequestsPrimary = await try_getRequestsPrimary(_timeLow, _timeHigh, token.address, this.url);
+
+            if (dayOffers.length > 0) {
+                for (let p = 0; p < dayOffers.length; p++) {
+                    if (dayOffers[p].deals.length > 0) {
+                        let deals = dayOffers[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            //DEALS TABLE
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersRows.push(array);
+                        }
+                    }
+                }
+            }
+
+            if (dayOffersPrimary.length > 0) {
+                for (let p = 0; p < dayOffersPrimary.length; p++) {
+                    if (dayOffersPrimary[p].deals.length > 0) {
+                        let deals = dayOffersPrimary[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounterPrimary = dayCounterPrimary + amount;
+                            weekCounterPrimary = weekCounterPrimary + amount;
+                            monthCounterPrimary = monthCounterPrimary + amount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersPrimaryRows.push(array);
+                        }
+                    }
+                }
+            }
+
+            if (dayRequests.length > 0) {
+                for (let p = 0; p < dayRequests.length; p++) {
+                    if (dayRequests[p].deals.length > 0) {
+                        let deals = dayRequests[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsRows.push(array);
+                        }
+                    }
+                }
+            }
+
+            if (dayRequestsPrimary.length > 0) {
+                for (let p = 0; p < dayRequestsPrimary.length; p++) {
+                    if (dayRequestsPrimary[p].deals.length > 0) {
+                        let deals = dayRequestsPrimary[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounterPrimary = dayCounterPrimary + amount;
+                            weekCounterPrimary = weekCounterPrimary + amount;
+                            monthCounterPrimary = monthCounterPrimary + amount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsPrimaryRows.push(array);
+                        }
+                    }
+                }
+            }
+
+            //update week and month rates
+            weekRates = weekRates + rates[day - 1];
+            monthRates = monthRates + rates[day - 1];
+            if (rates[day - 1] == 0) {
+                weekZeros++;
+                monthZeros++;
+            }
+
+            if (day == 7 * week) {
+                //1 WEEK per iteration
+
+                //calc week rate
+                if ((7 - weekZeros) == 0){
+                    weekRates = 0;
+                } else {
+                    weekRates = weekRates / (7 - weekZeros);
+                }
+
+                //update week secondary arrays
+                weekRow.push(week);
+                weekRow.push(weekCounter);
+                weekRow.push(weekCounter * weekRates);
+                weekRow.push(weekRates);
+                weekRows.push(weekRow);
+                
+                //update week primary arrays
+                weekRowPrimary.push(week);
+                weekRowPrimary.push(weekCounterPrimary);
+                weekRowPrimary.push(weekCounterPrimary * weekRates);
+                weekRowPrimary.push(weekRates);
+                weekRowsPrimary.push(weekRowPrimary);
+
+                //update and reset week counters
+                week++;
+                weekCounter = 0;
+                weekCounterPrimary = 0;
+                weekRates = 0
+                weekZeros = 0;
+            }
+
+            //update day secondary arrays
+            dayRow.push(day);
+            dayRow.push(dayCounter);
+            dayRow.push(dayCounter * rates[day - 1]);
+            dayRow.push(rates[day - 1]);
+            dayRows.push(dayRow);
+            
+            //update day primary arrays
+            dayRowPrimary.push(day);
+            dayRowPrimary.push(dayCounterPrimary);
+            dayRowPrimary.push(dayCounterPrimary * rates[day - 1]);
+            dayRowPrimary.push(rates[day - 1]);
+            dayRowsPrimary.push(dayRowPrimary);
+
+            //update and reset day counters
+            day++;
+            dayCounter = 0;
+            dayCounterPrimary = 0;
+            _timeLow = _timeHigh;
+            _timeHigh = _timeLow + ONE_UTC_DAY;
+        }
+
+        //5th WEEK (days 29-31)
+        let weekRow = [];
+        let weekRowPrimary = [];
+
+        //calc 5th week rates
+        if ((day - 29 - weekZeros) == 0){
+            weekRates = 0;
+        } else {
+            weekRates = weekRates / (day - 29 - weekZeros);
+        }
+
+        //update 5th week secondary array
+        weekRow.push(week);
+        weekRow.push(weekCounter);
+        weekRow.push(weekCounter * weekRates);
+        weekRow.push(weekRates);
+        weekRows.push(weekRow);
+
+        //update 5th week primary array
+        weekRowPrimary.push(week);
+        weekRowPrimary.push(weekCounterPrimary);
+        weekRowPrimary.push(weekCounterPrimary * weekRates);
+        weekRowPrimary.push(weekRates);
+        weekRowsPrimary.push(weekRowPrimary);
+
+        //MONTH
+        let monthRow = [];
+        let monthRowPrimary = [];
+
+        if ((day - 1 - monthZeros) == 0){
+            monthRates = 0;
+        } else {
+            monthRates = monthRates / (day - 1 - monthZeros);
+        }
+        //secondary
+        monthRow.push(month);
+        monthRow.push(monthCounter);
+        monthRow.push(monthCounter * monthRates);
+        monthRow.push(monthRates);
+        monthRows.push(monthRow);
+        //primary
+        monthRowPrimary.push(month);
+        monthRowPrimary.push(monthCounterPrimary);
+        monthRowPrimary.push(monthCounterPrimary * monthRates);
+        monthRowPrimary.push(monthRates);
+        monthRowsPrimary.push(monthRowPrimary);
+
+        //ADD TABLES
+        let tableDay = 'TablaDay' + token.symbol;
+        let tableWeek = 'TablaWeek' + token.symbol;
+        let tableMonth = 'TablaMonth' + token.symbol;
+        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+
+        addTable(
+            sheet,
+            tableDay,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRows
+        );
+
+        addTable(
+            sheet,
+            tableWeek,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRows
+        );
+
+        addTable(
+            sheet,
+            tableMonth,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRows
+        );
+
+        addTable(
+            sheet2,
+            tableDayPrimary,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRowsPrimary
+        );
+
+        addTable(
+            sheet2,
+            tableWeekPrimary,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRowsPrimary
+        );
+
+        addTable(
+            sheet2,
+            tableMonthPrimary,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRowsPrimary
+        );
+
+        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet.getCell('B36').font = {bold: true};
+        let tableName = 'Tabla' + token.symbol;
+
+        if (offersRows.length == 0) {
+            offersRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersRows
+        );
+
+        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+        sheet.getCell('K36').font = {bold: true};
+        let tableName2 = 'Tabla2' + token.symbol;
+
+        if (requestsRows.length == 0) {
+            requestsRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName2,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsRows
+        );
+
+        sheet2.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet2.getCell('B36').font = {bold: true};
+        let tableName3 = 'TablaPrimario' + token.symbol;
+
+        if (offersPrimaryRows.length == 0) {
+            offersPrimaryRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet2,
+            tableName3,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersPrimaryRows
+        );
+
+        sheet2.getCell('K36').value = token.symbol + ' DEMANDADO';
+        sheet2.getCell('K36').font = {bold: true};
+        let tableName4 = 'TablaPrimario2' + token.symbol;
+
+        if (requestsPrimaryRows.length == 0) {
+            requestsPrimaryRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet2,
+            tableName4,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsPrimaryRows
+        );
+
+        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+        sheet.getCell('C1').font = {bold: true};
+        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
+        sheet2.getCell('C1').font = {bold: true};
+
+        sheet.getCell('B2').value = 'TOTAL (diario)';
+        sheet.getCell('B2').font = {bold: true};
+        sheet2.getCell('B2').value = 'TOTAL (diario)';
+        sheet2.getCell('B2').font = {bold: true};
+        
+        sheet.getCell('G2').value = 'TOTAL (semanal)';
+        sheet.getCell('G2').font = {bold: true};
+        sheet2.getCell('G2').value = 'TOTAL (semanal)';
+        sheet2.getCell('G2').font = {bold: true};
+
+        sheet.getCell('L2').value = 'TOTAL (mensual)';
+        sheet.getCell('L2').font = {bold: true};
+        sheet2.getCell('L2').value = 'TOTAL (mensual)';
+        sheet2.getCell('L2').font = {bold: true};
+    }
+
+    async setTokenDealsSheetV2(
+        sheet: any,
+        timeLow: number,
+        timeHigh: number,
+        monthIndex: number,
+        year: number,
+        toMonthIndex: number,
+        toYear: number,
+        token: any
+    ) {
+        //define vars
+        let day = 1;
+        let week = 1;
+        let month = 1;
+        let dayCounter = 0;
+        let weekCounter = 0;
+        let monthCounter = 0;
+        let weekRates = 0;
+        let monthRates = 0;
+        let weekZeros = 0;
+        let monthZeros = 0;
+        let _timeLow = timeLow;
+        let _timeHigh = _timeLow + ONE_UTC_DAY;
+        let dayRows = [];
+        let weekRows = [];
+        let monthRows = [];
+        let offersRows = [];
+        let requestsRows = [];
+
+        let dayOffers = await try_getOffers(timeLow, timeHigh, token.address, this.url);
+        let dayRequests = await try_getRequests(timeLow, timeHigh, token.address, this.url);
+
+        //rates: array[31] with USD price (padded with 0s)
+        let rates = await getDayRate(
+            year, 
+            monthIndex, 
+            toYear, 
+            toMonthIndex, 
+            token.address,
+            token.category
+        );
+
+        let nextOffer: any;
+        let nextTimestamp: number;
+        let nextIsOffer: boolean;
+
+        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+            if (nextOfferTimestamp < nextRequestTimestamp) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            }
+        } else {
+            nextTimestamp = 0;
+        }
+
+        while (_timeHigh <= timeHigh) {
+
+            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+                //compute offer
+                if (nextOffer.deals.length > 0) {
+                    if (nextIsOffer) {
+                        //COMPUTE OFFER
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            //1 DEAL per iteration
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            //DEALS TABLE
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    } else {
+                        //COMPUTE REQUEST
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    }
+                }
+
+                //pop new offer
+                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+        
+                    if (nextOfferTimestamp < nextRequestTimestamp) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    } else {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                } else {
+                    nextTimestamp = 0;
+                }
+            }
+
+            //compute day
+            //update week and month rates
+            weekRates = weekRates + rates[day - 1];
+            monthRates = monthRates + rates[day - 1];
+            if (rates[day - 1] == 0) {
+                weekZeros++;
+                monthZeros++;
+            }
+
+            let dayRow = [];
+
+            dayRow.push(day);
+            dayRow.push(dayCounter);
+            dayRow.push(dayCounter * rates[day - 1]);
+            dayRow.push(rates[day - 1]);
+            dayRows.push(dayRow);
+
+            dayCounter = 0;
+
+            day++;
+            _timeLow = _timeHigh;
+            _timeHigh = _timeLow + ONE_UTC_DAY;
+
+            //compute week
+            if (day == 7 * week) {
+                //WEEK
+                //calc week rate
+                if ((7 - weekZeros) == 0){
+                    weekRates = 0;
+                } else {
+                    weekRates = weekRates / (7 - weekZeros);
+                }
+
+                let weekRow = [];
+
+                weekRow.push(week);
+                weekRow.push(weekCounter);
+                weekRow.push(weekCounter * weekRates);
+                weekRow.push(weekRates);
+                weekRows.push(weekRow);
+
+                weekCounter = 0;
+                weekRates = 0
+                weekZeros = 0;
+                week++;
+            }
+        }
+
+        //5th week...days (29-31)
+        let weekRow = [];
+
+        //calc 5th week rates
+        if ((day - 29 - weekZeros) == 0){
+            weekRates = 0;
+        } else {
+            weekRates = weekRates / (day - 29 - weekZeros);
+        }
+
+        weekRow.push(week);
+        weekRow.push(weekCounter);
+        weekRow.push(weekCounter * weekRates);
+        weekRow.push(weekRates);
+        weekRows.push(weekRow);
+
+        //MONTH
+        let monthRow = [];
+
+        if ((day - 1 - monthZeros) == 0){
+            monthRates = 0;
+        } else {
+            monthRates = monthRates / (day - 1 - monthZeros);
+        }
+
+        monthRow.push(month);
+        monthRow.push(monthCounter);
+        monthRow.push(monthCounter * monthRates);
+        monthRow.push(monthRates);
+        monthRows.push(monthRow);
+
+        //ADD TABLES
+        let tableDay = 'TablaDay' + token.symbol;
+        let tableWeek = 'TablaWeek' + token.symbol;
+        let tableMonth = 'TablaMonth' + token.symbol;
+
+        addTable(
+            sheet,
+            tableDay,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRows
+        );
+
+        addTable(
+            sheet,
+            tableWeek,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRows
+        );
+
+        addTable(
+            sheet,
+            tableMonth,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRows
+        );
+
+        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet.getCell('B36').font = {bold: true};
+        let tableName = 'Tabla' + token.symbol;
+
+        if (offersRows.length == 0) {
+            offersRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersRows
+        );
+
+        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+        sheet.getCell('K36').font = {bold: true};
+        let tableName2 = 'Tabla2' + token.symbol;
+
+        if (requestsRows.length == 0) {
+            requestsRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName2,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsRows
+        );
+
+        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+        sheet.getCell('C1').font = {bold: true};
+
+        sheet.getCell('B2').value = 'TOTAL (diario)';
+        sheet.getCell('B2').font = {bold: true};
+        
+        sheet.getCell('G2').value = 'TOTAL (semanal)';
+        sheet.getCell('G2').font = {bold: true};
+
+        sheet.getCell('L2').value = 'TOTAL (mensual)';
+        sheet.getCell('L2').font = {bold: true};
+    }
+
+    async setPrimaryTokenDealsSheetV2(
+        sheet: any,
+        timeLow: number,
+        timeHigh: number,
+        monthIndex: number,
+        year: number,
+        toMonthIndex: number,
+        toYear: number,
+        token: any
+    ) {
+        //define vars
+        let day = 1;
+        let week = 1;
+        let month = 1;
+        let dayCounter = 0;
+        let weekCounter = 0;
+        let monthCounter = 0;
+        let weekRates = 0;
+        let monthRates = 0;
+        let weekZeros = 0;
+        let monthZeros = 0;
+        let _timeLow = timeLow;
+        let _timeHigh = _timeLow + ONE_UTC_DAY;
+        let dayRows = [];
+        let weekRows = [];
+        let monthRows = [];
+        let offersRows = [];
+        let requestsRows = [];
+
+        let dayOffers = await try_getOffersPrimary(timeLow, timeHigh, token.address, this.url);
+        let dayRequests = await try_getRequestsPrimary(timeLow, timeHigh, token.address, this.url);
+
+        //rates: array[31] with USD price (padded with 0s)
+        let rates = await getDayRate(
+            year, 
+            monthIndex, 
+            toYear, 
+            toMonthIndex, 
+            token.address,
+            token.category
+        );
+
+        let nextOffer: any;
+        let nextTimestamp: number;
+        let nextIsOffer: boolean;
+
+        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+            if (nextOfferTimestamp < nextRequestTimestamp) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            }
+        } else {
+            nextTimestamp = 0;
+        }
+
+        while (_timeHigh <= timeHigh) {
+
+            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+                //compute offer
+                if (nextOffer.deals.length > 0) {
+                    if (nextIsOffer) {
+                        //COMPUTE OFFER
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            //1 DEAL per iteration
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            //DEALS TABLE
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    } else {
+                        //COMPUTE REQUEST
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    }
+                }
+
+                //pop new offer
+                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+        
+                    if (nextOfferTimestamp < nextRequestTimestamp) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    } else {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                } else {
+                    nextTimestamp = 0;
+                }
+            }
+
+            //compute day
+            //update week and month rates
+            weekRates = weekRates + rates[day - 1];
+            monthRates = monthRates + rates[day - 1];
+            if (rates[day - 1] == 0) {
+                weekZeros++;
+                monthZeros++;
+            }
+
+            let dayRow = [];
+
+            dayRow.push(day);
+            dayRow.push(dayCounter);
+            dayRow.push(dayCounter * rates[day - 1]);
+            dayRow.push(rates[day - 1]);
+            dayRows.push(dayRow);
+
+            dayCounter = 0;
+
+            day++;
+            _timeLow = _timeHigh;
+            _timeHigh = _timeLow + ONE_UTC_DAY;
+
+            //compute week
+            if (day == 7 * week) {
+                //WEEK
+                //calc week rate
+                if ((7 - weekZeros) == 0){
+                    weekRates = 0;
+                } else {
+                    weekRates = weekRates / (7 - weekZeros);
+                }
+
+                let weekRow = [];
+
+                weekRow.push(week);
+                weekRow.push(weekCounter);
+                weekRow.push(weekCounter * weekRates);
+                weekRow.push(weekRates);
+                weekRows.push(weekRow);
+
+                weekCounter = 0;
+                weekRates = 0
+                weekZeros = 0;
+                week++;
+            }
+        }
+
+        //5th week...days (29-31)
+        let weekRow = [];
+
+        //calc 5th week rates
+        if ((day - 29 - weekZeros) == 0){
+            weekRates = 0;
+        } else {
+            weekRates = weekRates / (day - 29 - weekZeros);
+        }
+
+        weekRow.push(week);
+        weekRow.push(weekCounter);
+        weekRow.push(weekCounter * weekRates);
+        weekRow.push(weekRates);
+        weekRows.push(weekRow);
+
+        //MONTH
+        let monthRow = [];
+
+        if ((day - 1 - monthZeros) == 0){
+            monthRates = 0;
+        } else {
+            monthRates = monthRates / (day - 1 - monthZeros);
+        }
+
+        monthRow.push(month);
+        monthRow.push(monthCounter);
+        monthRow.push(monthCounter * monthRates);
+        monthRow.push(monthRates);
+        monthRows.push(monthRow);
+
+        //ADD TABLES
+        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+
+        addTable(
+            sheet,
+            tableDayPrimary,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRows
+        );
+
+        addTable(
+            sheet,
+            tableWeekPrimary,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRows
+        );
+
+        addTable(
+            sheet,
+            tableMonthPrimary,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRows
+        );
+
+        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet.getCell('B36').font = {bold: true};
+        let tableName3 = 'TablaPrimario' + token.symbol;
+
+        if (offersRows.length == 0) {
+            offersRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName3,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersRows
+        );
+
+        sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
+        sheet.getCell('K36').font = {bold: true};
+        let tableName4 = 'TablaPrimario2' + token.symbol;
+
+        if (requestsRows.length == 0) {
+            requestsRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName4,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsRows
+        );
+
+        sheet.getCell('C1').value = 'Mercado P2P (Primario)';
+        sheet.getCell('C1').font = {bold: true};
+
+        sheet.getCell('B2').value = 'TOTAL (diario)';
+        sheet.getCell('B2').font = {bold: true};
+        
+        sheet.getCell('G2').value = 'TOTAL (semanal)';
+        sheet.getCell('G2').font = {bold: true};
+
+        sheet.getCell('L2').value = 'TOTAL (mensual)';
+        sheet.getCell('L2').font = {bold: true};
+    }
+
     async getTokenDealsReportV2(
         monthIndex: number,
         year: number,
@@ -1893,6 +3203,1388 @@ export class Report {
                 console.error(err);
             }
         }
+    }
+
+    async getPackableDealsReportV3(
+        monthIndex: number,
+        year: number,
+        tokensArray: any[]
+    ) {
+        const workbook = new ExcelJS.Workbook();
+
+        let toYear = year;
+        let toMonthIndex = monthIndex + 1;
+
+        if (monthIndex == 12) {
+            toYear = year + 1;
+            toMonthIndex = 1;
+        }
+
+        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+
+        let promises: any = [];
+
+        for (let i = 0; i < tokensArray.length; i++) {
+            //2 sheets per token (1 per market)
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
+            let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
+
+            promises.push(this.setPackableDealsSheetV2(
+                sheet, 
+                timeLow, 
+                timeHigh, 
+                tokensArray[i]
+            ));
+
+            promises.push(this.setPrimaryPackableDealsSheetV2(
+                sheet2, 
+                timeLow, 
+                timeHigh, 
+                tokensArray[i]
+            ));
+        }
+
+        await Promise.all(promises);
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsPackableDealsReportV3.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReportV3.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
+    async setPackableDealsSheet(
+        sheet: any,
+        sheet2: any,
+        timeLow: number,
+        timeHigh: number,
+        token: any
+    ) {
+        //define vars
+        let day = 1;
+        let week = 1;
+        let month = 1;
+        let dayCounter = 0;
+        let dayCounterPrimary = 0;
+        let weekCounter = 0;
+        let weekCounterPrimary = 0;
+        let monthCounter = 0;
+        let monthCounterPrimary = 0;
+        let dayCounterUsd = 0;
+        let dayCounterPrimaryUsd = 0;
+        let weekCounterUsd = 0;
+        let weekCounterPrimaryUsd = 0;
+        let monthCounterUsd = 0;
+        let monthCounterPrimaryUsd = 0;
+        let _timeLow = timeLow;
+        let _timeHigh = _timeLow + ONE_UTC_DAY;
+        let dayRows = [];
+        let weekRows = [];
+        let monthRows = [];
+        let dayRowsPrimary = [];
+        let weekRowsPrimary = [];
+        let monthRowsPrimary = [];
+        let offersRows = [];
+        let requestsRows = [];
+        let offersPrimaryRows = [];
+        let requestsPrimaryRows = [];
+
+        while(_timeHigh <= timeHigh) {
+            //1 DAY per iteration
+
+            //define vars
+            let dayRow = [];
+            let weekRow = [];
+            let dayRowPrimary = [];
+            let weekRowPrimary = [];
+            
+            let dayOffers = await try_getPackableOffers(_timeLow, _timeHigh, token.address, this.url);
+            let dayOffersPrimary = await try_getPackableOffersPrimary(_timeLow, _timeHigh, token.address, this.url);
+            let dayRequests = await try_getPackableRequests(_timeLow, _timeHigh, token.address, this.url);
+            let dayRequestsPrimary = await try_getPackableRequestsPrimary(_timeLow, _timeHigh, token.address, this.url);
+
+            if (dayOffers.length > 0) {
+                for (let p = 0; p < dayOffers.length; p++) {
+                    //1 OFFER per iteration
+                    if (dayOffers[p].deals.length > 0) {
+                        //1 DEALS ARRAY per iteration
+                        let deals = dayOffers[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            //1 DEAL per iteration
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            let usdAmount = 0;
+
+                            if (
+                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
+                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                                (deals[q].offer.buyToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = buyAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    buyAmount, 
+                                    deals[q].offer.buyToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+
+                            dayCounterUsd = dayCounterUsd + usdAmount;
+                            weekCounterUsd = weekCounterUsd + usdAmount;
+                            monthCounterUsd = monthCounterUsd + usdAmount;
+
+                            //DEALS TABLE
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                        //1 DEALS ARRAY per iteration
+                    }
+                    //1 OFFER per iteration
+                }
+            }
+
+            if (dayOffersPrimary.length > 0) {
+                for (let p = 0; p < dayOffersPrimary.length; p++) {
+                    if (dayOffersPrimary[p].deals.length > 0) {
+                        let deals = dayOffersPrimary[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounterPrimary = dayCounterPrimary + amount;
+                            weekCounterPrimary = weekCounterPrimary + amount;
+                            monthCounterPrimary = monthCounterPrimary + amount;
+
+                            let usdAmount = 0;
+
+                            if (
+                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
+                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                                (deals[q].offer.buyToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = buyAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    buyAmount, 
+                                    deals[q].offer.buyToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+
+                            dayCounterPrimaryUsd = dayCounterPrimaryUsd + usdAmount;
+                            weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
+                            monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersPrimaryRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                        //1 DEALS ARRAY per iteration
+                    }
+                    //1 OFFER per iteration
+                }
+            }
+
+            if (dayRequests.length > 0) {
+                for (let p = 0; p < dayRequests.length; p++) {
+                    if (dayRequests[p].deals.length > 0) {
+                        let deals = dayRequests[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+
+                            let usdAmount = 0;
+
+                            if (
+                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
+                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                                (deals[q].offer.sellToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = sellAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    sellAmount, 
+                                    deals[q].offer.sellToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+
+                            dayCounterUsd = dayCounterUsd + usdAmount;
+                            weekCounterUsd = weekCounterUsd + usdAmount;
+                            monthCounterUsd = monthCounterUsd + usdAmount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                        //1 DEALS ARRAY per iteration
+                    }
+                    //1 OFFER per iteration
+                }
+            }
+
+            if (dayRequestsPrimary.length > 0) {
+                for (let p = 0; p < dayRequestsPrimary.length; p++) {
+                    if (dayRequestsPrimary[p].deals.length > 0) {
+                        let deals = dayRequestsPrimary[p].deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounterPrimary = dayCounterPrimary + amount;
+                            weekCounterPrimary = weekCounterPrimary + amount;
+                            monthCounterPrimary = monthCounterPrimary + amount;
+
+                            let usdAmount = 0;
+
+                            if (
+                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
+                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                                (deals[q].offer.sellToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = sellAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    sellAmount, 
+                                    deals[q].offer.sellToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+
+                            dayCounterUsd = dayCounterUsd + usdAmount;
+                            weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
+                            monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
+
+                            let array = [];
+
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsPrimaryRows.push(array);
+                        }
+                    }
+                }
+            }
+
+            if (day == 7 * week) {
+                //1 WEEK per iteration
+
+                //SECONDARY
+                weekRow.push(week);
+                weekRow.push(weekCounter);
+                weekRow.push(weekCounterUsd);
+                if (weekCounter == 0) weekCounter = 1;
+                weekRow.push(weekCounterUsd / weekCounter);
+                weekRows.push(weekRow);
+
+                weekCounter = 0;
+                weekCounterUsd = 0;
+
+                //PRIMARY
+                weekRowPrimary.push(week);
+                weekRowPrimary.push(weekCounterPrimary);
+                weekRowPrimary.push(weekCounterPrimaryUsd);
+                if (weekCounterPrimary == 0) weekCounterPrimary = 1;
+                weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
+                weekRowsPrimary.push(weekRowPrimary);
+
+                weekCounterPrimary = 0;
+                weekCounterPrimaryUsd = 0;
+
+                week++;
+                //1 WEEK per iteration
+            }
+
+            //secondary
+            dayRow.push(day);
+            dayRow.push(dayCounter);
+            dayRow.push(dayCounterUsd);
+            if (dayCounter == 0) dayCounter = 1;
+            dayRow.push(dayCounterUsd / dayCounter);
+            dayRows.push(dayRow);
+
+            dayCounter = 0;
+            dayCounterUsd = 0;
+
+            //primary
+            dayRowPrimary.push(day);
+            dayRowPrimary.push(dayCounterPrimary);
+            dayRowPrimary.push(dayCounterPrimaryUsd);
+            if (dayCounterPrimary == 0) dayCounterPrimary = 1;
+            dayRowPrimary.push(dayCounterPrimaryUsd / dayCounterPrimary);
+            dayRowsPrimary.push(dayRowPrimary);
+
+            dayCounterPrimary = 0;
+            dayCounterPrimaryUsd = 0;
+            
+            day++;
+            _timeLow = _timeHigh;
+            _timeHigh = _timeLow + ONE_UTC_DAY;
+            //1 DAY per iteration
+        }
+
+        //5th week...days (29-31)
+        //secondary
+        let weekRow = [];
+        let monthRow = [];
+
+        weekRow.push(week);
+        weekRow.push(weekCounter);
+        weekRow.push(weekCounterUsd);
+        if (weekCounter == 0) weekCounter = 1;
+        weekRow.push(weekCounterUsd / weekCounter);
+        weekRows.push(weekRow);
+
+        //primary
+        let weekRowPrimary = [];
+        let monthRowPrimary = []; 
+
+        weekRowPrimary.push(week);
+        weekRowPrimary.push(weekCounterPrimary);
+        weekRowPrimary.push(weekCounterPrimaryUsd);
+        if (weekCounterPrimary == 0) weekCounterPrimary = 1;
+        weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
+        weekRowsPrimary.push(weekRowPrimary);
+
+        //MONTH
+        //secondary
+        monthRow.push(month);
+        monthRow.push(monthCounter);
+        monthRow.push(monthCounterUsd);
+        if (monthCounter == 0) monthCounter = 1;
+        monthRow.push(monthCounterUsd / monthCounter);
+        monthRows.push(monthRow);
+
+        //primary
+        monthRowPrimary.push(month);
+        monthRowPrimary.push(monthCounterPrimary);
+        monthRowPrimary.push(monthCounterPrimaryUsd);
+        if (monthCounterPrimary == 0) monthCounterPrimary = 1;
+        monthRowPrimary.push(monthCounterPrimaryUsd / monthCounterPrimary);
+        monthRowsPrimary.push(monthRowPrimary);
+
+        //ADD TABLES
+        let tableDay = 'TablaDay' + token.symbol;
+        let tableWeek = 'TablaWeek' + token.symbol;
+        let tableMonth = 'TablaMonth' + token.symbol;
+        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+
+        addTable(
+            sheet,
+            tableDay,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRows
+        );
+
+        addTable(
+            sheet,
+            tableWeek,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRows
+        );
+
+        addTable(
+            sheet,
+            tableMonth,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRows
+        );
+
+        addTable(
+            sheet2,
+            tableDayPrimary,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRowsPrimary
+        );
+
+        addTable(
+            sheet2,
+            tableWeekPrimary,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRowsPrimary
+        );
+
+        addTable(
+            sheet2,
+            tableMonthPrimary,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRowsPrimary
+        );
+
+        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet.getCell('B36').font = {bold: true};
+        let tableName = 'Tabla' + token.symbol;
+
+        if (offersRows.length == 0) {
+            offersRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersRows
+        );
+
+        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+        sheet.getCell('K36').font = {bold: true};
+        let tableName2 = 'Tabla2' + token.symbol;
+
+        if (requestsRows.length == 0) {
+            requestsRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName2,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsRows
+        );
+
+        sheet2.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet2.getCell('B36').font = {bold: true};
+        let tableName3 = 'TablaPrimario' + token.symbol;
+
+        if (offersPrimaryRows.length == 0) {
+            offersPrimaryRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet2,
+            tableName3,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersPrimaryRows
+        );
+
+        sheet2.getCell('K36').value = token.symbol + ' DEMANDADO';
+        sheet2.getCell('K36').font = {bold: true};
+        let tableName4 = 'TablaPrimario2' + token.symbol;
+
+        if (requestsPrimaryRows.length == 0) {
+            requestsPrimaryRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet2,
+            tableName4,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsPrimaryRows
+        );
+
+        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+        sheet.getCell('C1').font = {bold: true};
+        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
+        sheet2.getCell('C1').font = {bold: true};
+
+        sheet.getCell('B2').value = 'TOTAL (diario)';
+        sheet.getCell('B2').font = {bold: true};
+        sheet2.getCell('B2').value = 'TOTAL (diario)';
+        sheet2.getCell('B2').font = {bold: true};
+        
+        sheet.getCell('G2').value = 'TOTAL (semanal)';
+        sheet.getCell('G2').font = {bold: true};
+        sheet2.getCell('G2').value = 'TOTAL (semanal)';
+        sheet2.getCell('G2').font = {bold: true};
+
+        sheet.getCell('L2').value = 'TOTAL (mensual)';
+        sheet.getCell('L2').font = {bold: true};
+        sheet2.getCell('L2').value = 'TOTAL (mensual)';
+        sheet2.getCell('L2').font = {bold: true};
+    }
+
+    async setPackableDealsSheetV2(
+        sheet: any,
+        timeLow: number,
+        timeHigh: number,
+        token: any
+    ) {
+        //define vars
+        let day = 1;
+        let week = 1;
+        let month = 1;
+        let dayCounter = 0;
+        let weekCounter = 0;
+        let monthCounter = 0;
+        let dayCounterUsd = 0;
+        let weekCounterUsd = 0;
+        let monthCounterUsd = 0;
+        let _timeLow = timeLow;
+        let _timeHigh = _timeLow + ONE_UTC_DAY;
+        let dayRows = [];
+        let weekRows = [];
+        let monthRows = [];
+        let offersRows = [];
+        let requestsRows = [];
+
+        let dayOffers = await try_getPackableOffers(timeLow, timeHigh, token.address, this.url);
+        let dayRequests = await try_getPackableRequests(timeLow, timeHigh, token.address, this.url);
+
+        let nextOffer: any;
+        let nextTimestamp: number;
+        let nextIsOffer: boolean;
+
+        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+            if (nextOfferTimestamp < nextRequestTimestamp) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            }
+        } else {
+            nextTimestamp = 0;
+        }
+
+        while (_timeHigh <= timeHigh) {
+
+            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+                //compute offer
+                if (nextOffer.deals.length > 0) {
+                    if (nextIsOffer) {
+                        //COMPUTE OFFER
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            //1 DEAL per iteration
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+    
+                            let usdAmount = 0;
+    
+                            if (
+                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
+                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                                (deals[q].offer.buyToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = buyAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    buyAmount, 
+                                    deals[q].offer.buyToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+    
+                            dayCounterUsd = dayCounterUsd + usdAmount;
+                            weekCounterUsd = weekCounterUsd + usdAmount;
+                            monthCounterUsd = monthCounterUsd + usdAmount;
+    
+                            //DEALS TABLE
+                            let array = [];
+    
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    } else {
+                        //COMPUTE REQUEST
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+    
+                            let usdAmount = 0;
+    
+                            if (
+                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
+                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                                (deals[q].offer.sellToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = sellAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    sellAmount, 
+                                    deals[q].offer.sellToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+    
+                            dayCounterUsd = dayCounterUsd + usdAmount;
+                            weekCounterUsd = weekCounterUsd + usdAmount;
+                            monthCounterUsd = monthCounterUsd + usdAmount;
+    
+                            let array = [];
+    
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    }
+                }
+
+                //pop new offer
+                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+        
+                    if (nextOfferTimestamp < nextRequestTimestamp) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    } else {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                } else {
+                    nextTimestamp = 0;
+                }
+            }
+
+            //compute day
+            let dayRow = [];
+
+            //secondary
+            dayRow.push(day);
+            dayRow.push(dayCounter);
+            dayRow.push(dayCounterUsd);
+            if (dayCounter == 0) dayCounter = 1;
+            dayRow.push(dayCounterUsd / dayCounter);
+            dayRows.push(dayRow);
+
+            dayCounter = 0;
+            dayCounterUsd = 0;
+
+            day++;
+            _timeLow = _timeHigh;
+            _timeHigh = _timeLow + ONE_UTC_DAY;
+
+            //compute week
+            if (day == 7 * week) {
+                //WEEK
+                let weekRow = [];
+                //secondary
+                weekRow.push(week);
+                weekRow.push(weekCounter);
+                weekRow.push(weekCounterUsd);
+                if (weekCounter == 0) weekCounter = 1;
+                weekRow.push(weekCounterUsd / weekCounter);
+                weekRows.push(weekRow);
+
+                weekCounter = 0;
+                weekCounterUsd = 0;
+                week++;
+            }
+        }
+
+        //5th week...days (29-31)
+        //secondary
+        let weekRow = [];
+        weekRow.push(week);
+        weekRow.push(weekCounter);
+        weekRow.push(weekCounterUsd);
+        if (weekCounter == 0) weekCounter = 1;
+        weekRow.push(weekCounterUsd / weekCounter);
+        weekRows.push(weekRow);
+
+        //MONTH
+        //secondary
+        let monthRow = [];
+        monthRow.push(month);
+        monthRow.push(monthCounter);
+        monthRow.push(monthCounterUsd);
+        if (monthCounter == 0) monthCounter = 1;
+        monthRow.push(monthCounterUsd / monthCounter);
+        monthRows.push(monthRow);
+
+        //ADD TABLES
+        let tableDay = 'TablaDay' + token.symbol;
+        let tableWeek = 'TablaWeek' + token.symbol;
+        let tableMonth = 'TablaMonth' + token.symbol;
+
+        addTable(
+            sheet,
+            tableDay,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRows
+        );
+
+        addTable(
+            sheet,
+            tableWeek,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRows
+        );
+
+        addTable(
+            sheet,
+            tableMonth,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRows
+        );
+
+        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet.getCell('B36').font = {bold: true};
+        let tableName = 'Tabla' + token.symbol;
+
+        if (offersRows.length == 0) {
+            offersRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersRows
+        );
+
+        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+        sheet.getCell('K36').font = {bold: true};
+        let tableName2 = 'Tabla2' + token.symbol;
+
+        if (requestsRows.length == 0) {
+            requestsRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName2,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsRows
+        );
+
+        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+        sheet.getCell('C1').font = {bold: true};
+
+        sheet.getCell('B2').value = 'TOTAL (diario)';
+        sheet.getCell('B2').font = {bold: true};
+        
+        sheet.getCell('G2').value = 'TOTAL (semanal)';
+        sheet.getCell('G2').font = {bold: true};
+
+        sheet.getCell('L2').value = 'TOTAL (mensual)';
+        sheet.getCell('L2').font = {bold: true};
+    }
+
+    async setPrimaryPackableDealsSheetV2(
+        sheet: any,
+        timeLow: number,
+        timeHigh: number,
+        token: any
+    ) {
+        //define vars
+        let day = 1;
+        let week = 1;
+        let month = 1;
+        let dayCounter = 0;
+        let weekCounter = 0;
+        let monthCounter = 0;
+        let dayCounterUsd = 0;
+        let weekCounterUsd = 0;
+        let monthCounterUsd = 0;
+        let _timeLow = timeLow;
+        let _timeHigh = _timeLow + ONE_UTC_DAY;
+        let dayRows = [];
+        let weekRows = [];
+        let monthRows = [];
+        let offersRows = [];
+        let requestsRows = [];
+
+        let dayOffers = await try_getPackableOffersPrimary(timeLow, timeHigh, token.address, this.url);
+        let dayRequests = await try_getPackableRequestsPrimary(timeLow, timeHigh, token.address, this.url);
+
+        let nextOffer: any;
+        let nextTimestamp: number;
+        let nextIsOffer: boolean;
+
+        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+            if (nextOfferTimestamp < nextRequestTimestamp) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            }
+        } else {
+            nextTimestamp = 0;
+        }
+
+        while (_timeHigh <= timeHigh) {
+
+            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+                //compute offer
+                if (nextOffer.deals.length > 0) {
+                    if (nextIsOffer) {
+                        //COMPUTE OFFER
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            //1 DEAL per iteration
+                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+    
+                            let usdAmount = 0;
+    
+                            if (
+                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
+                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                                (deals[q].offer.buyToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = buyAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    buyAmount, 
+                                    deals[q].offer.buyToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+    
+                            dayCounterUsd = dayCounterUsd + usdAmount;
+                            weekCounterUsd = weekCounterUsd + usdAmount;
+                            monthCounterUsd = monthCounterUsd + usdAmount;
+    
+                            //DEALS TABLE
+                            let array = [];
+    
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.buyToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            offersRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    } else {
+                        //COMPUTE REQUEST
+                        let deals = nextOffer.deals;
+                        for (let q = 0; q < deals.length; q++) {
+                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+    
+                            let usdAmount = 0;
+    
+                            if (
+                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
+                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                                (deals[q].offer.sellToken.id == Constants.PEL.address)
+                            ) {
+                                usdAmount = sellAmount;
+                            } else {
+                                usdAmount = await convertToUsd(
+                                    sellAmount, 
+                                    deals[q].offer.sellToken.id,
+                                    deals[q].timestamp
+                                );
+                            }
+    
+                            dayCounterUsd = dayCounterUsd + usdAmount;
+                            weekCounterUsd = weekCounterUsd + usdAmount;
+                            monthCounterUsd = monthCounterUsd + usdAmount;
+    
+                            let array = [];
+    
+                            array.push(new Date(deals[q].timestamp * 1000));
+                            array.push(timeConverter(deals[q].offer.timestamp));
+                            array.push(timeConverter(deals[q].timestamp));
+                            array.push(deals[q].offer.sellToken.tokenSymbol);
+    
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
+    
+                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                            requestsRows.push(array);
+                            //1 DEAL per iteration
+                        }
+                    }
+                }
+
+                //pop new offer
+                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+        
+                    if (nextOfferTimestamp < nextRequestTimestamp) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    } else {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                } else {
+                    nextTimestamp = 0;
+                }
+            }
+
+            //compute day
+            let dayRow = [];
+
+            //secondary
+            dayRow.push(day);
+            dayRow.push(dayCounter);
+            dayRow.push(dayCounterUsd);
+            if (dayCounter == 0) dayCounter = 1;
+            dayRow.push(dayCounterUsd / dayCounter);
+            dayRows.push(dayRow);
+
+            dayCounter = 0;
+            dayCounterUsd = 0;
+
+            day++;
+            _timeLow = _timeHigh;
+            _timeHigh = _timeLow + ONE_UTC_DAY;
+
+            //compute week
+            if (day == 7 * week) {
+                //WEEK
+                let weekRow = [];
+                //secondary
+                weekRow.push(week);
+                weekRow.push(weekCounter);
+                weekRow.push(weekCounterUsd);
+                if (weekCounter == 0) weekCounter = 1;
+                weekRow.push(weekCounterUsd / weekCounter);
+                weekRows.push(weekRow);
+
+                weekCounter = 0;
+                weekCounterUsd = 0;
+                week++;
+            }
+        }
+
+        //5th week...days (29-31)
+        //secondary
+        let weekRow = [];
+        weekRow.push(week);
+        weekRow.push(weekCounter);
+        weekRow.push(weekCounterUsd);
+        if (weekCounter == 0) weekCounter = 1;
+        weekRow.push(weekCounterUsd / weekCounter);
+        weekRows.push(weekRow);
+
+        //MONTH
+        //secondary
+        let monthRow = [];
+        monthRow.push(month);
+        monthRow.push(monthCounter);
+        monthRow.push(monthCounterUsd);
+        if (monthCounter == 0) monthCounter = 1;
+        monthRow.push(monthCounterUsd / monthCounter);
+        monthRows.push(monthRow);
+
+        //ADD TABLES
+        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+
+        addTable(
+            sheet,
+            tableDayPrimary,
+            'B3',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRows
+        );
+
+        addTable(
+            sheet,
+            tableWeekPrimary,
+            'G3',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRows
+        );
+
+        addTable(
+            sheet,
+            tableMonthPrimary,
+            'L3',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRows
+        );
+
+        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+        sheet.getCell('B36').font = {bold: true};
+        let tableName3 = 'TablaPrimario' + token.symbol;
+
+        if (offersRows.length == 0) {
+            offersRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName3,
+            'B37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            offersRows
+        );
+
+        sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
+        sheet.getCell('K36').font = {bold: true};
+        let tableName4 = 'TablaPrimario2' + token.symbol;
+
+        if (requestsRows.length == 0) {
+            requestsRows = getEmtpyDeal();
+        }
+
+        addTable(
+            sheet,
+            tableName4,
+            'K37',
+            [
+                {name: 'Fecha (pacto)', filterButton: true},
+                {name: 'Hora (oferta)'},
+                {name: 'Hora (pacto)'},
+                {name: 'Contrapartida', filterButton: true},
+                {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+            ],
+            requestsRows
+        );
+
+        sheet.getCell('C1').value = 'Mercado P2P (Primario)';
+        sheet.getCell('C1').font = {bold: true};
+
+        sheet.getCell('B2').value = 'TOTAL (diario)';
+        sheet.getCell('B2').font = {bold: true};
+        
+        sheet.getCell('G2').value = 'TOTAL (semanal)';
+        sheet.getCell('G2').font = {bold: true};
+
+        sheet.getCell('L2').value = 'TOTAL (mensual)';
+        sheet.getCell('L2').font = {bold: true};
     }
 
     async getPackableDealsReportV2(
@@ -3045,6 +5737,31 @@ async function getTransactions(
     return transactions;
 }
 
+async function try_getOffers(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getOffers(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getOffers(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+}
+
 async function getOffers(
     _timeLow: number, 
     _timeHigh: number, 
@@ -3052,7 +5769,7 @@ async function getOffers(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3061,7 +5778,7 @@ async function getOffers(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -3069,6 +5786,31 @@ async function getOffers(
     }
 
     return offers;
+}
+
+async function try_getRequests(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getRequests(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getRequests(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 async function getRequests(
@@ -3078,7 +5820,7 @@ async function getRequests(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3087,7 +5829,7 @@ async function getRequests(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -3095,6 +5837,31 @@ async function getRequests(
     }
 
     return offers;
+}
+
+async function try_getOffersPrimary(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getOffersPrimary(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 async function getOffersPrimary(
@@ -3104,7 +5871,7 @@ async function getOffersPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3113,7 +5880,7 @@ async function getOffersPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -3121,6 +5888,31 @@ async function getOffersPrimary(
     }
 
     return offers;
+}
+
+async function try_getRequestsPrimary(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getRequestsPrimary(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 async function getRequestsPrimary(
@@ -3130,7 +5922,7 @@ async function getRequestsPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3139,7 +5931,7 @@ async function getRequestsPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offers (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offers;
@@ -3149,6 +5941,31 @@ async function getRequestsPrimary(
     return offers;
 }
 
+async function try_getCollectableOffers(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getCollectableOffers(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+}
+
 async function getCollectableOffers(
     _timeLow: number, 
     _timeHigh: number, 
@@ -3156,7 +5973,7 @@ async function getCollectableOffers(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3165,7 +5982,7 @@ async function getCollectableOffers(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -3173,6 +5990,31 @@ async function getCollectableOffers(
     }
 
     return offers;
+}
+
+async function try_getCollectableOffersPrimary(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getCollectableOffersPrimary(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 async function getCollectableOffersPrimary(
@@ -3182,7 +6024,7 @@ async function getCollectableOffersPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+    let query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3191,7 +6033,7 @@ async function getCollectableOffersPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
+        query = '{ offerCommodities (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp sellId { tokenId metadata reference} } seller { id name } buyer { id name } buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -3199,6 +6041,31 @@ async function getCollectableOffersPrimary(
     }
 
     return offers;
+}
+
+async function try_getPackableOffers(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getPackableOffers(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getPackableOffers(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 async function getPackableOffers(
@@ -3208,7 +6075,7 @@ async function getPackableOffers(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3217,7 +6084,7 @@ async function getPackableOffers(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -3225,6 +6092,31 @@ async function getPackableOffers(
     }
 
     return offers;
+}
+
+async function try_getPackableRequests(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getPackableRequests(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getPackableRequests(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 async function getPackableRequests(
@@ -3234,7 +6126,7 @@ async function getPackableRequests(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3243,7 +6135,7 @@ async function getPackableRequests(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -3251,6 +6143,31 @@ async function getPackableRequests(
     }
 
     return offers;
+}
+
+async function try_getPackableOffersPrimary(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getPackableOffersPrimary(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 async function getPackableOffersPrimary(
@@ -3260,7 +6177,7 @@ async function getPackableOffersPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3269,7 +6186,7 @@ async function getPackableOffersPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {sellToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
@@ -3279,6 +6196,31 @@ async function getPackableOffersPrimary(
     return offers;
 }
 
+async function try_getPackableRequestsPrimary(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let offers: any;
+    try {
+        offers = await getPackableRequestsPrimary(_timeLow, _timeHigh, token, url);
+        return offers;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            offers = await try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return offers;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+}
+
 async function getPackableRequestsPrimary(
     _timeLow: number, 
     _timeHigh: number, 
@@ -3286,7 +6228,7 @@ async function getPackableRequestsPrimary(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+    let query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
     let queryService = new Query('p2p-primary', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3295,7 +6237,7 @@ async function getPackableRequestsPrimary(
 
     while(queryOffers.length >= 1000) {
         skip = offers.length;
-        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
+        query = '{ offerPackables (where: {buyToken: "' + _tokensAddress + '", timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh +'}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp deals(where:{isSuccess:true}) { offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryOffers = response.offerPackables;
