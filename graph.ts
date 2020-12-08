@@ -688,7 +688,7 @@ export class QueryTemplates {
         first: number,
         skip: number
     ) {
-        let customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder timestamp isCancel auction { auctionToken { id tokenSymbol } bidToken { id tokenSymbol } maxBid maxBidder { name id } endTime isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
+        let customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder timestamp isCancel auctionToken { id tokenSymbol } bidToken { id tokenSymbol } auction { auctionToken { id tokenSymbol } bidToken { id tokenSymbol } maxBid maxBidder { name id } bids (orderBy:bid, orderDirection:desc) { bid bidder { id name } timestamp } endTime isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
         let query = new Query("auction", this.network);
         query.setCustomQuery(customQuery);
 
