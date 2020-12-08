@@ -18,6 +18,298 @@ export class Report {
         this.url = url;
     }
 
+    async getTransactionReportV3(
+        monthIndex: number,
+        year: number,
+        tokensArray: any[]
+    ) {
+        const workbook = new ExcelJS.Workbook();
+
+        let toYear = year;
+        let toMonthIndex = monthIndex + 1;
+
+        if (monthIndex == 12) {
+            toYear = year + 1;
+            toMonthIndex = 1;
+        }
+
+        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+
+        let promises: any = [];
+
+        for (let i = 0; i < tokensArray.length; i++) {
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol);
+
+            promises.push(this.setTransactionSheet(
+                sheet, 
+                timeLow, 
+                timeHigh, 
+                monthIndex,
+                year,
+                toMonthIndex,
+                toYear,
+                tokensArray[i]
+            ));
+        }
+
+        await Promise.all(promises);
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsTransactionsReportV3.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReportV3.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
+    async setTransactionSheet(
+        sheet: any,
+        timeLow: number,
+        timeHigh: number,
+        monthIndex: number,
+        year: number,
+        toMonthIndex: number,
+        toYear: number,
+        token: any
+    ) {
+        //define vars
+        let day = 1;
+        let week = 1;
+        let month = 1;
+        let dayCounter = 0;
+        let weekCounter = 0;
+        let weekRates = 0;
+        let monthCounter = 0;
+        let monthRates = 0;
+        let weekZeros = 0;
+        let monthZeros = 0;
+        let _timeLow = timeLow;
+        let _timeHigh = _timeLow + ONE_UTC_DAY;
+        let dayRows = [];
+        let weekRows = [];
+        let monthRows = [];
+        let txRows = [];
+
+        //rates: array[31] with USD price (padded with 0s)
+        let rates = await getDayRate(
+            year, 
+            monthIndex, 
+            toYear, 
+            toMonthIndex, 
+            token.address,
+            token.category
+        );
+
+        while(_timeHigh <= timeHigh) {
+            //1 DAY per iteration
+
+            //define vars
+            let dayRow = [];
+            let weekRow = [];
+
+            //day transactions
+            let transactions = await try_getTransactions(_timeLow, _timeHigh, token.address, this.url);
+
+            if (transactions.length > 0) {
+                for (let j = 0; j < transactions.length; j++) {
+                    //1 TX per iteration
+                    let txDayRow = [];
+                    let amount = parseFloat(weiToEther(transactions[j].amount));
+                    dayCounter = dayCounter + amount;
+                    weekCounter = weekCounter + amount;
+                    monthCounter = monthCounter + amount;
+                
+                    //TXs Table
+                    txDayRow.push(new Date(transactions[j].timestamp * 1000));
+                    txDayRow.push(transactions[j].currency.tokenSymbol);
+                    txDayRow.push(transactions[j].from.id);
+
+                    if (transactions[j].from.name == null) {
+                        txDayRow.push("");
+                    } else {
+                        txDayRow.push(transactions[j].from.name.id);
+                    }
+
+                    txDayRow.push(transactions[j].to.id);
+
+                    if (transactions[j].to.name == null) {
+                        txDayRow.push("");
+                    } else {
+                        txDayRow.push(transactions[j].to.name.id);
+                    }
+
+                    txDayRow.push(parseFloat(weiToEther(transactions[j].amount)));
+                    txRows.push(txDayRow);
+                }
+            }
+
+            //update week and month rate counters
+            weekRates = weekRates + rates[day - 1];
+            monthRates = monthRates + rates[day - 1];
+            if (rates[day - 1] == 0) {
+                weekZeros++;
+                monthZeros++;
+            }
+
+            if (day == 7 * week) {
+                //1 WEEK per iteration
+
+                //calc this week rate
+                if ((7 - weekZeros) == 0){
+                    weekRates = 0;
+                } else {
+                    weekRates = weekRates / (7 - weekZeros);
+                }
+
+                //update week arrays
+                weekRow.push(week);
+                weekRow.push(weekCounter);
+                weekRow.push(weekCounter * weekRates);
+                weekRow.push(weekRates);
+                weekRows.push(weekRow);
+
+                //reset and update counters
+                week++;
+                weekCounter = 0;
+                weekRates = 0;
+                weekZeros = 0;
+            }
+
+            //update day arrays
+            dayRow.push(day);
+            dayRow.push(dayCounter);
+            dayRow.push(dayCounter * rates[day - 1]);
+            dayRow.push(rates[day - 1]);
+            dayRows.push(dayRow);
+
+            //update and reset day counters
+            day++;
+            dayCounter = 0;
+            _timeLow = _timeHigh;
+            _timeHigh = _timeLow + ONE_UTC_DAY;
+        }
+
+        //5th WEEK (days 29-31)
+        let weekRow = [];
+        
+        //calc 5th week rate
+        if ((day - 29 - weekZeros) == 0){
+            weekRates = 0;
+        } else {
+            weekRates = weekRates / (day - 29 - weekZeros);
+        }
+
+        //update week arrays
+        weekRow.push(week);
+        weekRow.push(weekCounter);
+        weekRow.push(weekCounter * weekRates);
+        weekRow.push(weekRates);
+        weekRows.push(weekRow);
+
+        //1 MONTH per iteration
+        let monthRow = [];
+
+        //calc month rate
+        if ((day - 1 - monthZeros) == 0){
+            monthRates = 0;
+        } else {
+            monthRates = monthRates / (day - 1 - monthZeros);
+        }
+
+        //update month arrays
+        monthRow.push(month);
+        monthRow.push(monthCounter);
+        monthRow.push(monthCounter * monthRates);
+        monthRow.push(monthRates);
+        monthRows.push(monthRow);
+
+        //ADD SHEET TABLES
+        let tableDay = 'TablaDay' + token.symbol;
+        let tableWeek = 'TablaWeek' + token.symbol;
+        let tableMonth = 'TablaMonth' + token.symbol;
+
+        addTable(
+            sheet,
+            tableDay,
+            'B2',
+            [
+                {name: 'Día', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            dayRows
+        );
+
+        addTable(
+            sheet,
+            tableWeek,
+            'G2',
+            [
+                {name: 'Semana', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            weekRows
+        );
+
+        addTable(
+            sheet,
+            tableMonth,
+            'L2',
+            [
+                {name: 'Mes', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'},
+                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+                {name: 'Tipo de cambio'}
+            ],
+            monthRows
+        );
+
+        //TXs TABLE
+        let tableName = 'Tabla' + token.symbol;
+
+        if (txRows.length == 0) {
+            txRows = getEmptyTransaction();
+        }
+
+        addTable(
+            sheet,
+            tableName,
+            'B36',
+            [
+                {name: 'Fecha', filterButton: true},
+                {name: 'Divisa'},
+                {name: 'Origen (wallet)'},
+                {name: 'Origen (usuario)', filterButton: true},
+                {name: 'Destino (wallet)'},
+                {name: 'Destino (usuario)', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'}
+            ],
+            txRows
+        );
+
+        //CELL LABELS
+        sheet.getCell('B35').value = 'TRANSFERENCIAS';
+        sheet.getCell('B35').font = {bold: true};
+        
+        sheet.getCell('B1').value = 'TOTAL (diario)';
+        sheet.getCell('B1').font = {bold: true};
+        
+        sheet.getCell('G1').value = 'TOTAL (semanal)';
+        sheet.getCell('G1').font = {bold: true};
+
+        sheet.getCell('L1').value = 'TOTAL (mensual)';
+        sheet.getCell('L1').font = {bold: true};
+    }
+
     async getTransactionReportV2(
         monthIndex: number,
         year: number,
@@ -2699,6 +2991,31 @@ export class Report {
         }
 
         return new HoldersReportData(token.address, token.symbol, holders, offers, expiry);
+    }
+}
+
+async function try_getTransactions(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    url: string,
+    retries: number = 0
+) {
+    let transactions: any;
+    try {
+        transactions = await getTransactions(_timeLow, _timeHigh, token, url);
+        return transactions;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            transactions = await try_getTransactions(_timeLow, _timeHigh, token, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return transactions;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
     }
 }
 
