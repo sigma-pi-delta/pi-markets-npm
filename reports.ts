@@ -18,7 +18,7 @@ export class Report {
         this.url = url;
     }
 
-    async getTransactionReportV3(
+    async getTransactionReportV2(
         monthIndex: number,
         year: number,
         tokensArray: any[]
@@ -41,7 +41,7 @@ export class Report {
         for (let i = 0; i < tokensArray.length; i++) {
             let sheet = workbook.addWorksheet(tokensArray[i].symbol);
 
-            promises.push(this.setTransactionSheet(
+            promises.push(setTransactionSheet(
                 sheet, 
                 timeLow, 
                 timeHigh, 
@@ -49,6 +49,7 @@ export class Report {
                 year,
                 toMonthIndex,
                 toYear,
+                this.url,
                 tokensArray[i]
             ));
         }
@@ -56,523 +57,12 @@ export class Report {
         await Promise.all(promises);
 
         try {
-            await workbook.xlsx.writeFile('PiMarketsTransactionsReportV3.xlsx');
+            await workbook.xlsx.writeFile('PiMarketsTransactionsReportV2.xlsx');
         } catch (error) {
             let buffer = await workbook.xlsx.writeBuffer();
             
             try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReportV3.xlsx');
-            } catch (err) {
-                console.error(err);
-            }
-        }
-    }
-
-    async setTransactionSheet(
-        sheet: any,
-        timeLow: number,
-        timeHigh: number,
-        monthIndex: number,
-        year: number,
-        toMonthIndex: number,
-        toYear: number,
-        token: any
-    ) {
-        //define vars
-        let day = 1;
-        let week = 1;
-        let month = 1;
-        let dayCounter = 0;
-        let weekCounter = 0;
-        let weekRates = 0;
-        let monthCounter = 0;
-        let monthRates = 0;
-        let weekZeros = 0;
-        let monthZeros = 0;
-        let _timeLow = timeLow;
-        let _timeHigh = _timeLow + ONE_UTC_DAY;
-        let dayRows = [];
-        let weekRows = [];
-        let monthRows = [];
-        let txRows = [];
-
-        //rates: array[31] with USD price (padded with 0s)
-        let rates = await getDayRate(
-            year, 
-            monthIndex, 
-            toYear, 
-            toMonthIndex, 
-            token.address,
-            token.category
-        );
-
-        while(_timeHigh <= timeHigh) {
-            //1 DAY per iteration
-
-            //define vars
-            let dayRow = [];
-            let weekRow = [];
-
-            //day transactions
-            let transactions = await try_getTransactions(_timeLow, _timeHigh, token.address, this.url);
-
-            if (transactions.length > 0) {
-                for (let j = 0; j < transactions.length; j++) {
-                    //1 TX per iteration
-                    let txDayRow = [];
-                    let amount = parseFloat(weiToEther(transactions[j].amount));
-                    dayCounter = dayCounter + amount;
-                    weekCounter = weekCounter + amount;
-                    monthCounter = monthCounter + amount;
-                
-                    //TXs Table
-                    txDayRow.push(new Date(transactions[j].timestamp * 1000));
-                    txDayRow.push(transactions[j].currency.tokenSymbol);
-                    txDayRow.push(transactions[j].from.id);
-
-                    if (transactions[j].from.name == null) {
-                        txDayRow.push("");
-                    } else {
-                        txDayRow.push(transactions[j].from.name.id);
-                    }
-
-                    txDayRow.push(transactions[j].to.id);
-
-                    if (transactions[j].to.name == null) {
-                        txDayRow.push("");
-                    } else {
-                        txDayRow.push(transactions[j].to.name.id);
-                    }
-
-                    txDayRow.push(parseFloat(weiToEther(transactions[j].amount)));
-                    txRows.push(txDayRow);
-                }
-            }
-
-            //update week and month rate counters
-            weekRates = weekRates + rates[day - 1];
-            monthRates = monthRates + rates[day - 1];
-            if (rates[day - 1] == 0) {
-                weekZeros++;
-                monthZeros++;
-            }
-
-            if (day == 7 * week) {
-                //1 WEEK per iteration
-
-                //calc this week rate
-                if ((7 - weekZeros) == 0){
-                    weekRates = 0;
-                } else {
-                    weekRates = weekRates / (7 - weekZeros);
-                }
-
-                //update week arrays
-                weekRow.push(week);
-                weekRow.push(weekCounter);
-                weekRow.push(weekCounter * weekRates);
-                weekRow.push(weekRates);
-                weekRows.push(weekRow);
-
-                //reset and update counters
-                week++;
-                weekCounter = 0;
-                weekRates = 0;
-                weekZeros = 0;
-            }
-
-            //update day arrays
-            dayRow.push(day);
-            dayRow.push(dayCounter);
-            dayRow.push(dayCounter * rates[day - 1]);
-            dayRow.push(rates[day - 1]);
-            dayRows.push(dayRow);
-
-            //update and reset day counters
-            day++;
-            dayCounter = 0;
-            _timeLow = _timeHigh;
-            _timeHigh = _timeLow + ONE_UTC_DAY;
-        }
-
-        //5th WEEK (days 29-31)
-        let weekRow = [];
-        
-        //calc 5th week rate
-        if ((day - 29 - weekZeros) == 0){
-            weekRates = 0;
-        } else {
-            weekRates = weekRates / (day - 29 - weekZeros);
-        }
-
-        //update week arrays
-        weekRow.push(week);
-        weekRow.push(weekCounter);
-        weekRow.push(weekCounter * weekRates);
-        weekRow.push(weekRates);
-        weekRows.push(weekRow);
-
-        //1 MONTH per iteration
-        let monthRow = [];
-
-        //calc month rate
-        if ((day - 1 - monthZeros) == 0){
-            monthRates = 0;
-        } else {
-            monthRates = monthRates / (day - 1 - monthZeros);
-        }
-
-        //update month arrays
-        monthRow.push(month);
-        monthRow.push(monthCounter);
-        monthRow.push(monthCounter * monthRates);
-        monthRow.push(monthRates);
-        monthRows.push(monthRow);
-
-        //ADD SHEET TABLES
-        let tableDay = 'TablaDay' + token.symbol;
-        let tableWeek = 'TablaWeek' + token.symbol;
-        let tableMonth = 'TablaMonth' + token.symbol;
-
-        addTable(
-            sheet,
-            tableDay,
-            'B2',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRows
-        );
-
-        addTable(
-            sheet,
-            tableWeek,
-            'G2',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRows
-        );
-
-        addTable(
-            sheet,
-            tableMonth,
-            'L2',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRows
-        );
-
-        //TXs TABLE
-        let tableName = 'Tabla' + token.symbol;
-
-        if (txRows.length == 0) {
-            txRows = getEmptyTransaction();
-        }
-
-        addTable(
-            sheet,
-            tableName,
-            'B36',
-            [
-                {name: 'Fecha', filterButton: true},
-                {name: 'Divisa'},
-                {name: 'Origen (wallet)'},
-                {name: 'Origen (usuario)', filterButton: true},
-                {name: 'Destino (wallet)'},
-                {name: 'Destino (usuario)', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'}
-            ],
-            txRows
-        );
-
-        //CELL LABELS
-        sheet.getCell('B35').value = 'TRANSFERENCIAS';
-        sheet.getCell('B35').font = {bold: true};
-        
-        sheet.getCell('B1').value = 'TOTAL (diario)';
-        sheet.getCell('B1').font = {bold: true};
-        
-        sheet.getCell('G1').value = 'TOTAL (semanal)';
-        sheet.getCell('G1').font = {bold: true};
-
-        sheet.getCell('L1').value = 'TOTAL (mensual)';
-        sheet.getCell('L1').font = {bold: true};
-    }
-
-    async getTransactionReportV2(
-        monthIndex: number,
-        year: number,
-        tokensArray: any[]
-    ) {
-        const workbook = new ExcelJS.Workbook();
-
-        let toYear = year;
-        let toMonthIndex = monthIndex + 1;
-
-        if (monthIndex == 12) {
-            toYear = year + 1;
-            toMonthIndex = 1;
-        }
-
-        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
-
-        for (let i = 0; i < tokensArray.length; i++) {
-            //1 TOKEN per iteration
-
-            //define vars
-            let day = 1;
-            let week = 1;
-            let month = 1;
-            let dayCounter = 0;
-            let weekCounter = 0;
-            let weekRates = 0;
-            let monthCounter = 0;
-            let monthRates = 0;
-            let weekZeros = 0;
-            let monthZeros = 0;
-            let _timeLow = timeLow;
-            let _timeHigh = _timeLow + ONE_UTC_DAY;
-            let dayRows = [];
-            let weekRows = [];
-            let monthRows = [];
-            let txRows = [];
-
-            //1 sheet per token
-            let sheet = workbook.addWorksheet(tokensArray[i].symbol);
-
-            //rates: array[31] with USD price (padded with 0s)
-            let rates = await getDayRate(
-                year, 
-                monthIndex, 
-                toYear, 
-                toMonthIndex, 
-                tokensArray[i].address,
-                tokensArray[i].category
-            );
-
-            while(_timeHigh <= timeHigh) {
-                //1 DAY per iteration
-
-                //define vars
-                let dayRow = [];
-                let weekRow = [];
-
-                //day transactions
-                let transactions = await getTransactions(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-
-                if (transactions.length > 0) {
-                    for (let j = 0; j < transactions.length; j++) {
-                        //1 TX per iteration
-                        let txDayRow = [];
-                        let amount = parseFloat(weiToEther(transactions[j].amount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                    
-                        //TXs Table
-                        txDayRow.push(new Date(transactions[j].timestamp * 1000));
-                        txDayRow.push(transactions[j].currency.tokenSymbol);
-                        txDayRow.push(transactions[j].from.id);
-
-                        if (transactions[j].from.name == null) {
-                            txDayRow.push("");
-                        } else {
-                            txDayRow.push(transactions[j].from.name.id);
-                        }
-
-                        txDayRow.push(transactions[j].to.id);
-
-                        if (transactions[j].to.name == null) {
-                            txDayRow.push("");
-                        } else {
-                            txDayRow.push(transactions[j].to.name.id);
-                        }
-
-                        txDayRow.push(parseFloat(weiToEther(transactions[j].amount)));
-                        txRows.push(txDayRow);
-                    }
-                }
-
-                //update week and month rate counters
-                weekRates = weekRates + rates[day - 1];
-                monthRates = monthRates + rates[day - 1];
-                if (rates[day - 1] == 0) {
-                    weekZeros++;
-                    monthZeros++;
-                }
-
-                if (day == 7 * week) {
-                    //1 WEEK per iteration
-
-                    //calc this week rate
-                    if ((7 - weekZeros) == 0){
-                        weekRates = 0;
-                    } else {
-                        weekRates = weekRates / (7 - weekZeros);
-                    }
-
-                    //update week arrays
-                    weekRow.push(week);
-                    weekRow.push(weekCounter);
-                    weekRow.push(weekCounter * weekRates);
-                    weekRow.push(weekRates);
-                    weekRows.push(weekRow);
-
-                    //reset and update counters
-                    week++;
-                    weekCounter = 0;
-                    weekRates = 0;
-                    weekZeros = 0;
-                }
-
-                //update day arrays
-                dayRow.push(day);
-                dayRow.push(dayCounter);
-                dayRow.push(dayCounter * rates[day - 1]);
-                dayRow.push(rates[day - 1]);
-                dayRows.push(dayRow);
-
-                //update and reset day counters
-                day++;
-                dayCounter = 0;
-                _timeLow = _timeHigh;
-                _timeHigh = _timeLow + ONE_UTC_DAY;
-            }
-
-            //5th WEEK (days 29-31)
-            let weekRow = [];
-            
-            //calc 5th week rate
-            if ((day - 29 - weekZeros) == 0){
-                weekRates = 0;
-            } else {
-                weekRates = weekRates / (day - 29 - weekZeros);
-            }
-
-            //update week arrays
-            weekRow.push(week);
-            weekRow.push(weekCounter);
-            weekRow.push(weekCounter * weekRates);
-            weekRow.push(weekRates);
-            weekRows.push(weekRow);
-
-            //1 MONTH per iteration
-            let monthRow = [];
-
-            //calc month rate
-            if ((day - 1 - monthZeros) == 0){
-                monthRates = 0;
-            } else {
-                monthRates = monthRates / (day - 1 - monthZeros);
-            }
-
-            //update month arrays
-            monthRow.push(month);
-            monthRow.push(monthCounter);
-            monthRow.push(monthCounter * monthRates);
-            monthRow.push(monthRates);
-            monthRows.push(monthRow);
-
-            //ADD SHEET TABLES
-            let tableDay = 'TablaDay' + tokensArray[i].symbol;
-            let tableWeek = 'TablaWeek' + tokensArray[i].symbol;
-            let tableMonth = 'TablaMonth' + tokensArray[i].symbol;
-
-            addTable(
-                sheet,
-                tableDay,
-                'B2',
-                [
-                    {name: 'Día', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                dayRows
-            );
-
-            addTable(
-                sheet,
-                tableWeek,
-                'G2',
-                [
-                    {name: 'Semana', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                weekRows
-            );
-
-            addTable(
-                sheet,
-                tableMonth,
-                'L2',
-                [
-                    {name: 'Mes', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                monthRows
-            );
-
-            //TXs TABLE
-            let tableName = 'Tabla' + tokensArray[i].symbol;
-
-            if (txRows.length == 0) {
-                txRows = getEmptyTransaction();
-            }
-
-            addTable(
-                sheet,
-                tableName,
-                'B36',
-                [
-                    {name: 'Fecha', filterButton: true},
-                    {name: 'Divisa'},
-                    {name: 'Origen (wallet)'},
-                    {name: 'Origen (usuario)', filterButton: true},
-                    {name: 'Destino (wallet)'},
-                    {name: 'Destino (usuario)', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'}
-                ],
-                txRows
-            );
-
-            //CELL LABELS
-            sheet.getCell('B35').value = 'TRANSFERENCIAS';
-            sheet.getCell('B35').font = {bold: true};
-            
-            sheet.getCell('B1').value = 'TOTAL (diario)';
-            sheet.getCell('B1').font = {bold: true};
-            
-            sheet.getCell('G1').value = 'TOTAL (semanal)';
-            sheet.getCell('G1').font = {bold: true};
-
-            sheet.getCell('L1').value = 'TOTAL (mensual)';
-            sheet.getCell('L1').font = {bold: true};
-        }
-
-        try {
-            await workbook.xlsx.writeFile('PiMarketsMonthTransactionsReport.xlsx');
-        } catch (error) {
-            let buffer = await workbook.xlsx.writeBuffer();
-            
-            try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthTransactionsReport.xlsx');
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReportV2.xlsx');
             } catch (err) {
                 console.error(err);
             }
@@ -1075,7 +565,7 @@ export class Report {
         }
     }
 
-    async getTokenDealsReportV3(
+    async getTokenDealsReportV2(
         monthIndex: number,
         year: number,
         tokensArray: any[]
@@ -1100,7 +590,7 @@ export class Report {
             let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
             let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
 
-            promises.push(this.setTokenDealsSheetV2(
+            promises.push(setTokenDealsSheet(
                 sheet, 
                 timeLow, 
                 timeHigh, 
@@ -1108,10 +598,11 @@ export class Report {
                 year,
                 toMonthIndex,
                 toYear,
+                this.url,
                 tokensArray[i]
             ));
 
-            promises.push(this.setPrimaryTokenDealsSheetV2(
+            promises.push(setPrimaryTokenDealsSheet(
                 sheet2, 
                 timeLow, 
                 timeHigh, 
@@ -1119,6 +610,7 @@ export class Report {
                 year,
                 toMonthIndex,
                 toYear,
+                this.url,
                 tokensArray[i]
             ));
         }
@@ -1126,1813 +618,12 @@ export class Report {
         await Promise.all(promises);
 
         try {
-            await workbook.xlsx.writeFile('PiMarketsTokenDealsReportV3.xlsx');
+            await workbook.xlsx.writeFile('PiMarketsTokenDealsReportV2.xlsx');
         } catch (error) {
             let buffer = await workbook.xlsx.writeBuffer();
             
             try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReportV3.xlsx');
-            } catch (err) {
-                console.error(err);
-            }
-        }
-    }
-
-    async setTokenDealsSheet(
-        sheet: any,
-        sheet2: any,
-        timeLow: number,
-        timeHigh: number,
-        monthIndex: number,
-        year: number,
-        toMonthIndex: number,
-        toYear: number,
-        token: any
-    ) {
-        //define vars
-        let day = 1;
-        let week = 1;
-        let month = 1;
-        let dayCounter = 0;
-        let dayCounterPrimary = 0;
-        let weekCounter = 0;
-        let weekCounterPrimary = 0;
-        let weekRates = 0;
-        let monthCounter = 0;
-        let monthCounterPrimary = 0;
-        let monthRates = 0;
-        let weekZeros = 0;
-        let monthZeros = 0;
-        let _timeLow = timeLow;
-        let _timeHigh = _timeLow + ONE_UTC_DAY;
-        let dayRows = [];
-        let weekRows = [];
-        let monthRows = [];
-        let dayRowsPrimary = [];
-        let weekRowsPrimary = [];
-        let monthRowsPrimary = [];
-        let offersRows = [];
-        let requestsRows = [];
-        let offersPrimaryRows = [];
-        let requestsPrimaryRows = [];
-
-        //rates: array[31] with USD price (padded with 0s)
-        let rates = await getDayRate(
-            year, 
-            monthIndex, 
-            toYear, 
-            toMonthIndex, 
-            token.address,
-            token.category
-        );
-
-        while(_timeHigh <= timeHigh) {
-            //1 DAY per iteration
-
-            //define vars
-            let dayRow = [];
-            let weekRow = [];
-            let dayRowPrimary = [];
-            let weekRowPrimary = [];
-
-            let dayOffers = await try_getOffers(_timeLow, _timeHigh, token.address, this.url);
-            let dayOffersPrimary = await try_getOffersPrimary(_timeLow, _timeHigh, token.address, this.url);
-            let dayRequests = await try_getRequests(_timeLow, _timeHigh, token.address, this.url);
-            let dayRequestsPrimary = await try_getRequestsPrimary(_timeLow, _timeHigh, token.address, this.url);
-
-            if (dayOffers.length > 0) {
-                for (let p = 0; p < dayOffers.length; p++) {
-                    if (dayOffers[p].deals.length > 0) {
-                        let deals = dayOffers[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            //DEALS TABLE
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersRows.push(array);
-                        }
-                    }
-                }
-            }
-
-            if (dayOffersPrimary.length > 0) {
-                for (let p = 0; p < dayOffersPrimary.length; p++) {
-                    if (dayOffersPrimary[p].deals.length > 0) {
-                        let deals = dayOffersPrimary[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounterPrimary = dayCounterPrimary + amount;
-                            weekCounterPrimary = weekCounterPrimary + amount;
-                            monthCounterPrimary = monthCounterPrimary + amount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersPrimaryRows.push(array);
-                        }
-                    }
-                }
-            }
-
-            if (dayRequests.length > 0) {
-                for (let p = 0; p < dayRequests.length; p++) {
-                    if (dayRequests[p].deals.length > 0) {
-                        let deals = dayRequests[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsRows.push(array);
-                        }
-                    }
-                }
-            }
-
-            if (dayRequestsPrimary.length > 0) {
-                for (let p = 0; p < dayRequestsPrimary.length; p++) {
-                    if (dayRequestsPrimary[p].deals.length > 0) {
-                        let deals = dayRequestsPrimary[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounterPrimary = dayCounterPrimary + amount;
-                            weekCounterPrimary = weekCounterPrimary + amount;
-                            monthCounterPrimary = monthCounterPrimary + amount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsPrimaryRows.push(array);
-                        }
-                    }
-                }
-            }
-
-            //update week and month rates
-            weekRates = weekRates + rates[day - 1];
-            monthRates = monthRates + rates[day - 1];
-            if (rates[day - 1] == 0) {
-                weekZeros++;
-                monthZeros++;
-            }
-
-            if (day == 7 * week) {
-                //1 WEEK per iteration
-
-                //calc week rate
-                if ((7 - weekZeros) == 0){
-                    weekRates = 0;
-                } else {
-                    weekRates = weekRates / (7 - weekZeros);
-                }
-
-                //update week secondary arrays
-                weekRow.push(week);
-                weekRow.push(weekCounter);
-                weekRow.push(weekCounter * weekRates);
-                weekRow.push(weekRates);
-                weekRows.push(weekRow);
-                
-                //update week primary arrays
-                weekRowPrimary.push(week);
-                weekRowPrimary.push(weekCounterPrimary);
-                weekRowPrimary.push(weekCounterPrimary * weekRates);
-                weekRowPrimary.push(weekRates);
-                weekRowsPrimary.push(weekRowPrimary);
-
-                //update and reset week counters
-                week++;
-                weekCounter = 0;
-                weekCounterPrimary = 0;
-                weekRates = 0
-                weekZeros = 0;
-            }
-
-            //update day secondary arrays
-            dayRow.push(day);
-            dayRow.push(dayCounter);
-            dayRow.push(dayCounter * rates[day - 1]);
-            dayRow.push(rates[day - 1]);
-            dayRows.push(dayRow);
-            
-            //update day primary arrays
-            dayRowPrimary.push(day);
-            dayRowPrimary.push(dayCounterPrimary);
-            dayRowPrimary.push(dayCounterPrimary * rates[day - 1]);
-            dayRowPrimary.push(rates[day - 1]);
-            dayRowsPrimary.push(dayRowPrimary);
-
-            //update and reset day counters
-            day++;
-            dayCounter = 0;
-            dayCounterPrimary = 0;
-            _timeLow = _timeHigh;
-            _timeHigh = _timeLow + ONE_UTC_DAY;
-        }
-
-        //5th WEEK (days 29-31)
-        let weekRow = [];
-        let weekRowPrimary = [];
-
-        //calc 5th week rates
-        if ((day - 29 - weekZeros) == 0){
-            weekRates = 0;
-        } else {
-            weekRates = weekRates / (day - 29 - weekZeros);
-        }
-
-        //update 5th week secondary array
-        weekRow.push(week);
-        weekRow.push(weekCounter);
-        weekRow.push(weekCounter * weekRates);
-        weekRow.push(weekRates);
-        weekRows.push(weekRow);
-
-        //update 5th week primary array
-        weekRowPrimary.push(week);
-        weekRowPrimary.push(weekCounterPrimary);
-        weekRowPrimary.push(weekCounterPrimary * weekRates);
-        weekRowPrimary.push(weekRates);
-        weekRowsPrimary.push(weekRowPrimary);
-
-        //MONTH
-        let monthRow = [];
-        let monthRowPrimary = [];
-
-        if ((day - 1 - monthZeros) == 0){
-            monthRates = 0;
-        } else {
-            monthRates = monthRates / (day - 1 - monthZeros);
-        }
-        //secondary
-        monthRow.push(month);
-        monthRow.push(monthCounter);
-        monthRow.push(monthCounter * monthRates);
-        monthRow.push(monthRates);
-        monthRows.push(monthRow);
-        //primary
-        monthRowPrimary.push(month);
-        monthRowPrimary.push(monthCounterPrimary);
-        monthRowPrimary.push(monthCounterPrimary * monthRates);
-        monthRowPrimary.push(monthRates);
-        monthRowsPrimary.push(monthRowPrimary);
-
-        //ADD TABLES
-        let tableDay = 'TablaDay' + token.symbol;
-        let tableWeek = 'TablaWeek' + token.symbol;
-        let tableMonth = 'TablaMonth' + token.symbol;
-        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-
-        addTable(
-            sheet,
-            tableDay,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRows
-        );
-
-        addTable(
-            sheet,
-            tableWeek,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRows
-        );
-
-        addTable(
-            sheet,
-            tableMonth,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRows
-        );
-
-        addTable(
-            sheet2,
-            tableDayPrimary,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRowsPrimary
-        );
-
-        addTable(
-            sheet2,
-            tableWeekPrimary,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRowsPrimary
-        );
-
-        addTable(
-            sheet2,
-            tableMonthPrimary,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRowsPrimary
-        );
-
-        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet.getCell('B36').font = {bold: true};
-        let tableName = 'Tabla' + token.symbol;
-
-        if (offersRows.length == 0) {
-            offersRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersRows
-        );
-
-        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-        sheet.getCell('K36').font = {bold: true};
-        let tableName2 = 'Tabla2' + token.symbol;
-
-        if (requestsRows.length == 0) {
-            requestsRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName2,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsRows
-        );
-
-        sheet2.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet2.getCell('B36').font = {bold: true};
-        let tableName3 = 'TablaPrimario' + token.symbol;
-
-        if (offersPrimaryRows.length == 0) {
-            offersPrimaryRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet2,
-            tableName3,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersPrimaryRows
-        );
-
-        sheet2.getCell('K36').value = token.symbol + ' DEMANDADO';
-        sheet2.getCell('K36').font = {bold: true};
-        let tableName4 = 'TablaPrimario2' + token.symbol;
-
-        if (requestsPrimaryRows.length == 0) {
-            requestsPrimaryRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet2,
-            tableName4,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsPrimaryRows
-        );
-
-        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-        sheet.getCell('C1').font = {bold: true};
-        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-        sheet2.getCell('C1').font = {bold: true};
-
-        sheet.getCell('B2').value = 'TOTAL (diario)';
-        sheet.getCell('B2').font = {bold: true};
-        sheet2.getCell('B2').value = 'TOTAL (diario)';
-        sheet2.getCell('B2').font = {bold: true};
-        
-        sheet.getCell('G2').value = 'TOTAL (semanal)';
-        sheet.getCell('G2').font = {bold: true};
-        sheet2.getCell('G2').value = 'TOTAL (semanal)';
-        sheet2.getCell('G2').font = {bold: true};
-
-        sheet.getCell('L2').value = 'TOTAL (mensual)';
-        sheet.getCell('L2').font = {bold: true};
-        sheet2.getCell('L2').value = 'TOTAL (mensual)';
-        sheet2.getCell('L2').font = {bold: true};
-    }
-
-    async setTokenDealsSheetV2(
-        sheet: any,
-        timeLow: number,
-        timeHigh: number,
-        monthIndex: number,
-        year: number,
-        toMonthIndex: number,
-        toYear: number,
-        token: any
-    ) {
-        //define vars
-        let day = 1;
-        let week = 1;
-        let month = 1;
-        let dayCounter = 0;
-        let weekCounter = 0;
-        let monthCounter = 0;
-        let weekRates = 0;
-        let monthRates = 0;
-        let weekZeros = 0;
-        let monthZeros = 0;
-        let _timeLow = timeLow;
-        let _timeHigh = _timeLow + ONE_UTC_DAY;
-        let dayRows = [];
-        let weekRows = [];
-        let monthRows = [];
-        let offersRows = [];
-        let requestsRows = [];
-
-        let dayOffers = await try_getOffers(timeLow, timeHigh, token.address, this.url);
-        let dayRequests = await try_getRequests(timeLow, timeHigh, token.address, this.url);
-
-        //rates: array[31] with USD price (padded with 0s)
-        let rates = await getDayRate(
-            year, 
-            monthIndex, 
-            toYear, 
-            toMonthIndex, 
-            token.address,
-            token.category
-        );
-
-        let nextOffer: any;
-        let nextTimestamp: number;
-        let nextIsOffer: boolean;
-
-        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-            nextOffer = dayRequests.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = false;
-        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-            nextOffer = dayOffers.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = true;
-        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-
-            if (nextOfferTimestamp < nextRequestTimestamp) {
-                nextOffer = dayOffers.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = true;
-            } else {
-                nextOffer = dayRequests.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = false;
-            }
-        } else {
-            nextTimestamp = 0;
-        }
-
-        while (_timeHigh <= timeHigh) {
-
-            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
-                //compute offer
-                if (nextOffer.deals.length > 0) {
-                    if (nextIsOffer) {
-                        //COMPUTE OFFER
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            //1 DEAL per iteration
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            //DEALS TABLE
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    } else {
-                        //COMPUTE REQUEST
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    }
-                }
-
-                //pop new offer
-                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                    nextOffer = dayRequests.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = false;
-                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                    nextOffer = dayOffers.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = true;
-                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-        
-                    if (nextOfferTimestamp < nextRequestTimestamp) {
-                        nextOffer = dayOffers.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = true;
-                    } else {
-                        nextOffer = dayRequests.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = false;
-                    }
-                } else {
-                    nextTimestamp = 0;
-                }
-            }
-
-            //compute day
-            //update week and month rates
-            weekRates = weekRates + rates[day - 1];
-            monthRates = monthRates + rates[day - 1];
-            if (rates[day - 1] == 0) {
-                weekZeros++;
-                monthZeros++;
-            }
-
-            let dayRow = [];
-
-            dayRow.push(day);
-            dayRow.push(dayCounter);
-            dayRow.push(dayCounter * rates[day - 1]);
-            dayRow.push(rates[day - 1]);
-            dayRows.push(dayRow);
-
-            dayCounter = 0;
-
-            day++;
-            _timeLow = _timeHigh;
-            _timeHigh = _timeLow + ONE_UTC_DAY;
-
-            //compute week
-            if (day == 7 * week) {
-                //WEEK
-                //calc week rate
-                if ((7 - weekZeros) == 0){
-                    weekRates = 0;
-                } else {
-                    weekRates = weekRates / (7 - weekZeros);
-                }
-
-                let weekRow = [];
-
-                weekRow.push(week);
-                weekRow.push(weekCounter);
-                weekRow.push(weekCounter * weekRates);
-                weekRow.push(weekRates);
-                weekRows.push(weekRow);
-
-                weekCounter = 0;
-                weekRates = 0
-                weekZeros = 0;
-                week++;
-            }
-        }
-
-        //5th week...days (29-31)
-        let weekRow = [];
-
-        //calc 5th week rates
-        if ((day - 29 - weekZeros) == 0){
-            weekRates = 0;
-        } else {
-            weekRates = weekRates / (day - 29 - weekZeros);
-        }
-
-        weekRow.push(week);
-        weekRow.push(weekCounter);
-        weekRow.push(weekCounter * weekRates);
-        weekRow.push(weekRates);
-        weekRows.push(weekRow);
-
-        //MONTH
-        let monthRow = [];
-
-        if ((day - 1 - monthZeros) == 0){
-            monthRates = 0;
-        } else {
-            monthRates = monthRates / (day - 1 - monthZeros);
-        }
-
-        monthRow.push(month);
-        monthRow.push(monthCounter);
-        monthRow.push(monthCounter * monthRates);
-        monthRow.push(monthRates);
-        monthRows.push(monthRow);
-
-        //ADD TABLES
-        let tableDay = 'TablaDay' + token.symbol;
-        let tableWeek = 'TablaWeek' + token.symbol;
-        let tableMonth = 'TablaMonth' + token.symbol;
-
-        addTable(
-            sheet,
-            tableDay,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRows
-        );
-
-        addTable(
-            sheet,
-            tableWeek,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRows
-        );
-
-        addTable(
-            sheet,
-            tableMonth,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRows
-        );
-
-        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet.getCell('B36').font = {bold: true};
-        let tableName = 'Tabla' + token.symbol;
-
-        if (offersRows.length == 0) {
-            offersRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersRows
-        );
-
-        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-        sheet.getCell('K36').font = {bold: true};
-        let tableName2 = 'Tabla2' + token.symbol;
-
-        if (requestsRows.length == 0) {
-            requestsRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName2,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsRows
-        );
-
-        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-        sheet.getCell('C1').font = {bold: true};
-
-        sheet.getCell('B2').value = 'TOTAL (diario)';
-        sheet.getCell('B2').font = {bold: true};
-        
-        sheet.getCell('G2').value = 'TOTAL (semanal)';
-        sheet.getCell('G2').font = {bold: true};
-
-        sheet.getCell('L2').value = 'TOTAL (mensual)';
-        sheet.getCell('L2').font = {bold: true};
-    }
-
-    async setPrimaryTokenDealsSheetV2(
-        sheet: any,
-        timeLow: number,
-        timeHigh: number,
-        monthIndex: number,
-        year: number,
-        toMonthIndex: number,
-        toYear: number,
-        token: any
-    ) {
-        //define vars
-        let day = 1;
-        let week = 1;
-        let month = 1;
-        let dayCounter = 0;
-        let weekCounter = 0;
-        let monthCounter = 0;
-        let weekRates = 0;
-        let monthRates = 0;
-        let weekZeros = 0;
-        let monthZeros = 0;
-        let _timeLow = timeLow;
-        let _timeHigh = _timeLow + ONE_UTC_DAY;
-        let dayRows = [];
-        let weekRows = [];
-        let monthRows = [];
-        let offersRows = [];
-        let requestsRows = [];
-
-        let dayOffers = await try_getOffersPrimary(timeLow, timeHigh, token.address, this.url);
-        let dayRequests = await try_getRequestsPrimary(timeLow, timeHigh, token.address, this.url);
-
-        //rates: array[31] with USD price (padded with 0s)
-        let rates = await getDayRate(
-            year, 
-            monthIndex, 
-            toYear, 
-            toMonthIndex, 
-            token.address,
-            token.category
-        );
-
-        let nextOffer: any;
-        let nextTimestamp: number;
-        let nextIsOffer: boolean;
-
-        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-            nextOffer = dayRequests.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = false;
-        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-            nextOffer = dayOffers.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = true;
-        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-
-            if (nextOfferTimestamp < nextRequestTimestamp) {
-                nextOffer = dayOffers.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = true;
-            } else {
-                nextOffer = dayRequests.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = false;
-            }
-        } else {
-            nextTimestamp = 0;
-        }
-
-        while (_timeHigh <= timeHigh) {
-
-            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
-                //compute offer
-                if (nextOffer.deals.length > 0) {
-                    if (nextIsOffer) {
-                        //COMPUTE OFFER
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            //1 DEAL per iteration
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            //DEALS TABLE
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    } else {
-                        //COMPUTE REQUEST
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    }
-                }
-
-                //pop new offer
-                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                    nextOffer = dayRequests.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = false;
-                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                    nextOffer = dayOffers.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = true;
-                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-        
-                    if (nextOfferTimestamp < nextRequestTimestamp) {
-                        nextOffer = dayOffers.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = true;
-                    } else {
-                        nextOffer = dayRequests.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = false;
-                    }
-                } else {
-                    nextTimestamp = 0;
-                }
-            }
-
-            //compute day
-            //update week and month rates
-            weekRates = weekRates + rates[day - 1];
-            monthRates = monthRates + rates[day - 1];
-            if (rates[day - 1] == 0) {
-                weekZeros++;
-                monthZeros++;
-            }
-
-            let dayRow = [];
-
-            dayRow.push(day);
-            dayRow.push(dayCounter);
-            dayRow.push(dayCounter * rates[day - 1]);
-            dayRow.push(rates[day - 1]);
-            dayRows.push(dayRow);
-
-            dayCounter = 0;
-
-            day++;
-            _timeLow = _timeHigh;
-            _timeHigh = _timeLow + ONE_UTC_DAY;
-
-            //compute week
-            if (day == 7 * week) {
-                //WEEK
-                //calc week rate
-                if ((7 - weekZeros) == 0){
-                    weekRates = 0;
-                } else {
-                    weekRates = weekRates / (7 - weekZeros);
-                }
-
-                let weekRow = [];
-
-                weekRow.push(week);
-                weekRow.push(weekCounter);
-                weekRow.push(weekCounter * weekRates);
-                weekRow.push(weekRates);
-                weekRows.push(weekRow);
-
-                weekCounter = 0;
-                weekRates = 0
-                weekZeros = 0;
-                week++;
-            }
-        }
-
-        //5th week...days (29-31)
-        let weekRow = [];
-
-        //calc 5th week rates
-        if ((day - 29 - weekZeros) == 0){
-            weekRates = 0;
-        } else {
-            weekRates = weekRates / (day - 29 - weekZeros);
-        }
-
-        weekRow.push(week);
-        weekRow.push(weekCounter);
-        weekRow.push(weekCounter * weekRates);
-        weekRow.push(weekRates);
-        weekRows.push(weekRow);
-
-        //MONTH
-        let monthRow = [];
-
-        if ((day - 1 - monthZeros) == 0){
-            monthRates = 0;
-        } else {
-            monthRates = monthRates / (day - 1 - monthZeros);
-        }
-
-        monthRow.push(month);
-        monthRow.push(monthCounter);
-        monthRow.push(monthCounter * monthRates);
-        monthRow.push(monthRates);
-        monthRows.push(monthRow);
-
-        //ADD TABLES
-        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-
-        addTable(
-            sheet,
-            tableDayPrimary,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRows
-        );
-
-        addTable(
-            sheet,
-            tableWeekPrimary,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRows
-        );
-
-        addTable(
-            sheet,
-            tableMonthPrimary,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRows
-        );
-
-        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet.getCell('B36').font = {bold: true};
-        let tableName3 = 'TablaPrimario' + token.symbol;
-
-        if (offersRows.length == 0) {
-            offersRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName3,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersRows
-        );
-
-        sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
-        sheet.getCell('K36').font = {bold: true};
-        let tableName4 = 'TablaPrimario2' + token.symbol;
-
-        if (requestsRows.length == 0) {
-            requestsRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName4,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsRows
-        );
-
-        sheet.getCell('C1').value = 'Mercado P2P (Primario)';
-        sheet.getCell('C1').font = {bold: true};
-
-        sheet.getCell('B2').value = 'TOTAL (diario)';
-        sheet.getCell('B2').font = {bold: true};
-        
-        sheet.getCell('G2').value = 'TOTAL (semanal)';
-        sheet.getCell('G2').font = {bold: true};
-
-        sheet.getCell('L2').value = 'TOTAL (mensual)';
-        sheet.getCell('L2').font = {bold: true};
-    }
-
-    async getTokenDealsReportV2(
-        monthIndex: number,
-        year: number,
-        tokensArray: any[]
-    ) {
-        const workbook = new ExcelJS.Workbook();
-
-        let toYear = year;
-        let toMonthIndex = monthIndex + 1;
-
-        if (monthIndex == 12) {
-            toYear = year + 1;
-            toMonthIndex = 1;
-        }
-
-        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
-
-        for (let i = 0; i < tokensArray.length; i++) {
-            //1 TOKEN per iteration
-
-            //define vars
-            let day = 1;
-            let week = 1;
-            let month = 1;
-            let dayCounter = 0;
-            let dayCounterPrimary = 0;
-            let weekCounter = 0;
-            let weekCounterPrimary = 0;
-            let weekRates = 0;
-            let monthCounter = 0;
-            let monthCounterPrimary = 0;
-            let monthRates = 0;
-            let weekZeros = 0;
-            let monthZeros = 0;
-            let _timeLow = timeLow;
-            let _timeHigh = _timeLow + ONE_UTC_DAY;
-            let dayRows = [];
-            let weekRows = [];
-            let monthRows = [];
-            let dayRowsPrimary = [];
-            let weekRowsPrimary = [];
-            let monthRowsPrimary = [];
-            let offersRows = [];
-            let requestsRows = [];
-            let offersPrimaryRows = [];
-            let requestsPrimaryRows = [];
-
-            //2 sheets per token (1 per market)
-            let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-            let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-
-            //rates: array[31] with USD price (padded with 0s)
-            let rates = await getDayRate(
-                year, 
-                monthIndex, 
-                toYear, 
-                toMonthIndex, 
-                tokensArray[i].address,
-                tokensArray[i].category
-            );
-
-            while(_timeHigh <= timeHigh) {
-                //1 DAY per iteration
-
-                //define vars
-                let dayRow = [];
-                let weekRow = [];
-                let dayRowPrimary = [];
-                let weekRowPrimary = [];
-
-                let dayOffers = await getOffers(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-                let dayOffersPrimary = await getOffersPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-                let dayRequests = await getRequests(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-                let dayRequestsPrimary = await getRequestsPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-
-                if (dayOffers.length > 0) {
-                    for (let p = 0; p < dayOffers.length; p++) {
-                        if (dayOffers[p].deals.length > 0) {
-                            let deals = dayOffers[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                                dayCounter = dayCounter + amount;
-                                weekCounter = weekCounter + amount;
-                                monthCounter = monthCounter + amount;
-
-                                //DEALS TABLE
-                                let array = [];
-
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.buyToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                offersRows.push(array);
-                            }
-                        }
-                    }
-                }
-
-                if (dayOffersPrimary.length > 0) {
-                    for (let p = 0; p < dayOffersPrimary.length; p++) {
-                        if (dayOffersPrimary[p].deals.length > 0) {
-                            let deals = dayOffersPrimary[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                                dayCounterPrimary = dayCounterPrimary + amount;
-                                weekCounterPrimary = weekCounterPrimary + amount;
-                                monthCounterPrimary = monthCounterPrimary + amount;
-
-                                let array = [];
-    
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.buyToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                offersPrimaryRows.push(array);
-                            }
-                        }
-                    }
-                }
-
-                if (dayRequests.length > 0) {
-                    for (let p = 0; p < dayRequests.length; p++) {
-                        if (dayRequests[p].deals.length > 0) {
-                            let deals = dayRequests[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                                dayCounter = dayCounter + amount;
-                                weekCounter = weekCounter + amount;
-                                monthCounter = monthCounter + amount;
-
-                                let array = [];
-    
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.sellToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                requestsRows.push(array);
-                            }
-                        }
-                    }
-                }
-
-                if (dayRequestsPrimary.length > 0) {
-                    for (let p = 0; p < dayRequestsPrimary.length; p++) {
-                        if (dayRequestsPrimary[p].deals.length > 0) {
-                            let deals = dayRequestsPrimary[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                                dayCounterPrimary = dayCounterPrimary + amount;
-                                weekCounterPrimary = weekCounterPrimary + amount;
-                                monthCounterPrimary = monthCounterPrimary + amount;
-
-                                let array = [];
-    
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.sellToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                requestsPrimaryRows.push(array);
-                            }
-                        }
-                    }
-                }
-
-                //update week and month rates
-                weekRates = weekRates + rates[day - 1];
-                monthRates = monthRates + rates[day - 1];
-                if (rates[day - 1] == 0) {
-                    weekZeros++;
-                    monthZeros++;
-                }
-
-                if (day == 7 * week) {
-                    //1 WEEK per iteration
-
-                    //calc week rate
-                    if ((7 - weekZeros) == 0){
-                        weekRates = 0;
-                    } else {
-                        weekRates = weekRates / (7 - weekZeros);
-                    }
-
-                    //update week secondary arrays
-                    weekRow.push(week);
-                    weekRow.push(weekCounter);
-                    weekRow.push(weekCounter * weekRates);
-                    weekRow.push(weekRates);
-                    weekRows.push(weekRow);
-                    
-                    //update week primary arrays
-                    weekRowPrimary.push(week);
-                    weekRowPrimary.push(weekCounterPrimary);
-                    weekRowPrimary.push(weekCounterPrimary * weekRates);
-                    weekRowPrimary.push(weekRates);
-                    weekRowsPrimary.push(weekRowPrimary);
-
-                    //update and reset week counters
-                    week++;
-                    weekCounter = 0;
-                    weekCounterPrimary = 0;
-                    weekRates = 0
-                    weekZeros = 0;
-                }
-
-                //update day secondary arrays
-                dayRow.push(day);
-                dayRow.push(dayCounter);
-                dayRow.push(dayCounter * rates[day - 1]);
-                dayRow.push(rates[day - 1]);
-                dayRows.push(dayRow);
-                
-                //update day primary arrays
-                dayRowPrimary.push(day);
-                dayRowPrimary.push(dayCounterPrimary);
-                dayRowPrimary.push(dayCounterPrimary * rates[day - 1]);
-                dayRowPrimary.push(rates[day - 1]);
-                dayRowsPrimary.push(dayRowPrimary);
-
-                //update and reset day counters
-                day++;
-                dayCounter = 0;
-                dayCounterPrimary = 0;
-                _timeLow = _timeHigh;
-                _timeHigh = _timeLow + ONE_UTC_DAY;
-            }
-
-            //5th WEEK (days 29-31)
-            let weekRow = [];
-            let weekRowPrimary = [];
-
-            //calc 5th week rates
-            if ((day - 29 - weekZeros) == 0){
-                weekRates = 0;
-            } else {
-                weekRates = weekRates / (day - 29 - weekZeros);
-            }
-
-            //update 5th week secondary array
-            weekRow.push(week);
-            weekRow.push(weekCounter);
-            weekRow.push(weekCounter * weekRates);
-            weekRow.push(weekRates);
-            weekRows.push(weekRow);
-
-            //update 5th week primary array
-            weekRowPrimary.push(week);
-            weekRowPrimary.push(weekCounterPrimary);
-            weekRowPrimary.push(weekCounterPrimary * weekRates);
-            weekRowPrimary.push(weekRates);
-            weekRowsPrimary.push(weekRowPrimary);
-
-            //MONTH
-            let monthRow = [];
-            let monthRowPrimary = [];
-
-            if ((day - 1 - monthZeros) == 0){
-                monthRates = 0;
-            } else {
-                monthRates = monthRates / (day - 1 - monthZeros);
-            }
-            //secondary
-            monthRow.push(month);
-            monthRow.push(monthCounter);
-            monthRow.push(monthCounter * monthRates);
-            monthRow.push(monthRates);
-            monthRows.push(monthRow);
-            //primary
-            monthRowPrimary.push(month);
-            monthRowPrimary.push(monthCounterPrimary);
-            monthRowPrimary.push(monthCounterPrimary * monthRates);
-            monthRowPrimary.push(monthRates);
-            monthRowsPrimary.push(monthRowPrimary);
-
-            //ADD TABLES
-            let tableDay = 'TablaDay' + tokensArray[i].symbol;
-            let tableWeek = 'TablaWeek' + tokensArray[i].symbol;
-            let tableMonth = 'TablaMonth' + tokensArray[i].symbol;
-            let tableDayPrimary = 'TablaDayPrimary' + tokensArray[i].symbol;
-            let tableWeekPrimary = 'TablaWeekPrimary' + tokensArray[i].symbol;
-            let tableMonthPrimary = 'TablaMonthPrimary' + tokensArray[i].symbol;
-
-            addTable(
-                sheet,
-                tableDay,
-                'B3',
-                [
-                    {name: 'Día', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                dayRows
-            );
-
-            addTable(
-                sheet,
-                tableWeek,
-                'G3',
-                [
-                    {name: 'Semana', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                weekRows
-            );
-
-            addTable(
-                sheet,
-                tableMonth,
-                'L3',
-                [
-                    {name: 'Mes', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                monthRows
-            );
-
-            addTable(
-                sheet2,
-                tableDayPrimary,
-                'B3',
-                [
-                    {name: 'Día', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                dayRowsPrimary
-            );
-
-            addTable(
-                sheet2,
-                tableWeekPrimary,
-                'G3',
-                [
-                    {name: 'Semana', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                weekRowsPrimary
-            );
-
-            addTable(
-                sheet2,
-                tableMonthPrimary,
-                'L3',
-                [
-                    {name: 'Mes', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                monthRowsPrimary
-            );
-
-            sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-            sheet.getCell('B36').font = {bold: true};
-            let tableName = 'Tabla' + tokensArray[i].symbol;
-
-            if (offersRows.length == 0) {
-                offersRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet,
-                tableName,
-                'B37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                offersRows
-            );
-
-            sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
-            sheet.getCell('K36').font = {bold: true};
-            let tableName2 = 'Tabla2' + tokensArray[i].symbol;
-
-            if (requestsRows.length == 0) {
-                requestsRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet,
-                tableName2,
-                'K37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                requestsRows
-            );
-
-            sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-            sheet2.getCell('B36').font = {bold: true};
-            let tableName3 = 'TablaPrimario' + tokensArray[i].symbol;
-
-            if (offersPrimaryRows.length == 0) {
-                offersPrimaryRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet2,
-                tableName3,
-                'B37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                offersPrimaryRows
-            );
-
-            sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
-            sheet2.getCell('K36').font = {bold: true};
-            let tableName4 = 'TablaPrimario2' + tokensArray[i].symbol;
-
-            if (requestsPrimaryRows.length == 0) {
-                requestsPrimaryRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet2,
-                tableName4,
-                'K37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                requestsPrimaryRows
-            );
-
-            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-            sheet.getCell('C1').font = {bold: true};
-            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-            sheet2.getCell('C1').font = {bold: true};
-
-            sheet.getCell('B2').value = 'TOTAL (diario)';
-            sheet.getCell('B2').font = {bold: true};
-            sheet2.getCell('B2').value = 'TOTAL (diario)';
-            sheet2.getCell('B2').font = {bold: true};
-            
-            sheet.getCell('G2').value = 'TOTAL (semanal)';
-            sheet.getCell('G2').font = {bold: true};
-            sheet2.getCell('G2').value = 'TOTAL (semanal)';
-            sheet2.getCell('G2').font = {bold: true};
-
-            sheet.getCell('L2').value = 'TOTAL (mensual)';
-            sheet.getCell('L2').font = {bold: true};
-            sheet2.getCell('L2').value = 'TOTAL (mensual)';
-            sheet2.getCell('L2').font = {bold: true};
-        }
-
-        try {
-            await workbook.xlsx.writeFile('PiMarketsMonthTokenDealsReport.xlsx');
-        } catch (error) {
-            let buffer = await workbook.xlsx.writeBuffer();
-            
-            try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthTokenDealsReport.xlsx');
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReportV2.xlsx');
             } catch (err) {
                 console.error(err);
             }
@@ -3205,7 +896,7 @@ export class Report {
         }
     }
 
-    async getPackableDealsReportV3(
+    async getPackableDealsReportV2(
         monthIndex: number,
         year: number,
         tokensArray: any[]
@@ -3230,17 +921,19 @@ export class Report {
             let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
             let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
 
-            promises.push(this.setPackableDealsSheetV2(
+            promises.push(setPackableDealsSheet(
                 sheet, 
                 timeLow, 
                 timeHigh, 
+                this.url,
                 tokensArray[i]
             ));
 
-            promises.push(this.setPrimaryPackableDealsSheetV2(
+            promises.push(setPrimaryPackableDealsSheet(
                 sheet2, 
                 timeLow, 
                 timeHigh, 
+                this.url,
                 tokensArray[i]
             ));
         }
@@ -3248,1969 +941,12 @@ export class Report {
         await Promise.all(promises);
 
         try {
-            await workbook.xlsx.writeFile('PiMarketsPackableDealsReportV3.xlsx');
+            await workbook.xlsx.writeFile('PiMarketsPackableDealsReportV2.xlsx');
         } catch (error) {
             let buffer = await workbook.xlsx.writeBuffer();
             
             try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReportV3.xlsx');
-            } catch (err) {
-                console.error(err);
-            }
-        }
-    }
-
-    async setPackableDealsSheet(
-        sheet: any,
-        sheet2: any,
-        timeLow: number,
-        timeHigh: number,
-        token: any
-    ) {
-        //define vars
-        let day = 1;
-        let week = 1;
-        let month = 1;
-        let dayCounter = 0;
-        let dayCounterPrimary = 0;
-        let weekCounter = 0;
-        let weekCounterPrimary = 0;
-        let monthCounter = 0;
-        let monthCounterPrimary = 0;
-        let dayCounterUsd = 0;
-        let dayCounterPrimaryUsd = 0;
-        let weekCounterUsd = 0;
-        let weekCounterPrimaryUsd = 0;
-        let monthCounterUsd = 0;
-        let monthCounterPrimaryUsd = 0;
-        let _timeLow = timeLow;
-        let _timeHigh = _timeLow + ONE_UTC_DAY;
-        let dayRows = [];
-        let weekRows = [];
-        let monthRows = [];
-        let dayRowsPrimary = [];
-        let weekRowsPrimary = [];
-        let monthRowsPrimary = [];
-        let offersRows = [];
-        let requestsRows = [];
-        let offersPrimaryRows = [];
-        let requestsPrimaryRows = [];
-
-        while(_timeHigh <= timeHigh) {
-            //1 DAY per iteration
-
-            //define vars
-            let dayRow = [];
-            let weekRow = [];
-            let dayRowPrimary = [];
-            let weekRowPrimary = [];
-            
-            let dayOffers = await try_getPackableOffers(_timeLow, _timeHigh, token.address, this.url);
-            let dayOffersPrimary = await try_getPackableOffersPrimary(_timeLow, _timeHigh, token.address, this.url);
-            let dayRequests = await try_getPackableRequests(_timeLow, _timeHigh, token.address, this.url);
-            let dayRequestsPrimary = await try_getPackableRequestsPrimary(_timeLow, _timeHigh, token.address, this.url);
-
-            if (dayOffers.length > 0) {
-                for (let p = 0; p < dayOffers.length; p++) {
-                    //1 OFFER per iteration
-                    if (dayOffers[p].deals.length > 0) {
-                        //1 DEALS ARRAY per iteration
-                        let deals = dayOffers[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            //1 DEAL per iteration
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            let usdAmount = 0;
-
-                            if (
-                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
-                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                                (deals[q].offer.buyToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = buyAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    buyAmount, 
-                                    deals[q].offer.buyToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-
-                            dayCounterUsd = dayCounterUsd + usdAmount;
-                            weekCounterUsd = weekCounterUsd + usdAmount;
-                            monthCounterUsd = monthCounterUsd + usdAmount;
-
-                            //DEALS TABLE
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                        //1 DEALS ARRAY per iteration
-                    }
-                    //1 OFFER per iteration
-                }
-            }
-
-            if (dayOffersPrimary.length > 0) {
-                for (let p = 0; p < dayOffersPrimary.length; p++) {
-                    if (dayOffersPrimary[p].deals.length > 0) {
-                        let deals = dayOffersPrimary[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounterPrimary = dayCounterPrimary + amount;
-                            weekCounterPrimary = weekCounterPrimary + amount;
-                            monthCounterPrimary = monthCounterPrimary + amount;
-
-                            let usdAmount = 0;
-
-                            if (
-                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
-                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                                (deals[q].offer.buyToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = buyAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    buyAmount, 
-                                    deals[q].offer.buyToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-
-                            dayCounterPrimaryUsd = dayCounterPrimaryUsd + usdAmount;
-                            weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                            monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersPrimaryRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                        //1 DEALS ARRAY per iteration
-                    }
-                    //1 OFFER per iteration
-                }
-            }
-
-            if (dayRequests.length > 0) {
-                for (let p = 0; p < dayRequests.length; p++) {
-                    if (dayRequests[p].deals.length > 0) {
-                        let deals = dayRequests[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-
-                            let usdAmount = 0;
-
-                            if (
-                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
-                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                                (deals[q].offer.sellToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = sellAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    sellAmount, 
-                                    deals[q].offer.sellToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-
-                            dayCounterUsd = dayCounterUsd + usdAmount;
-                            weekCounterUsd = weekCounterUsd + usdAmount;
-                            monthCounterUsd = monthCounterUsd + usdAmount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                        //1 DEALS ARRAY per iteration
-                    }
-                    //1 OFFER per iteration
-                }
-            }
-
-            if (dayRequestsPrimary.length > 0) {
-                for (let p = 0; p < dayRequestsPrimary.length; p++) {
-                    if (dayRequestsPrimary[p].deals.length > 0) {
-                        let deals = dayRequestsPrimary[p].deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounterPrimary = dayCounterPrimary + amount;
-                            weekCounterPrimary = weekCounterPrimary + amount;
-                            monthCounterPrimary = monthCounterPrimary + amount;
-
-                            let usdAmount = 0;
-
-                            if (
-                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
-                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                                (deals[q].offer.sellToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = sellAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    sellAmount, 
-                                    deals[q].offer.sellToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-
-                            dayCounterUsd = dayCounterUsd + usdAmount;
-                            weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                            monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-
-                            let array = [];
-
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsPrimaryRows.push(array);
-                        }
-                    }
-                }
-            }
-
-            if (day == 7 * week) {
-                //1 WEEK per iteration
-
-                //SECONDARY
-                weekRow.push(week);
-                weekRow.push(weekCounter);
-                weekRow.push(weekCounterUsd);
-                if (weekCounter == 0) weekCounter = 1;
-                weekRow.push(weekCounterUsd / weekCounter);
-                weekRows.push(weekRow);
-
-                weekCounter = 0;
-                weekCounterUsd = 0;
-
-                //PRIMARY
-                weekRowPrimary.push(week);
-                weekRowPrimary.push(weekCounterPrimary);
-                weekRowPrimary.push(weekCounterPrimaryUsd);
-                if (weekCounterPrimary == 0) weekCounterPrimary = 1;
-                weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
-                weekRowsPrimary.push(weekRowPrimary);
-
-                weekCounterPrimary = 0;
-                weekCounterPrimaryUsd = 0;
-
-                week++;
-                //1 WEEK per iteration
-            }
-
-            //secondary
-            dayRow.push(day);
-            dayRow.push(dayCounter);
-            dayRow.push(dayCounterUsd);
-            if (dayCounter == 0) dayCounter = 1;
-            dayRow.push(dayCounterUsd / dayCounter);
-            dayRows.push(dayRow);
-
-            dayCounter = 0;
-            dayCounterUsd = 0;
-
-            //primary
-            dayRowPrimary.push(day);
-            dayRowPrimary.push(dayCounterPrimary);
-            dayRowPrimary.push(dayCounterPrimaryUsd);
-            if (dayCounterPrimary == 0) dayCounterPrimary = 1;
-            dayRowPrimary.push(dayCounterPrimaryUsd / dayCounterPrimary);
-            dayRowsPrimary.push(dayRowPrimary);
-
-            dayCounterPrimary = 0;
-            dayCounterPrimaryUsd = 0;
-            
-            day++;
-            _timeLow = _timeHigh;
-            _timeHigh = _timeLow + ONE_UTC_DAY;
-            //1 DAY per iteration
-        }
-
-        //5th week...days (29-31)
-        //secondary
-        let weekRow = [];
-        let monthRow = [];
-
-        weekRow.push(week);
-        weekRow.push(weekCounter);
-        weekRow.push(weekCounterUsd);
-        if (weekCounter == 0) weekCounter = 1;
-        weekRow.push(weekCounterUsd / weekCounter);
-        weekRows.push(weekRow);
-
-        //primary
-        let weekRowPrimary = [];
-        let monthRowPrimary = []; 
-
-        weekRowPrimary.push(week);
-        weekRowPrimary.push(weekCounterPrimary);
-        weekRowPrimary.push(weekCounterPrimaryUsd);
-        if (weekCounterPrimary == 0) weekCounterPrimary = 1;
-        weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
-        weekRowsPrimary.push(weekRowPrimary);
-
-        //MONTH
-        //secondary
-        monthRow.push(month);
-        monthRow.push(monthCounter);
-        monthRow.push(monthCounterUsd);
-        if (monthCounter == 0) monthCounter = 1;
-        monthRow.push(monthCounterUsd / monthCounter);
-        monthRows.push(monthRow);
-
-        //primary
-        monthRowPrimary.push(month);
-        monthRowPrimary.push(monthCounterPrimary);
-        monthRowPrimary.push(monthCounterPrimaryUsd);
-        if (monthCounterPrimary == 0) monthCounterPrimary = 1;
-        monthRowPrimary.push(monthCounterPrimaryUsd / monthCounterPrimary);
-        monthRowsPrimary.push(monthRowPrimary);
-
-        //ADD TABLES
-        let tableDay = 'TablaDay' + token.symbol;
-        let tableWeek = 'TablaWeek' + token.symbol;
-        let tableMonth = 'TablaMonth' + token.symbol;
-        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-
-        addTable(
-            sheet,
-            tableDay,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRows
-        );
-
-        addTable(
-            sheet,
-            tableWeek,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRows
-        );
-
-        addTable(
-            sheet,
-            tableMonth,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRows
-        );
-
-        addTable(
-            sheet2,
-            tableDayPrimary,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRowsPrimary
-        );
-
-        addTable(
-            sheet2,
-            tableWeekPrimary,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRowsPrimary
-        );
-
-        addTable(
-            sheet2,
-            tableMonthPrimary,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRowsPrimary
-        );
-
-        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet.getCell('B36').font = {bold: true};
-        let tableName = 'Tabla' + token.symbol;
-
-        if (offersRows.length == 0) {
-            offersRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersRows
-        );
-
-        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-        sheet.getCell('K36').font = {bold: true};
-        let tableName2 = 'Tabla2' + token.symbol;
-
-        if (requestsRows.length == 0) {
-            requestsRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName2,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsRows
-        );
-
-        sheet2.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet2.getCell('B36').font = {bold: true};
-        let tableName3 = 'TablaPrimario' + token.symbol;
-
-        if (offersPrimaryRows.length == 0) {
-            offersPrimaryRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet2,
-            tableName3,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersPrimaryRows
-        );
-
-        sheet2.getCell('K36').value = token.symbol + ' DEMANDADO';
-        sheet2.getCell('K36').font = {bold: true};
-        let tableName4 = 'TablaPrimario2' + token.symbol;
-
-        if (requestsPrimaryRows.length == 0) {
-            requestsPrimaryRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet2,
-            tableName4,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsPrimaryRows
-        );
-
-        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-        sheet.getCell('C1').font = {bold: true};
-        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-        sheet2.getCell('C1').font = {bold: true};
-
-        sheet.getCell('B2').value = 'TOTAL (diario)';
-        sheet.getCell('B2').font = {bold: true};
-        sheet2.getCell('B2').value = 'TOTAL (diario)';
-        sheet2.getCell('B2').font = {bold: true};
-        
-        sheet.getCell('G2').value = 'TOTAL (semanal)';
-        sheet.getCell('G2').font = {bold: true};
-        sheet2.getCell('G2').value = 'TOTAL (semanal)';
-        sheet2.getCell('G2').font = {bold: true};
-
-        sheet.getCell('L2').value = 'TOTAL (mensual)';
-        sheet.getCell('L2').font = {bold: true};
-        sheet2.getCell('L2').value = 'TOTAL (mensual)';
-        sheet2.getCell('L2').font = {bold: true};
-    }
-
-    async setPackableDealsSheetV2(
-        sheet: any,
-        timeLow: number,
-        timeHigh: number,
-        token: any
-    ) {
-        //define vars
-        let day = 1;
-        let week = 1;
-        let month = 1;
-        let dayCounter = 0;
-        let weekCounter = 0;
-        let monthCounter = 0;
-        let dayCounterUsd = 0;
-        let weekCounterUsd = 0;
-        let monthCounterUsd = 0;
-        let _timeLow = timeLow;
-        let _timeHigh = _timeLow + ONE_UTC_DAY;
-        let dayRows = [];
-        let weekRows = [];
-        let monthRows = [];
-        let offersRows = [];
-        let requestsRows = [];
-
-        let dayOffers = await try_getPackableOffers(timeLow, timeHigh, token.address, this.url);
-        let dayRequests = await try_getPackableRequests(timeLow, timeHigh, token.address, this.url);
-
-        let nextOffer: any;
-        let nextTimestamp: number;
-        let nextIsOffer: boolean;
-
-        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-            nextOffer = dayRequests.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = false;
-        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-            nextOffer = dayOffers.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = true;
-        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-
-            if (nextOfferTimestamp < nextRequestTimestamp) {
-                nextOffer = dayOffers.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = true;
-            } else {
-                nextOffer = dayRequests.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = false;
-            }
-        } else {
-            nextTimestamp = 0;
-        }
-
-        while (_timeHigh <= timeHigh) {
-
-            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
-                //compute offer
-                if (nextOffer.deals.length > 0) {
-                    if (nextIsOffer) {
-                        //COMPUTE OFFER
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            //1 DEAL per iteration
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-    
-                            let usdAmount = 0;
-    
-                            if (
-                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
-                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                                (deals[q].offer.buyToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = buyAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    buyAmount, 
-                                    deals[q].offer.buyToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-    
-                            dayCounterUsd = dayCounterUsd + usdAmount;
-                            weekCounterUsd = weekCounterUsd + usdAmount;
-                            monthCounterUsd = monthCounterUsd + usdAmount;
-    
-                            //DEALS TABLE
-                            let array = [];
-    
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    } else {
-                        //COMPUTE REQUEST
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-    
-                            let usdAmount = 0;
-    
-                            if (
-                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
-                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                                (deals[q].offer.sellToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = sellAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    sellAmount, 
-                                    deals[q].offer.sellToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-    
-                            dayCounterUsd = dayCounterUsd + usdAmount;
-                            weekCounterUsd = weekCounterUsd + usdAmount;
-                            monthCounterUsd = monthCounterUsd + usdAmount;
-    
-                            let array = [];
-    
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    }
-                }
-
-                //pop new offer
-                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                    nextOffer = dayRequests.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = false;
-                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                    nextOffer = dayOffers.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = true;
-                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-        
-                    if (nextOfferTimestamp < nextRequestTimestamp) {
-                        nextOffer = dayOffers.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = true;
-                    } else {
-                        nextOffer = dayRequests.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = false;
-                    }
-                } else {
-                    nextTimestamp = 0;
-                }
-            }
-
-            //compute day
-            let dayRow = [];
-
-            //secondary
-            dayRow.push(day);
-            dayRow.push(dayCounter);
-            dayRow.push(dayCounterUsd);
-            if (dayCounter == 0) dayCounter = 1;
-            dayRow.push(dayCounterUsd / dayCounter);
-            dayRows.push(dayRow);
-
-            dayCounter = 0;
-            dayCounterUsd = 0;
-
-            day++;
-            _timeLow = _timeHigh;
-            _timeHigh = _timeLow + ONE_UTC_DAY;
-
-            //compute week
-            if (day == 7 * week) {
-                //WEEK
-                let weekRow = [];
-                //secondary
-                weekRow.push(week);
-                weekRow.push(weekCounter);
-                weekRow.push(weekCounterUsd);
-                if (weekCounter == 0) weekCounter = 1;
-                weekRow.push(weekCounterUsd / weekCounter);
-                weekRows.push(weekRow);
-
-                weekCounter = 0;
-                weekCounterUsd = 0;
-                week++;
-            }
-        }
-
-        //5th week...days (29-31)
-        //secondary
-        let weekRow = [];
-        weekRow.push(week);
-        weekRow.push(weekCounter);
-        weekRow.push(weekCounterUsd);
-        if (weekCounter == 0) weekCounter = 1;
-        weekRow.push(weekCounterUsd / weekCounter);
-        weekRows.push(weekRow);
-
-        //MONTH
-        //secondary
-        let monthRow = [];
-        monthRow.push(month);
-        monthRow.push(monthCounter);
-        monthRow.push(monthCounterUsd);
-        if (monthCounter == 0) monthCounter = 1;
-        monthRow.push(monthCounterUsd / monthCounter);
-        monthRows.push(monthRow);
-
-        //ADD TABLES
-        let tableDay = 'TablaDay' + token.symbol;
-        let tableWeek = 'TablaWeek' + token.symbol;
-        let tableMonth = 'TablaMonth' + token.symbol;
-
-        addTable(
-            sheet,
-            tableDay,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRows
-        );
-
-        addTable(
-            sheet,
-            tableWeek,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRows
-        );
-
-        addTable(
-            sheet,
-            tableMonth,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRows
-        );
-
-        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet.getCell('B36').font = {bold: true};
-        let tableName = 'Tabla' + token.symbol;
-
-        if (offersRows.length == 0) {
-            offersRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersRows
-        );
-
-        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-        sheet.getCell('K36').font = {bold: true};
-        let tableName2 = 'Tabla2' + token.symbol;
-
-        if (requestsRows.length == 0) {
-            requestsRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName2,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsRows
-        );
-
-        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-        sheet.getCell('C1').font = {bold: true};
-
-        sheet.getCell('B2').value = 'TOTAL (diario)';
-        sheet.getCell('B2').font = {bold: true};
-        
-        sheet.getCell('G2').value = 'TOTAL (semanal)';
-        sheet.getCell('G2').font = {bold: true};
-
-        sheet.getCell('L2').value = 'TOTAL (mensual)';
-        sheet.getCell('L2').font = {bold: true};
-    }
-
-    async setPrimaryPackableDealsSheetV2(
-        sheet: any,
-        timeLow: number,
-        timeHigh: number,
-        token: any
-    ) {
-        //define vars
-        let day = 1;
-        let week = 1;
-        let month = 1;
-        let dayCounter = 0;
-        let weekCounter = 0;
-        let monthCounter = 0;
-        let dayCounterUsd = 0;
-        let weekCounterUsd = 0;
-        let monthCounterUsd = 0;
-        let _timeLow = timeLow;
-        let _timeHigh = _timeLow + ONE_UTC_DAY;
-        let dayRows = [];
-        let weekRows = [];
-        let monthRows = [];
-        let offersRows = [];
-        let requestsRows = [];
-
-        let dayOffers = await try_getPackableOffersPrimary(timeLow, timeHigh, token.address, this.url);
-        let dayRequests = await try_getPackableRequestsPrimary(timeLow, timeHigh, token.address, this.url);
-
-        let nextOffer: any;
-        let nextTimestamp: number;
-        let nextIsOffer: boolean;
-
-        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-            nextOffer = dayRequests.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = false;
-        } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-            nextOffer = dayOffers.pop();
-            nextTimestamp = nextOffer.timestamp;
-            nextIsOffer = true;
-        } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-            let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-            let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-
-            if (nextOfferTimestamp < nextRequestTimestamp) {
-                nextOffer = dayOffers.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = true;
-            } else {
-                nextOffer = dayRequests.pop();
-                nextTimestamp = nextOffer.timestamp;
-                nextIsOffer = false;
-            }
-        } else {
-            nextTimestamp = 0;
-        }
-
-        while (_timeHigh <= timeHigh) {
-
-            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
-                //compute offer
-                if (nextOffer.deals.length > 0) {
-                    if (nextIsOffer) {
-                        //COMPUTE OFFER
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            //1 DEAL per iteration
-                            let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                            let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-    
-                            let usdAmount = 0;
-    
-                            if (
-                                (deals[q].offer.buyToken.id == Constants.USD.address) ||
-                                (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                                (deals[q].offer.buyToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = buyAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    buyAmount, 
-                                    deals[q].offer.buyToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-    
-                            dayCounterUsd = dayCounterUsd + usdAmount;
-                            weekCounterUsd = weekCounterUsd + usdAmount;
-                            monthCounterUsd = monthCounterUsd + usdAmount;
-    
-                            //DEALS TABLE
-                            let array = [];
-    
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.buyToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            offersRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    } else {
-                        //COMPUTE REQUEST
-                        let deals = nextOffer.deals;
-                        for (let q = 0; q < deals.length; q++) {
-                            let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                            let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
-                            dayCounter = dayCounter + amount;
-                            weekCounter = weekCounter + amount;
-                            monthCounter = monthCounter + amount;
-    
-                            let usdAmount = 0;
-    
-                            if (
-                                (deals[q].offer.sellToken.id == Constants.USD.address) ||
-                                (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                                (deals[q].offer.sellToken.id == Constants.PEL.address)
-                            ) {
-                                usdAmount = sellAmount;
-                            } else {
-                                usdAmount = await convertToUsd(
-                                    sellAmount, 
-                                    deals[q].offer.sellToken.id,
-                                    deals[q].timestamp
-                                );
-                            }
-    
-                            dayCounterUsd = dayCounterUsd + usdAmount;
-                            weekCounterUsd = weekCounterUsd + usdAmount;
-                            monthCounterUsd = monthCounterUsd + usdAmount;
-    
-                            let array = [];
-    
-                            array.push(new Date(deals[q].timestamp * 1000));
-                            array.push(timeConverter(deals[q].offer.timestamp));
-                            array.push(timeConverter(deals[q].timestamp));
-                            array.push(deals[q].offer.sellToken.tokenSymbol);
-    
-                            if (deals[q].seller.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].seller.name);
-                            }
-    
-                            if (deals[q].buyer.name == null) {
-                                array.push("");
-                            } else {
-                                array.push(deals[q].buyer.name);
-                            }
-    
-                            array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                            array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                            requestsRows.push(array);
-                            //1 DEAL per iteration
-                        }
-                    }
-                }
-
-                //pop new offer
-                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                    nextOffer = dayRequests.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = false;
-                } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                    nextOffer = dayOffers.pop();
-                    nextTimestamp = nextOffer.timestamp;
-                    nextIsOffer = true;
-                } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                    let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                    let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-        
-                    if (nextOfferTimestamp < nextRequestTimestamp) {
-                        nextOffer = dayOffers.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = true;
-                    } else {
-                        nextOffer = dayRequests.pop();
-                        nextTimestamp = nextOffer.timestamp;
-                        nextIsOffer = false;
-                    }
-                } else {
-                    nextTimestamp = 0;
-                }
-            }
-
-            //compute day
-            let dayRow = [];
-
-            //secondary
-            dayRow.push(day);
-            dayRow.push(dayCounter);
-            dayRow.push(dayCounterUsd);
-            if (dayCounter == 0) dayCounter = 1;
-            dayRow.push(dayCounterUsd / dayCounter);
-            dayRows.push(dayRow);
-
-            dayCounter = 0;
-            dayCounterUsd = 0;
-
-            day++;
-            _timeLow = _timeHigh;
-            _timeHigh = _timeLow + ONE_UTC_DAY;
-
-            //compute week
-            if (day == 7 * week) {
-                //WEEK
-                let weekRow = [];
-                //secondary
-                weekRow.push(week);
-                weekRow.push(weekCounter);
-                weekRow.push(weekCounterUsd);
-                if (weekCounter == 0) weekCounter = 1;
-                weekRow.push(weekCounterUsd / weekCounter);
-                weekRows.push(weekRow);
-
-                weekCounter = 0;
-                weekCounterUsd = 0;
-                week++;
-            }
-        }
-
-        //5th week...days (29-31)
-        //secondary
-        let weekRow = [];
-        weekRow.push(week);
-        weekRow.push(weekCounter);
-        weekRow.push(weekCounterUsd);
-        if (weekCounter == 0) weekCounter = 1;
-        weekRow.push(weekCounterUsd / weekCounter);
-        weekRows.push(weekRow);
-
-        //MONTH
-        //secondary
-        let monthRow = [];
-        monthRow.push(month);
-        monthRow.push(monthCounter);
-        monthRow.push(monthCounterUsd);
-        if (monthCounter == 0) monthCounter = 1;
-        monthRow.push(monthCounterUsd / monthCounter);
-        monthRows.push(monthRow);
-
-        //ADD TABLES
-        let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-        let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-        let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-
-        addTable(
-            sheet,
-            tableDayPrimary,
-            'B3',
-            [
-                {name: 'Día', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            dayRows
-        );
-
-        addTable(
-            sheet,
-            tableWeekPrimary,
-            'G3',
-            [
-                {name: 'Semana', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            weekRows
-        );
-
-        addTable(
-            sheet,
-            tableMonthPrimary,
-            'L3',
-            [
-                {name: 'Mes', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'},
-                {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                {name: 'Tipo de cambio'}
-            ],
-            monthRows
-        );
-
-        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-        sheet.getCell('B36').font = {bold: true};
-        let tableName3 = 'TablaPrimario' + token.symbol;
-
-        if (offersRows.length == 0) {
-            offersRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName3,
-            'B37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            offersRows
-        );
-
-        sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
-        sheet.getCell('K36').font = {bold: true};
-        let tableName4 = 'TablaPrimario2' + token.symbol;
-
-        if (requestsRows.length == 0) {
-            requestsRows = getEmtpyDeal();
-        }
-
-        addTable(
-            sheet,
-            tableName4,
-            'K37',
-            [
-                {name: 'Fecha (pacto)', filterButton: true},
-                {name: 'Hora (oferta)'},
-                {name: 'Hora (pacto)'},
-                {name: 'Contrapartida', filterButton: true},
-                {name: 'Vendedor (usuario)', filterButton: true},
-                {name: 'Comprador (usuario)', filterButton: true},
-                {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
-                {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-            ],
-            requestsRows
-        );
-
-        sheet.getCell('C1').value = 'Mercado P2P (Primario)';
-        sheet.getCell('C1').font = {bold: true};
-
-        sheet.getCell('B2').value = 'TOTAL (diario)';
-        sheet.getCell('B2').font = {bold: true};
-        
-        sheet.getCell('G2').value = 'TOTAL (semanal)';
-        sheet.getCell('G2').font = {bold: true};
-
-        sheet.getCell('L2').value = 'TOTAL (mensual)';
-        sheet.getCell('L2').font = {bold: true};
-    }
-
-    async getPackableDealsReportV2(
-        monthIndex: number,
-        year: number,
-        tokensArray: any[]
-    ) {
-        const workbook = new ExcelJS.Workbook();
-
-        let toYear = year;
-        let toMonthIndex = monthIndex + 1;
-
-        if (monthIndex == 12) {
-            toYear = year + 1;
-            toMonthIndex = 1;
-        }
-
-        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
-
-        for (let i = 0; i < tokensArray.length; i++) {
-            //1 TOKEN per iteration
-
-            //define vars
-            let day = 1;
-            let week = 1;
-            let month = 1;
-            let dayCounter = 0;
-            let dayCounterPrimary = 0;
-            let weekCounter = 0;
-            let weekCounterPrimary = 0;
-            let monthCounter = 0;
-            let monthCounterPrimary = 0;
-            let dayCounterUsd = 0;
-            let dayCounterPrimaryUsd = 0;
-            let weekCounterUsd = 0;
-            let weekCounterPrimaryUsd = 0;
-            let monthCounterUsd = 0;
-            let monthCounterPrimaryUsd = 0;
-            let _timeLow = timeLow;
-            let _timeHigh = _timeLow + ONE_UTC_DAY;
-            let dayRows = [];
-            let weekRows = [];
-            let monthRows = [];
-            let dayRowsPrimary = [];
-            let weekRowsPrimary = [];
-            let monthRowsPrimary = [];
-            let offersRows = [];
-            let requestsRows = [];
-            let offersPrimaryRows = [];
-            let requestsPrimaryRows = [];
-
-            //2 sheets per token (1 per market)
-            let sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-            let sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-
-            while(_timeHigh <= timeHigh) {
-                //1 DAY per iteration
-
-                //define vars
-                let dayRow = [];
-                let weekRow = [];
-                let dayRowPrimary = [];
-                let weekRowPrimary = [];
-                
-                let dayOffers = await getPackableOffers(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-                let dayOffersPrimary = await getPackableOffersPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-                let dayRequests = await getPackableRequests(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-                let dayRequestsPrimary = await getPackableRequestsPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url);
-
-                if (dayOffers.length > 0) {
-                    for (let p = 0; p < dayOffers.length; p++) {
-                        //1 OFFER per iteration
-                        if (dayOffers[p].deals.length > 0) {
-                            //1 DEALS ARRAY per iteration
-                            let deals = dayOffers[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                //1 DEAL per iteration
-                                let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                                let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
-                                dayCounter = dayCounter + amount;
-                                weekCounter = weekCounter + amount;
-                                monthCounter = monthCounter + amount;
-
-                                let usdAmount = 0;
-
-                                if (
-                                    (deals[q].offer.buyToken.id == Constants.USD.address) ||
-                                    (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                                    (deals[q].offer.buyToken.id == Constants.PEL.address)
-                                ) {
-                                    usdAmount = buyAmount;
-                                } else {
-                                    usdAmount = await convertToUsd(
-                                        buyAmount, 
-                                        deals[q].offer.buyToken.id,
-                                        deals[q].timestamp
-                                    );
-                                }
-
-                                dayCounterUsd = dayCounterUsd + usdAmount;
-                                weekCounterUsd = weekCounterUsd + usdAmount;
-                                monthCounterUsd = monthCounterUsd + usdAmount;
-
-                                //DEALS TABLE
-                                let array = [];
-
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.buyToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                offersRows.push(array);
-                                //1 DEAL per iteration
-                            }
-                            //1 DEALS ARRAY per iteration
-                        }
-                        //1 OFFER per iteration
-                    }
-                }
-
-                if (dayOffersPrimary.length > 0) {
-                    for (let p = 0; p < dayOffersPrimary.length; p++) {
-                        if (dayOffersPrimary[p].deals.length > 0) {
-                            let deals = dayOffersPrimary[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                let amount = parseFloat(weiToEther(deals[q].sellAmount));
-                                let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
-                                dayCounterPrimary = dayCounterPrimary + amount;
-                                weekCounterPrimary = weekCounterPrimary + amount;
-                                monthCounterPrimary = monthCounterPrimary + amount;
-
-                                let usdAmount = 0;
-
-                                if (
-                                    (deals[q].offer.buyToken.id == Constants.USD.address) ||
-                                    (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                                    (deals[q].offer.buyToken.id == Constants.PEL.address)
-                                ) {
-                                    usdAmount = buyAmount;
-                                } else {
-                                    usdAmount = await convertToUsd(
-                                        buyAmount, 
-                                        deals[q].offer.buyToken.id,
-                                        deals[q].timestamp
-                                    );
-                                }
-
-                                dayCounterPrimaryUsd = dayCounterPrimaryUsd + usdAmount;
-                                weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                                monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-
-                                let array = [];
-    
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.buyToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                offersPrimaryRows.push(array);
-                                //1 DEAL per iteration
-                            }
-                            //1 DEALS ARRAY per iteration
-                        }
-                        //1 OFFER per iteration
-                    }
-                }
-
-                if (dayRequests.length > 0) {
-                    for (let p = 0; p < dayRequests.length; p++) {
-                        if (dayRequests[p].deals.length > 0) {
-                            let deals = dayRequests[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                                let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
-                                dayCounter = dayCounter + amount;
-                                weekCounter = weekCounter + amount;
-                                monthCounter = monthCounter + amount;
-
-                                let usdAmount = 0;
-
-                                if (
-                                    (deals[q].offer.sellToken.id == Constants.USD.address) ||
-                                    (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                                    (deals[q].offer.sellToken.id == Constants.PEL.address)
-                                ) {
-                                    usdAmount = sellAmount;
-                                } else {
-                                    usdAmount = await convertToUsd(
-                                        sellAmount, 
-                                        deals[q].offer.sellToken.id,
-                                        deals[q].timestamp
-                                    );
-                                }
-
-                                dayCounterUsd = dayCounterUsd + usdAmount;
-                                weekCounterUsd = weekCounterUsd + usdAmount;
-                                monthCounterUsd = monthCounterUsd + usdAmount;
-
-                                let array = [];
-    
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.sellToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                requestsRows.push(array);
-                                //1 DEAL per iteration
-                            }
-                            //1 DEALS ARRAY per iteration
-                        }
-                        //1 OFFER per iteration
-                    }
-                }
-
-                if (dayRequestsPrimary.length > 0) {
-                    for (let p = 0; p < dayRequestsPrimary.length; p++) {
-                        if (dayRequestsPrimary[p].deals.length > 0) {
-                            let deals = dayRequestsPrimary[p].deals;
-                            for (let q = 0; q < deals.length; q++) {
-                                let amount = parseFloat(weiToEther(deals[q].buyAmount));
-                                let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
-                                dayCounterPrimary = dayCounterPrimary + amount;
-                                weekCounterPrimary = weekCounterPrimary + amount;
-                                monthCounterPrimary = monthCounterPrimary + amount;
-
-                                let usdAmount = 0;
-
-                                if (
-                                    (deals[q].offer.sellToken.id == Constants.USD.address) ||
-                                    (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                                    (deals[q].offer.sellToken.id == Constants.PEL.address)
-                                ) {
-                                    usdAmount = sellAmount;
-                                } else {
-                                    usdAmount = await convertToUsd(
-                                        sellAmount, 
-                                        deals[q].offer.sellToken.id,
-                                        deals[q].timestamp
-                                    );
-                                }
-
-                                dayCounterUsd = dayCounterUsd + usdAmount;
-                                weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                                monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-
-                                let array = [];
-    
-                                array.push(new Date(deals[q].timestamp * 1000));
-                                array.push(timeConverter(deals[q].offer.timestamp));
-                                array.push(timeConverter(deals[q].timestamp));
-                                array.push(deals[q].offer.sellToken.tokenSymbol);
-        
-                                if (deals[q].seller.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].seller.name);
-                                }
-        
-                                if (deals[q].buyer.name == null) {
-                                    array.push("");
-                                } else {
-                                    array.push(deals[q].buyer.name);
-                                }
-        
-                                array.push(parseFloat(weiToEther(deals[q].buyAmount)));
-                                array.push(parseFloat(weiToEther(deals[q].sellAmount)));
-                                requestsPrimaryRows.push(array);
-                            }
-                        }
-                    }
-                }
-
-                if (day == 7 * week) {
-                    //1 WEEK per iteration
-
-                    //SECONDARY
-                    weekRow.push(week);
-                    weekRow.push(weekCounter);
-                    weekRow.push(weekCounterUsd);
-                    if (weekCounter == 0) weekCounter = 1;
-                    weekRow.push(weekCounterUsd / weekCounter);
-                    weekRows.push(weekRow);
-
-                    weekCounter = 0;
-                    weekCounterUsd = 0;
-
-                    //PRIMARY
-                    weekRowPrimary.push(week);
-                    weekRowPrimary.push(weekCounterPrimary);
-                    weekRowPrimary.push(weekCounterPrimaryUsd);
-                    if (weekCounterPrimary == 0) weekCounterPrimary = 1;
-                    weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
-                    weekRowsPrimary.push(weekRowPrimary);
-
-                    weekCounterPrimary = 0;
-                    weekCounterPrimaryUsd = 0;
-
-                    week++;
-                    //1 WEEK per iteration
-                }
-
-                //secondary
-                dayRow.push(day);
-                dayRow.push(dayCounter);
-                dayRow.push(dayCounterUsd);
-                if (dayCounter == 0) dayCounter = 1;
-                dayRow.push(dayCounterUsd / dayCounter);
-                dayRows.push(dayRow);
-
-                dayCounter = 0;
-                dayCounterUsd = 0;
-
-                //primary
-                dayRowPrimary.push(day);
-                dayRowPrimary.push(dayCounterPrimary);
-                dayRowPrimary.push(dayCounterPrimaryUsd);
-                if (dayCounterPrimary == 0) dayCounterPrimary = 1;
-                dayRowPrimary.push(dayCounterPrimaryUsd / dayCounterPrimary);
-                dayRowsPrimary.push(dayRowPrimary);
-
-                dayCounterPrimary = 0;
-                dayCounterPrimaryUsd = 0;
-                
-                day++;
-                _timeLow = _timeHigh;
-                _timeHigh = _timeLow + ONE_UTC_DAY;
-                //1 DAY per iteration
-            }
-
-            //5th week...days (29-31)
-            //secondary
-            let weekRow = [];
-            let monthRow = [];
-
-            weekRow.push(week);
-            weekRow.push(weekCounter);
-            weekRow.push(weekCounterUsd);
-            if (weekCounter == 0) weekCounter = 1;
-            weekRow.push(weekCounterUsd / weekCounter);
-            weekRows.push(weekRow);
-
-            //primary
-            let weekRowPrimary = [];
-            let monthRowPrimary = []; 
-
-            weekRowPrimary.push(week);
-            weekRowPrimary.push(weekCounterPrimary);
-            weekRowPrimary.push(weekCounterPrimaryUsd);
-            if (weekCounterPrimary == 0) weekCounterPrimary = 1;
-            weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
-            weekRowsPrimary.push(weekRowPrimary);
-
-            //MONTH
-            //secondary
-            monthRow.push(month);
-            monthRow.push(monthCounter);
-            monthRow.push(monthCounterUsd);
-            if (monthCounter == 0) monthCounter = 1;
-            monthRow.push(monthCounterUsd / monthCounter);
-            monthRows.push(monthRow);
-
-            //primary
-            monthRowPrimary.push(month);
-            monthRowPrimary.push(monthCounterPrimary);
-            monthRowPrimary.push(monthCounterPrimaryUsd);
-            if (monthCounterPrimary == 0) monthCounterPrimary = 1;
-            monthRowPrimary.push(monthCounterPrimaryUsd / monthCounterPrimary);
-            monthRowsPrimary.push(monthRowPrimary);
-
-            //ADD TABLES
-            let tableDay = 'TablaDay' + tokensArray[i].symbol;
-            let tableWeek = 'TablaWeek' + tokensArray[i].symbol;
-            let tableMonth = 'TablaMonth' + tokensArray[i].symbol;
-            let tableDayPrimary = 'TablaDayPrimary' + tokensArray[i].symbol;
-            let tableWeekPrimary = 'TablaWeekPrimary' + tokensArray[i].symbol;
-            let tableMonthPrimary = 'TablaMonthPrimary' + tokensArray[i].symbol;
-
-            addTable(
-                sheet,
-                tableDay,
-                'B3',
-                [
-                    {name: 'Día', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                dayRows
-            );
-
-            addTable(
-                sheet,
-                tableWeek,
-                'G3',
-                [
-                    {name: 'Semana', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                weekRows
-            );
-
-            addTable(
-                sheet,
-                tableMonth,
-                'L3',
-                [
-                    {name: 'Mes', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                monthRows
-            );
-
-            addTable(
-                sheet2,
-                tableDayPrimary,
-                'B3',
-                [
-                    {name: 'Día', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                dayRowsPrimary
-            );
-
-            addTable(
-                sheet2,
-                tableWeekPrimary,
-                'G3',
-                [
-                    {name: 'Semana', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                weekRowsPrimary
-            );
-
-            addTable(
-                sheet2,
-                tableMonthPrimary,
-                'L3',
-                [
-                    {name: 'Mes', filterButton: true},
-                    {name: 'Monto', totalsRowFunction: 'sum'},
-                    {name: 'Monto (USD)', totalsRowFunction: 'sum'},
-                    {name: 'Tipo de cambio'}
-                ],
-                monthRowsPrimary
-            );
-
-            sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-            sheet.getCell('B36').font = {bold: true};
-            let tableName = 'Tabla' + tokensArray[i].symbol;
-
-            if (offersRows.length == 0) {
-                offersRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet,
-                tableName,
-                'B37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                offersRows
-            );
-
-            sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
-            sheet.getCell('K36').font = {bold: true};
-            let tableName2 = 'Tabla2' + tokensArray[i].symbol;
-
-            if (requestsRows.length == 0) {
-                requestsRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet,
-                tableName2,
-                'K37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                requestsRows
-            );
-
-            sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-            sheet2.getCell('B36').font = {bold: true};
-            let tableName3 = 'TablaPrimario' + tokensArray[i].symbol;
-
-            if (offersPrimaryRows.length == 0) {
-                offersPrimaryRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet2,
-                tableName3,
-                'B37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                offersPrimaryRows
-            );
-
-            sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
-            sheet2.getCell('K36').font = {bold: true};
-            let tableName4 = 'TablaPrimario2' + tokensArray[i].symbol;
-
-            if (requestsPrimaryRows.length == 0) {
-                requestsPrimaryRows = getEmtpyDeal();
-            }
-
-            await addTable(
-                sheet2,
-                tableName4,
-                'K37',
-                [
-                    {name: 'Fecha (pacto)', filterButton: true},
-                    {name: 'Hora (oferta)'},
-                    {name: 'Hora (pacto)'},
-                    {name: 'Contrapartida', filterButton: true},
-                    {name: 'Vendedor (usuario)', filterButton: true},
-                    {name: 'Comprador (usuario)', filterButton: true},
-                    {name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum'},
-                    {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
-                ],
-                requestsPrimaryRows
-            );
-
-            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-            sheet.getCell('C1').font = {bold: true};
-            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-            sheet2.getCell('C1').font = {bold: true};
-
-            sheet.getCell('B2').value = 'TOTAL (diario)';
-            sheet.getCell('B2').font = {bold: true};
-            sheet2.getCell('B2').value = 'TOTAL (diario)';
-            sheet2.getCell('B2').font = {bold: true};
-            
-            sheet.getCell('G2').value = 'TOTAL (semanal)';
-            sheet.getCell('G2').font = {bold: true};
-            sheet2.getCell('G2').value = 'TOTAL (semanal)';
-            sheet2.getCell('G2').font = {bold: true};
-
-            sheet.getCell('L2').value = 'TOTAL (mensual)';
-            sheet.getCell('L2').font = {bold: true};
-            sheet2.getCell('L2').value = 'TOTAL (mensual)';
-            sheet2.getCell('L2').font = {bold: true};
-        }
-
-        try {
-            await workbook.xlsx.writeFile('PiMarketsMonthPackableDealsReport.xlsx');
-        } catch (error) {
-            let buffer = await workbook.xlsx.writeBuffer();
-            
-            try {
-                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthPackableDealsReport.xlsx');
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReportV2.xlsx');
             } catch (err) {
                 console.error(err);
             }
@@ -5684,6 +1420,1709 @@ export class Report {
 
         return new HoldersReportData(token.address, token.symbol, holders, offers, expiry);
     }
+}
+
+async function setTransactionSheet(
+    sheet: any,
+    timeLow: number,
+    timeHigh: number,
+    monthIndex: number,
+    year: number,
+    toMonthIndex: number,
+    toYear: number,
+    url: string,
+    token: any
+) {
+    //define vars
+    let day = 1;
+    let week = 1;
+    let month = 1;
+    let dayCounter = 0;
+    let weekCounter = 0;
+    let weekRates = 0;
+    let monthCounter = 0;
+    let monthRates = 0;
+    let weekZeros = 0;
+    let monthZeros = 0;
+    let _timeLow = timeLow;
+    let _timeHigh = _timeLow + ONE_UTC_DAY;
+    let dayRows = [];
+    let weekRows = [];
+    let monthRows = [];
+    let txRows = [];
+
+    //rates: array[31] with USD price (padded with 0s)
+    let rates = await getDayRate(
+        year, 
+        monthIndex, 
+        toYear, 
+        toMonthIndex, 
+        token.address,
+        token.category
+    );
+
+    let transactions = await try_getTransactions(timeLow, timeHigh, token.address, url);
+
+    let nextTx: any;
+    let nextTimestamp: number;
+
+    if (transactions.length > 0) {
+        nextTx = transactions.pop();
+        nextTimestamp = nextTx.timestamp;
+    } else {
+        nextTimestamp = 0;
+    }
+
+    while(_timeHigh <= timeHigh) {
+
+        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+            //compute tx
+            let txDayRow = [];
+            let amount = parseFloat(weiToEther(nextTx.amount));
+            dayCounter = dayCounter + amount;
+            weekCounter = weekCounter + amount;
+            monthCounter = monthCounter + amount;
+        
+            //TXs Table
+            txDayRow.push(new Date(nextTx.timestamp * 1000));
+            txDayRow.push(nextTx.currency.tokenSymbol);
+            txDayRow.push(nextTx.from.id);
+
+            if (nextTx.from.name == null) {
+                txDayRow.push("");
+            } else {
+                txDayRow.push(nextTx.from.name.id);
+            }
+
+            txDayRow.push(nextTx.to.id);
+
+            if (nextTx.to.name == null) {
+                txDayRow.push("");
+            } else {
+                txDayRow.push(nextTx.to.name.id);
+            }
+
+            txDayRow.push(parseFloat(weiToEther(nextTx.amount)));
+            txRows.push(txDayRow);
+
+            //pop new tx
+            if (transactions.length > 0) {
+                nextTx = transactions.pop();
+                nextTimestamp = nextTx.timestamp;
+            } else {
+                nextTimestamp = 0;
+            }
+        }
+
+        //update week and month rate counters
+        weekRates = weekRates + rates[day - 1];
+        monthRates = monthRates + rates[day - 1];
+        if (rates[day - 1] == 0) {
+            weekZeros++;
+            monthZeros++;
+        }
+
+        //compute week
+        if (day == 7 * week) {
+            //calc this week rate
+            if ((7 - weekZeros) == 0){
+                weekRates = 0;
+            } else {
+                weekRates = weekRates / (7 - weekZeros);
+            }
+
+            //update week arrays
+            let weekRow = []; 
+            
+            weekRow.push(week);
+            weekRow.push(weekCounter);
+            weekRow.push(weekCounter * weekRates);
+            weekRow.push(weekRates);
+            weekRows.push(weekRow);
+
+            //reset and update counters
+            week++;
+            weekCounter = 0;
+            weekRates = 0;
+            weekZeros = 0;
+        }
+
+        //compute day
+        let dayRow = [];
+
+        dayRow.push(day);
+        dayRow.push(dayCounter);
+        dayRow.push(dayCounter * rates[day - 1]);
+        dayRow.push(rates[day - 1]);
+        dayRows.push(dayRow);
+
+        //update and reset day counters
+        day++;
+        dayCounter = 0;
+        _timeLow = _timeHigh;
+        _timeHigh = _timeLow + ONE_UTC_DAY;
+    }
+
+    //5th week...days (29-31)
+    //5th WEEK (days 29-31)
+    let weekRow = [];
+    
+    //calc 5th week rate
+    if ((day - 29 - weekZeros) == 0){
+        weekRates = 0;
+    } else {
+        weekRates = weekRates / (day - 29 - weekZeros);
+    }
+
+    //update week arrays
+    weekRow.push(week);
+    weekRow.push(weekCounter);
+    weekRow.push(weekCounter * weekRates);
+    weekRow.push(weekRates);
+    weekRows.push(weekRow);
+
+    //compute month
+    let monthRow = [];
+
+    //calc month rate
+    if ((day - 1 - monthZeros) == 0){
+        monthRates = 0;
+    } else {
+        monthRates = monthRates / (day - 1 - monthZeros);
+    }
+
+    //update month arrays
+    monthRow.push(month);
+    monthRow.push(monthCounter);
+    monthRow.push(monthCounter * monthRates);
+    monthRow.push(monthRates);
+    monthRows.push(monthRow);
+
+    //add tables
+    //ADD SHEET TABLES
+    let tableDay = 'TablaDay' + token.symbol;
+    let tableWeek = 'TablaWeek' + token.symbol;
+    let tableMonth = 'TablaMonth' + token.symbol;
+
+    addTable(
+        sheet,
+        tableDay,
+        'B2',
+        [
+            {name: 'Día', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        dayRows
+    );
+
+    addTable(
+        sheet,
+        tableWeek,
+        'G2',
+        [
+            {name: 'Semana', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        weekRows
+    );
+
+    addTable(
+        sheet,
+        tableMonth,
+        'L2',
+        [
+            {name: 'Mes', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        monthRows
+    );
+
+    //TXs TABLE
+    let tableName = 'Tabla' + token.symbol;
+
+    if (txRows.length == 0) {
+        txRows = getEmptyTransaction();
+    }
+
+    addTable(
+        sheet,
+        tableName,
+        'B36',
+        [
+            {name: 'Fecha', filterButton: true},
+            {name: 'Divisa'},
+            {name: 'Origen (wallet)'},
+            {name: 'Origen (usuario)', filterButton: true},
+            {name: 'Destino (wallet)'},
+            {name: 'Destino (usuario)', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'}
+        ],
+        txRows
+    );
+
+    //CELL LABELS
+    sheet.getCell('B35').value = 'TRANSFERENCIAS';
+    sheet.getCell('B35').font = {bold: true};
+    
+    sheet.getCell('B1').value = 'TOTAL (diario)';
+    sheet.getCell('B1').font = {bold: true};
+    
+    sheet.getCell('G1').value = 'TOTAL (semanal)';
+    sheet.getCell('G1').font = {bold: true};
+
+    sheet.getCell('L1').value = 'TOTAL (mensual)';
+    sheet.getCell('L1').font = {bold: true};
+}
+
+async function setTokenDealsSheet(
+    sheet: any,
+    timeLow: number,
+    timeHigh: number,
+    monthIndex: number,
+    year: number,
+    toMonthIndex: number,
+    toYear: number,
+    url: string,
+    token: any
+) {
+    //define vars
+    let day = 1;
+    let week = 1;
+    let month = 1;
+    let dayCounter = 0;
+    let weekCounter = 0;
+    let monthCounter = 0;
+    let weekRates = 0;
+    let monthRates = 0;
+    let weekZeros = 0;
+    let monthZeros = 0;
+    let _timeLow = timeLow;
+    let _timeHigh = _timeLow + ONE_UTC_DAY;
+    let dayRows = [];
+    let weekRows = [];
+    let monthRows = [];
+    let offersRows = [];
+    let requestsRows = [];
+
+    let dayOffers = await try_getOffers(timeLow, timeHigh, token.address, url);
+    let dayRequests = await try_getRequests(timeLow, timeHigh, token.address, url);
+
+    //rates: array[31] with USD price (padded with 0s)
+    let rates = await getDayRate(
+        year, 
+        monthIndex, 
+        toYear, 
+        toMonthIndex, 
+        token.address,
+        token.category
+    );
+
+    let nextOffer: any;
+    let nextTimestamp: number;
+    let nextIsOffer: boolean;
+
+    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+        nextOffer = dayRequests.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = false;
+    } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+        nextOffer = dayOffers.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = true;
+    } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+        let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+        let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+        if (nextOfferTimestamp < nextRequestTimestamp) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        }
+    } else {
+        nextTimestamp = 0;
+    }
+
+    while (_timeHigh <= timeHigh) {
+
+        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+            //compute offer
+            if (nextOffer.deals.length > 0) {
+                if (nextIsOffer) {
+                    //COMPUTE OFFER
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        //1 DEAL per iteration
+                        let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        //DEALS TABLE
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.buyToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        offersRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                } else {
+                    //COMPUTE REQUEST
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.sellToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        requestsRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                }
+            }
+
+            //pop new offer
+            if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+    
+                if (nextOfferTimestamp < nextRequestTimestamp) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                }
+            } else {
+                nextTimestamp = 0;
+            }
+        }
+
+        //update week and month rates
+        weekRates = weekRates + rates[day - 1];
+        monthRates = monthRates + rates[day - 1];
+        if (rates[day - 1] == 0) {
+            weekZeros++;
+            monthZeros++;
+        }
+
+        //compute week
+        if (day == 7 * week) {
+            //WEEK
+            //calc week rate
+            if ((7 - weekZeros) == 0){
+                weekRates = 0;
+            } else {
+                weekRates = weekRates / (7 - weekZeros);
+            }
+
+            let weekRow = [];
+
+            weekRow.push(week);
+            weekRow.push(weekCounter);
+            weekRow.push(weekCounter * weekRates);
+            weekRow.push(weekRates);
+            weekRows.push(weekRow);
+
+            weekCounter = 0;
+            weekRates = 0
+            weekZeros = 0;
+            week++;
+        }
+
+        //compute day
+        let dayRow = [];
+
+        dayRow.push(day);
+        dayRow.push(dayCounter);
+        dayRow.push(dayCounter * rates[day - 1]);
+        dayRow.push(rates[day - 1]);
+        dayRows.push(dayRow);
+
+        dayCounter = 0;
+
+        day++;
+        _timeLow = _timeHigh;
+        _timeHigh = _timeLow + ONE_UTC_DAY;
+    }
+
+    //5th week...days (29-31)
+    let weekRow = [];
+
+    //calc 5th week rates
+    if ((day - 29 - weekZeros) == 0){
+        weekRates = 0;
+    } else {
+        weekRates = weekRates / (day - 29 - weekZeros);
+    }
+
+    weekRow.push(week);
+    weekRow.push(weekCounter);
+    weekRow.push(weekCounter * weekRates);
+    weekRow.push(weekRates);
+    weekRows.push(weekRow);
+
+    //MONTH
+    let monthRow = [];
+
+    if ((day - 1 - monthZeros) == 0){
+        monthRates = 0;
+    } else {
+        monthRates = monthRates / (day - 1 - monthZeros);
+    }
+
+    monthRow.push(month);
+    monthRow.push(monthCounter);
+    monthRow.push(monthCounter * monthRates);
+    monthRow.push(monthRates);
+    monthRows.push(monthRow);
+
+    //ADD TABLES
+    let tableDay = 'TablaDay' + token.symbol;
+    let tableWeek = 'TablaWeek' + token.symbol;
+    let tableMonth = 'TablaMonth' + token.symbol;
+
+    addTable(
+        sheet,
+        tableDay,
+        'B3',
+        [
+            {name: 'Día', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        dayRows
+    );
+
+    addTable(
+        sheet,
+        tableWeek,
+        'G3',
+        [
+            {name: 'Semana', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        weekRows
+    );
+
+    addTable(
+        sheet,
+        tableMonth,
+        'L3',
+        [
+            {name: 'Mes', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        monthRows
+    );
+
+    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+    sheet.getCell('B36').font = {bold: true};
+    let tableName = 'Tabla' + token.symbol;
+
+    if (offersRows.length == 0) {
+        offersRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName,
+        'B37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        offersRows
+    );
+
+    sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+    sheet.getCell('K36').font = {bold: true};
+    let tableName2 = 'Tabla2' + token.symbol;
+
+    if (requestsRows.length == 0) {
+        requestsRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName2,
+        'K37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        requestsRows
+    );
+
+    sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+    sheet.getCell('C1').font = {bold: true};
+
+    sheet.getCell('B2').value = 'TOTAL (diario)';
+    sheet.getCell('B2').font = {bold: true};
+    
+    sheet.getCell('G2').value = 'TOTAL (semanal)';
+    sheet.getCell('G2').font = {bold: true};
+
+    sheet.getCell('L2').value = 'TOTAL (mensual)';
+    sheet.getCell('L2').font = {bold: true};
+}
+
+async function setPrimaryTokenDealsSheet(
+    sheet: any,
+    timeLow: number,
+    timeHigh: number,
+    monthIndex: number,
+    year: number,
+    toMonthIndex: number,
+    toYear: number,
+    url: string,
+    token: any
+) {
+    //define vars
+    let day = 1;
+    let week = 1;
+    let month = 1;
+    let dayCounter = 0;
+    let weekCounter = 0;
+    let monthCounter = 0;
+    let weekRates = 0;
+    let monthRates = 0;
+    let weekZeros = 0;
+    let monthZeros = 0;
+    let _timeLow = timeLow;
+    let _timeHigh = _timeLow + ONE_UTC_DAY;
+    let dayRows = [];
+    let weekRows = [];
+    let monthRows = [];
+    let offersRows = [];
+    let requestsRows = [];
+
+    let dayOffers = await try_getOffersPrimary(timeLow, timeHigh, token.address, url);
+    let dayRequests = await try_getRequestsPrimary(timeLow, timeHigh, token.address, url);
+
+    //rates: array[31] with USD price (padded with 0s)
+    let rates = await getDayRate(
+        year, 
+        monthIndex, 
+        toYear, 
+        toMonthIndex, 
+        token.address,
+        token.category
+    );
+
+    let nextOffer: any;
+    let nextTimestamp: number;
+    let nextIsOffer: boolean;
+
+    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+        nextOffer = dayRequests.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = false;
+    } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+        nextOffer = dayOffers.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = true;
+    } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+        let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+        let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+        if (nextOfferTimestamp < nextRequestTimestamp) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        }
+    } else {
+        nextTimestamp = 0;
+    }
+
+    while (_timeHigh <= timeHigh) {
+
+        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+            //compute offer
+            if (nextOffer.deals.length > 0) {
+                if (nextIsOffer) {
+                    //COMPUTE OFFER
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        //1 DEAL per iteration
+                        let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        //DEALS TABLE
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.buyToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        offersRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                } else {
+                    //COMPUTE REQUEST
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.sellToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        requestsRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                }
+            }
+
+            //pop new offer
+            if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+    
+                if (nextOfferTimestamp < nextRequestTimestamp) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                }
+            } else {
+                nextTimestamp = 0;
+            }
+        }
+
+        //update week and month rates
+        weekRates = weekRates + rates[day - 1];
+        monthRates = monthRates + rates[day - 1];
+        if (rates[day - 1] == 0) {
+            weekZeros++;
+            monthZeros++;
+        }
+
+        //compute week
+        if (day == 7 * week) {
+            //WEEK
+            //calc week rate
+            if ((7 - weekZeros) == 0){
+                weekRates = 0;
+            } else {
+                weekRates = weekRates / (7 - weekZeros);
+            }
+
+            //compute day
+            let weekRow = [];
+
+            weekRow.push(week);
+            weekRow.push(weekCounter);
+            weekRow.push(weekCounter * weekRates);
+            weekRow.push(weekRates);
+            weekRows.push(weekRow);
+
+            weekCounter = 0;
+            weekRates = 0
+            weekZeros = 0;
+            week++;
+        }
+
+        let dayRow = [];
+
+        dayRow.push(day);
+        dayRow.push(dayCounter);
+        dayRow.push(dayCounter * rates[day - 1]);
+        dayRow.push(rates[day - 1]);
+        dayRows.push(dayRow);
+
+        dayCounter = 0;
+
+        day++;
+        _timeLow = _timeHigh;
+        _timeHigh = _timeLow + ONE_UTC_DAY;
+    }
+
+    //5th week...days (29-31)
+    let weekRow = [];
+
+    //calc 5th week rates
+    if ((day - 29 - weekZeros) == 0){
+        weekRates = 0;
+    } else {
+        weekRates = weekRates / (day - 29 - weekZeros);
+    }
+
+    weekRow.push(week);
+    weekRow.push(weekCounter);
+    weekRow.push(weekCounter * weekRates);
+    weekRow.push(weekRates);
+    weekRows.push(weekRow);
+
+    //MONTH
+    let monthRow = [];
+
+    if ((day - 1 - monthZeros) == 0){
+        monthRates = 0;
+    } else {
+        monthRates = monthRates / (day - 1 - monthZeros);
+    }
+
+    monthRow.push(month);
+    monthRow.push(monthCounter);
+    monthRow.push(monthCounter * monthRates);
+    monthRow.push(monthRates);
+    monthRows.push(monthRow);
+
+    //ADD TABLES
+    let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+    let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+    let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+
+    addTable(
+        sheet,
+        tableDayPrimary,
+        'B3',
+        [
+            {name: 'Día', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        dayRows
+    );
+
+    addTable(
+        sheet,
+        tableWeekPrimary,
+        'G3',
+        [
+            {name: 'Semana', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        weekRows
+    );
+
+    addTable(
+        sheet,
+        tableMonthPrimary,
+        'L3',
+        [
+            {name: 'Mes', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        monthRows
+    );
+
+    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+    sheet.getCell('B36').font = {bold: true};
+    let tableName3 = 'TablaPrimario' + token.symbol;
+
+    if (offersRows.length == 0) {
+        offersRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName3,
+        'B37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        offersRows
+    );
+
+    sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
+    sheet.getCell('K36').font = {bold: true};
+    let tableName4 = 'TablaPrimario2' + token.symbol;
+
+    if (requestsRows.length == 0) {
+        requestsRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName4,
+        'K37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        requestsRows
+    );
+
+    sheet.getCell('C1').value = 'Mercado P2P (Primario)';
+    sheet.getCell('C1').font = {bold: true};
+
+    sheet.getCell('B2').value = 'TOTAL (diario)';
+    sheet.getCell('B2').font = {bold: true};
+    
+    sheet.getCell('G2').value = 'TOTAL (semanal)';
+    sheet.getCell('G2').font = {bold: true};
+
+    sheet.getCell('L2').value = 'TOTAL (mensual)';
+    sheet.getCell('L2').font = {bold: true};
+}
+
+async function setPackableDealsSheet(
+    sheet: any,
+    timeLow: number,
+    timeHigh: number,
+    url: string,
+    token: any
+) {
+    //define vars
+    let day = 1;
+    let week = 1;
+    let month = 1;
+    let dayCounter = 0;
+    let weekCounter = 0;
+    let monthCounter = 0;
+    let dayCounterUsd = 0;
+    let weekCounterUsd = 0;
+    let monthCounterUsd = 0;
+    let _timeLow = timeLow;
+    let _timeHigh = _timeLow + ONE_UTC_DAY;
+    let dayRows = [];
+    let weekRows = [];
+    let monthRows = [];
+    let offersRows = [];
+    let requestsRows = [];
+
+    let dayOffers = await try_getPackableOffers(timeLow, timeHigh, token.address, url);
+    let dayRequests = await try_getPackableRequests(timeLow, timeHigh, token.address, url);
+
+    let nextOffer: any;
+    let nextTimestamp: number;
+    let nextIsOffer: boolean;
+
+    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+        nextOffer = dayRequests.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = false;
+    } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+        nextOffer = dayOffers.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = true;
+    } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+        let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+        let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+        if (nextOfferTimestamp < nextRequestTimestamp) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        }
+    } else {
+        nextTimestamp = 0;
+    }
+
+    while (_timeHigh <= timeHigh) {
+
+        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+            //compute offer
+            if (nextOffer.deals.length > 0) {
+                if (nextIsOffer) {
+                    //COMPUTE OFFER
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        //1 DEAL per iteration
+                        let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                        let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        let usdAmount = 0;
+
+                        if (
+                            (deals[q].offer.buyToken.id == Constants.USD.address) ||
+                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                            (deals[q].offer.buyToken.id == Constants.PEL.address)
+                        ) {
+                            usdAmount = buyAmount;
+                        } else {
+                            usdAmount = await convertToUsd(
+                                buyAmount, 
+                                deals[q].offer.buyToken.id,
+                                deals[q].timestamp
+                            );
+                        }
+
+                        dayCounterUsd = dayCounterUsd + usdAmount;
+                        weekCounterUsd = weekCounterUsd + usdAmount;
+                        monthCounterUsd = monthCounterUsd + usdAmount;
+
+                        //DEALS TABLE
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.buyToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        offersRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                } else {
+                    //COMPUTE REQUEST
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                        let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        let usdAmount = 0;
+
+                        if (
+                            (deals[q].offer.sellToken.id == Constants.USD.address) ||
+                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                            (deals[q].offer.sellToken.id == Constants.PEL.address)
+                        ) {
+                            usdAmount = sellAmount;
+                        } else {
+                            usdAmount = await convertToUsd(
+                                sellAmount, 
+                                deals[q].offer.sellToken.id,
+                                deals[q].timestamp
+                            );
+                        }
+
+                        dayCounterUsd = dayCounterUsd + usdAmount;
+                        weekCounterUsd = weekCounterUsd + usdAmount;
+                        monthCounterUsd = monthCounterUsd + usdAmount;
+
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.sellToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        requestsRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                }
+            }
+
+            //pop new offer
+            if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+    
+                if (nextOfferTimestamp < nextRequestTimestamp) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                }
+            } else {
+                nextTimestamp = 0;
+            }
+        }
+
+        //compute week
+        if (day == 7 * week) {
+            //WEEK
+            let weekRow = [];
+            //secondary
+            weekRow.push(week);
+            weekRow.push(weekCounter);
+            weekRow.push(weekCounterUsd);
+            if (weekCounter == 0) weekCounter = 1;
+            weekRow.push(weekCounterUsd / weekCounter);
+            weekRows.push(weekRow);
+
+            weekCounter = 0;
+            weekCounterUsd = 0;
+            week++;
+        }
+
+        //compute day
+        let dayRow = [];
+
+        dayRow.push(day);
+        dayRow.push(dayCounter);
+        dayRow.push(dayCounterUsd);
+        if (dayCounter == 0) dayCounter = 1;
+        dayRow.push(dayCounterUsd / dayCounter);
+        dayRows.push(dayRow);
+
+        dayCounter = 0;
+        dayCounterUsd = 0;
+
+        day++;
+        _timeLow = _timeHigh;
+        _timeHigh = _timeLow + ONE_UTC_DAY;
+    }
+
+    //5th week...days (29-31)
+    let weekRow = [];
+    weekRow.push(week);
+    weekRow.push(weekCounter);
+    weekRow.push(weekCounterUsd);
+    if (weekCounter == 0) weekCounter = 1;
+    weekRow.push(weekCounterUsd / weekCounter);
+    weekRows.push(weekRow);
+
+    //MONTH
+    let monthRow = [];
+    monthRow.push(month);
+    monthRow.push(monthCounter);
+    monthRow.push(monthCounterUsd);
+    if (monthCounter == 0) monthCounter = 1;
+    monthRow.push(monthCounterUsd / monthCounter);
+    monthRows.push(monthRow);
+
+    //ADD TABLES
+    let tableDay = 'TablaDay' + token.symbol;
+    let tableWeek = 'TablaWeek' + token.symbol;
+    let tableMonth = 'TablaMonth' + token.symbol;
+
+    addTable(
+        sheet,
+        tableDay,
+        'B3',
+        [
+            {name: 'Día', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        dayRows
+    );
+
+    addTable(
+        sheet,
+        tableWeek,
+        'G3',
+        [
+            {name: 'Semana', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        weekRows
+    );
+
+    addTable(
+        sheet,
+        tableMonth,
+        'L3',
+        [
+            {name: 'Mes', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        monthRows
+    );
+
+    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+    sheet.getCell('B36').font = {bold: true};
+    let tableName = 'Tabla' + token.symbol;
+
+    if (offersRows.length == 0) {
+        offersRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName,
+        'B37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        offersRows
+    );
+
+    sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+    sheet.getCell('K36').font = {bold: true};
+    let tableName2 = 'Tabla2' + token.symbol;
+
+    if (requestsRows.length == 0) {
+        requestsRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName2,
+        'K37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        requestsRows
+    );
+
+    sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+    sheet.getCell('C1').font = {bold: true};
+
+    sheet.getCell('B2').value = 'TOTAL (diario)';
+    sheet.getCell('B2').font = {bold: true};
+    
+    sheet.getCell('G2').value = 'TOTAL (semanal)';
+    sheet.getCell('G2').font = {bold: true};
+
+    sheet.getCell('L2').value = 'TOTAL (mensual)';
+    sheet.getCell('L2').font = {bold: true};
+}
+
+async function setPrimaryPackableDealsSheet(
+    sheet: any,
+    timeLow: number,
+    timeHigh: number,
+    url: string,
+    token: any
+) {
+    //define vars
+    let day = 1;
+    let week = 1;
+    let month = 1;
+    let dayCounter = 0;
+    let weekCounter = 0;
+    let monthCounter = 0;
+    let dayCounterUsd = 0;
+    let weekCounterUsd = 0;
+    let monthCounterUsd = 0;
+    let _timeLow = timeLow;
+    let _timeHigh = _timeLow + ONE_UTC_DAY;
+    let dayRows = [];
+    let weekRows = [];
+    let monthRows = [];
+    let offersRows = [];
+    let requestsRows = [];
+
+    let dayOffers = await try_getPackableOffersPrimary(timeLow, timeHigh, token.address, url);
+    let dayRequests = await try_getPackableRequestsPrimary(timeLow, timeHigh, token.address, url);
+
+    let nextOffer: any;
+    let nextTimestamp: number;
+    let nextIsOffer: boolean;
+
+    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+        nextOffer = dayRequests.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = false;
+    } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+        nextOffer = dayOffers.pop();
+        nextTimestamp = nextOffer.timestamp;
+        nextIsOffer = true;
+    } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+        let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+        let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+
+        if (nextOfferTimestamp < nextRequestTimestamp) {
+            nextOffer = dayOffers.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = true;
+        } else {
+            nextOffer = dayRequests.pop();
+            nextTimestamp = nextOffer.timestamp;
+            nextIsOffer = false;
+        }
+    } else {
+        nextTimestamp = 0;
+    }
+
+    while (_timeHigh <= timeHigh) {
+
+        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+            //compute offer
+            if (nextOffer.deals.length > 0) {
+                if (nextIsOffer) {
+                    //COMPUTE OFFER
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        //1 DEAL per iteration
+                        let amount = parseFloat(weiToEther(deals[q].sellAmount));
+                        let buyAmount = parseFloat(weiToEther(deals[q].buyAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        let usdAmount = 0;
+
+                        if (
+                            (deals[q].offer.buyToken.id == Constants.USD.address) ||
+                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                            (deals[q].offer.buyToken.id == Constants.PEL.address)
+                        ) {
+                            usdAmount = buyAmount;
+                        } else {
+                            usdAmount = await convertToUsd(
+                                buyAmount, 
+                                deals[q].offer.buyToken.id,
+                                deals[q].timestamp
+                            );
+                        }
+
+                        dayCounterUsd = dayCounterUsd + usdAmount;
+                        weekCounterUsd = weekCounterUsd + usdAmount;
+                        monthCounterUsd = monthCounterUsd + usdAmount;
+
+                        //DEALS TABLE
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.buyToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        offersRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                } else {
+                    //COMPUTE REQUEST
+                    let deals = nextOffer.deals;
+                    for (let q = 0; q < deals.length; q++) {
+                        let amount = parseFloat(weiToEther(deals[q].buyAmount));
+                        let sellAmount = parseFloat(weiToEther(deals[q].sellAmount));
+                        dayCounter = dayCounter + amount;
+                        weekCounter = weekCounter + amount;
+                        monthCounter = monthCounter + amount;
+
+                        let usdAmount = 0;
+
+                        if (
+                            (deals[q].offer.sellToken.id == Constants.USD.address) ||
+                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                            (deals[q].offer.sellToken.id == Constants.PEL.address)
+                        ) {
+                            usdAmount = sellAmount;
+                        } else {
+                            usdAmount = await convertToUsd(
+                                sellAmount, 
+                                deals[q].offer.sellToken.id,
+                                deals[q].timestamp
+                            );
+                        }
+
+                        dayCounterUsd = dayCounterUsd + usdAmount;
+                        weekCounterUsd = weekCounterUsd + usdAmount;
+                        monthCounterUsd = monthCounterUsd + usdAmount;
+
+                        let array = [];
+
+                        array.push(new Date(deals[q].timestamp * 1000));
+                        array.push(timeConverter(deals[q].offer.timestamp));
+                        array.push(timeConverter(deals[q].timestamp));
+                        array.push(deals[q].offer.sellToken.tokenSymbol);
+
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].seller.name);
+                        }
+
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        } else {
+                            array.push(deals[q].buyer.name);
+                        }
+
+                        array.push(parseFloat(weiToEther(deals[q].buyAmount)));
+                        array.push(parseFloat(weiToEther(deals[q].sellAmount)));
+                        requestsRows.push(array);
+                        //1 DEAL per iteration
+                    }
+                }
+            }
+
+            //pop new offer
+            if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                nextOffer = dayRequests.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = false;
+            } else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                nextOffer = dayOffers.pop();
+                nextTimestamp = nextOffer.timestamp;
+                nextIsOffer = true;
+            } else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                let nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                let nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+    
+                if (nextOfferTimestamp < nextRequestTimestamp) {
+                    nextOffer = dayOffers.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = true;
+                } else {
+                    nextOffer = dayRequests.pop();
+                    nextTimestamp = nextOffer.timestamp;
+                    nextIsOffer = false;
+                }
+            } else {
+                nextTimestamp = 0;
+            }
+        }
+
+        //compute week
+        if (day == 7 * week) {
+            //WEEK
+            let weekRow = [];
+            weekRow.push(week);
+            weekRow.push(weekCounter);
+            weekRow.push(weekCounterUsd);
+            if (weekCounter == 0) weekCounter = 1;
+            weekRow.push(weekCounterUsd / weekCounter);
+            weekRows.push(weekRow);
+
+            weekCounter = 0;
+            weekCounterUsd = 0;
+            week++;
+        }
+
+        //compute day
+        let dayRow = [];
+
+        dayRow.push(day);
+        dayRow.push(dayCounter);
+        dayRow.push(dayCounterUsd);
+        if (dayCounter == 0) dayCounter = 1;
+        dayRow.push(dayCounterUsd / dayCounter);
+        dayRows.push(dayRow);
+
+        dayCounter = 0;
+        dayCounterUsd = 0;
+
+        day++;
+        _timeLow = _timeHigh;
+        _timeHigh = _timeLow + ONE_UTC_DAY;
+    }
+
+    //5th week...days (29-31)
+    let weekRow = [];
+    weekRow.push(week);
+    weekRow.push(weekCounter);
+    weekRow.push(weekCounterUsd);
+    if (weekCounter == 0) weekCounter = 1;
+    weekRow.push(weekCounterUsd / weekCounter);
+    weekRows.push(weekRow);
+
+    //MONTH
+    let monthRow = [];
+    monthRow.push(month);
+    monthRow.push(monthCounter);
+    monthRow.push(monthCounterUsd);
+    if (monthCounter == 0) monthCounter = 1;
+    monthRow.push(monthCounterUsd / monthCounter);
+    monthRows.push(monthRow);
+
+    //ADD TABLES
+    let tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+    let tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+    let tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+
+    addTable(
+        sheet,
+        tableDayPrimary,
+        'B3',
+        [
+            {name: 'Día', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        dayRows
+    );
+
+    addTable(
+        sheet,
+        tableWeekPrimary,
+        'G3',
+        [
+            {name: 'Semana', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        weekRows
+    );
+
+    addTable(
+        sheet,
+        tableMonthPrimary,
+        'L3',
+        [
+            {name: 'Mes', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'},
+            {name: 'Monto (USD)', totalsRowFunction: 'sum'},
+            {name: 'Tipo de cambio'}
+        ],
+        monthRows
+    );
+
+    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+    sheet.getCell('B36').font = {bold: true};
+    let tableName3 = 'TablaPrimario' + token.symbol;
+
+    if (offersRows.length == 0) {
+        offersRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName3,
+        'B37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        offersRows
+    );
+
+    sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
+    sheet.getCell('K36').font = {bold: true};
+    let tableName4 = 'TablaPrimario2' + token.symbol;
+
+    if (requestsRows.length == 0) {
+        requestsRows = getEmtpyDeal();
+    }
+
+    addTable(
+        sheet,
+        tableName4,
+        'K37',
+        [
+            {name: 'Fecha (pacto)', filterButton: true},
+            {name: 'Hora (oferta)'},
+            {name: 'Hora (pacto)'},
+            {name: 'Contrapartida', filterButton: true},
+            {name: 'Vendedor (usuario)', filterButton: true},
+            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
+            {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
+        ],
+        requestsRows
+    );
+
+    sheet.getCell('C1').value = 'Mercado P2P (Primario)';
+    sheet.getCell('C1').font = {bold: true};
+
+    sheet.getCell('B2').value = 'TOTAL (diario)';
+    sheet.getCell('B2').font = {bold: true};
+    
+    sheet.getCell('G2').value = 'TOTAL (semanal)';
+    sheet.getCell('G2').font = {bold: true};
+
+    sheet.getCell('L2').value = 'TOTAL (mensual)';
+    sheet.getCell('L2').font = {bold: true};
 }
 
 async function try_getTransactions(
@@ -6461,7 +3900,7 @@ async function getDayRate(
         try {
             let responseData = await getPiPrice(dates[0], dates[1], 'mainnet');
 
-            for (let i = 23; i < responseData.length; i=i+24) {
+            for (let i = 22; i < responseData.length; i=i+24) {
                 rates.push(responseData[i].piPrice);
             }
 

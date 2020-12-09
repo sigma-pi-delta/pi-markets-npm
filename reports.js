@@ -50,7 +50,7 @@ var Report = /** @class */ (function () {
         if (url === void 0) { url = 'mainnet'; }
         this.url = url;
     }
-    Report.prototype.getTransactionReportV3 = function (monthIndex, year, tokensArray) {
+    Report.prototype.getTransactionReportV2 = function (monthIndex, year, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
             var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, error_1, buffer, err_1;
             return __generator(this, function (_a) {
@@ -68,7 +68,7 @@ var Report = /** @class */ (function () {
                         promises = [];
                         for (i = 0; i < tokensArray.length; i++) {
                             sheet = workbook.addWorksheet(tokensArray[i].symbol);
-                            promises.push(this.setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, tokensArray[i]));
+                            promises.push(setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i]));
                         }
                         return [4 /*yield*/, Promise.all(promises)];
                     case 1:
@@ -76,7 +76,7 @@ var Report = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 10]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReportV3.xlsx')];
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReportV2.xlsx')];
                     case 3:
                         _a.sent();
                         return [3 /*break*/, 10];
@@ -88,7 +88,7 @@ var Report = /** @class */ (function () {
                         _a.label = 6;
                     case 6:
                         _a.trys.push([6, 8, , 9]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReportV3.xlsx')];
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReportV2.xlsx')];
                     case 7:
                         _a.sent();
                         return [3 /*break*/, 9];
@@ -102,406 +102,9 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.setTransactionSheet = function (sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, txRows, rates, dayRow, weekRow_1, transactions, j, txDayRow, amount, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        weekCounter = 0;
-                        weekRates = 0;
-                        monthCounter = 0;
-                        monthRates = 0;
-                        weekZeros = 0;
-                        monthZeros = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        txRows = [];
-                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, token.address, token.category)];
-                    case 1:
-                        rates = _a.sent();
-                        _a.label = 2;
-                    case 2:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 4];
-                        dayRow = [];
-                        weekRow_1 = [];
-                        return [4 /*yield*/, try_getTransactions(_timeLow, _timeHigh, token.address, this.url)];
-                    case 3:
-                        transactions = _a.sent();
-                        if (transactions.length > 0) {
-                            for (j = 0; j < transactions.length; j++) {
-                                txDayRow = [];
-                                amount = parseFloat(utils_1.weiToEther(transactions[j].amount));
-                                dayCounter = dayCounter + amount;
-                                weekCounter = weekCounter + amount;
-                                monthCounter = monthCounter + amount;
-                                //TXs Table
-                                txDayRow.push(new Date(transactions[j].timestamp * 1000));
-                                txDayRow.push(transactions[j].currency.tokenSymbol);
-                                txDayRow.push(transactions[j].from.id);
-                                if (transactions[j].from.name == null) {
-                                    txDayRow.push("");
-                                }
-                                else {
-                                    txDayRow.push(transactions[j].from.name.id);
-                                }
-                                txDayRow.push(transactions[j].to.id);
-                                if (transactions[j].to.name == null) {
-                                    txDayRow.push("");
-                                }
-                                else {
-                                    txDayRow.push(transactions[j].to.name.id);
-                                }
-                                txDayRow.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
-                                txRows.push(txDayRow);
-                            }
-                        }
-                        //update week and month rate counters
-                        weekRates = weekRates + rates[day - 1];
-                        monthRates = monthRates + rates[day - 1];
-                        if (rates[day - 1] == 0) {
-                            weekZeros++;
-                            monthZeros++;
-                        }
-                        if (day == 7 * week) {
-                            //1 WEEK per iteration
-                            //calc this week rate
-                            if ((7 - weekZeros) == 0) {
-                                weekRates = 0;
-                            }
-                            else {
-                                weekRates = weekRates / (7 - weekZeros);
-                            }
-                            //update week arrays
-                            weekRow_1.push(week);
-                            weekRow_1.push(weekCounter);
-                            weekRow_1.push(weekCounter * weekRates);
-                            weekRow_1.push(weekRates);
-                            weekRows.push(weekRow_1);
-                            //reset and update counters
-                            week++;
-                            weekCounter = 0;
-                            weekRates = 0;
-                            weekZeros = 0;
-                        }
-                        //update day arrays
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounter * rates[day - 1]);
-                        dayRow.push(rates[day - 1]);
-                        dayRows.push(dayRow);
-                        //update and reset day counters
-                        day++;
-                        dayCounter = 0;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        return [3 /*break*/, 2];
-                    case 4:
-                        weekRow = [];
-                        //calc 5th week rate
-                        if ((day - 29 - weekZeros) == 0) {
-                            weekRates = 0;
-                        }
-                        else {
-                            weekRates = weekRates / (day - 29 - weekZeros);
-                        }
-                        //update week arrays
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounter * weekRates);
-                        weekRow.push(weekRates);
-                        weekRows.push(weekRow);
-                        monthRow = [];
-                        //calc month rate
-                        if ((day - 1 - monthZeros) == 0) {
-                            monthRates = 0;
-                        }
-                        else {
-                            monthRates = monthRates / (day - 1 - monthZeros);
-                        }
-                        //update month arrays
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounter * monthRates);
-                        monthRow.push(monthRates);
-                        monthRows.push(monthRow);
-                        tableDay = 'TablaDay' + token.symbol;
-                        tableWeek = 'TablaWeek' + token.symbol;
-                        tableMonth = 'TablaMonth' + token.symbol;
-                        addTable(sheet, tableDay, 'B2', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G2', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L2', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        tableName = 'Tabla' + token.symbol;
-                        if (txRows.length == 0) {
-                            txRows = getEmptyTransaction();
-                        }
-                        addTable(sheet, tableName, 'B36', [
-                            { name: 'Fecha', filterButton: true },
-                            { name: 'Divisa' },
-                            { name: 'Origen (wallet)' },
-                            { name: 'Origen (usuario)', filterButton: true },
-                            { name: 'Destino (wallet)' },
-                            { name: 'Destino (usuario)', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' }
-                        ], txRows);
-                        //CELL LABELS
-                        sheet.getCell('B35').value = 'TRANSFERENCIAS';
-                        sheet.getCell('B35').font = { bold: true };
-                        sheet.getCell('B1').value = 'TOTAL (diario)';
-                        sheet.getCell('B1').font = { bold: true };
-                        sheet.getCell('G1').value = 'TOTAL (semanal)';
-                        sheet.getCell('G1').font = { bold: true };
-                        sheet.getCell('L1').value = 'TOTAL (mensual)';
-                        sheet.getCell('L1').font = { bold: true };
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Report.prototype.getTransactionReportV2 = function (monthIndex, year, tokensArray) {
-        return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, i, day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, txRows, sheet, rates, dayRow, weekRow_2, transactions, j, txDayRow, amount, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName, error_2, buffer, err_2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        workbook = new ExcelJS.Workbook();
-                        toYear = year;
-                        toMonthIndex = monthIndex + 1;
-                        if (monthIndex == 12) {
-                            toYear = year + 1;
-                            toMonthIndex = 1;
-                        }
-                        timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-                        timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
-                        i = 0;
-                        _a.label = 1;
-                    case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 7];
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        weekCounter = 0;
-                        weekRates = 0;
-                        monthCounter = 0;
-                        monthRates = 0;
-                        weekZeros = 0;
-                        monthZeros = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        txRows = [];
-                        sheet = workbook.addWorksheet(tokensArray[i].symbol);
-                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, tokensArray[i].address, tokensArray[i].category)];
-                    case 2:
-                        rates = _a.sent();
-                        _a.label = 3;
-                    case 3:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 5];
-                        dayRow = [];
-                        weekRow_2 = [];
-                        return [4 /*yield*/, getTransactions(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 4:
-                        transactions = _a.sent();
-                        if (transactions.length > 0) {
-                            for (j = 0; j < transactions.length; j++) {
-                                txDayRow = [];
-                                amount = parseFloat(utils_1.weiToEther(transactions[j].amount));
-                                dayCounter = dayCounter + amount;
-                                weekCounter = weekCounter + amount;
-                                monthCounter = monthCounter + amount;
-                                //TXs Table
-                                txDayRow.push(new Date(transactions[j].timestamp * 1000));
-                                txDayRow.push(transactions[j].currency.tokenSymbol);
-                                txDayRow.push(transactions[j].from.id);
-                                if (transactions[j].from.name == null) {
-                                    txDayRow.push("");
-                                }
-                                else {
-                                    txDayRow.push(transactions[j].from.name.id);
-                                }
-                                txDayRow.push(transactions[j].to.id);
-                                if (transactions[j].to.name == null) {
-                                    txDayRow.push("");
-                                }
-                                else {
-                                    txDayRow.push(transactions[j].to.name.id);
-                                }
-                                txDayRow.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
-                                txRows.push(txDayRow);
-                            }
-                        }
-                        //update week and month rate counters
-                        weekRates = weekRates + rates[day - 1];
-                        monthRates = monthRates + rates[day - 1];
-                        if (rates[day - 1] == 0) {
-                            weekZeros++;
-                            monthZeros++;
-                        }
-                        if (day == 7 * week) {
-                            //1 WEEK per iteration
-                            //calc this week rate
-                            if ((7 - weekZeros) == 0) {
-                                weekRates = 0;
-                            }
-                            else {
-                                weekRates = weekRates / (7 - weekZeros);
-                            }
-                            //update week arrays
-                            weekRow_2.push(week);
-                            weekRow_2.push(weekCounter);
-                            weekRow_2.push(weekCounter * weekRates);
-                            weekRow_2.push(weekRates);
-                            weekRows.push(weekRow_2);
-                            //reset and update counters
-                            week++;
-                            weekCounter = 0;
-                            weekRates = 0;
-                            weekZeros = 0;
-                        }
-                        //update day arrays
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounter * rates[day - 1]);
-                        dayRow.push(rates[day - 1]);
-                        dayRows.push(dayRow);
-                        //update and reset day counters
-                        day++;
-                        dayCounter = 0;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        return [3 /*break*/, 3];
-                    case 5:
-                        weekRow = [];
-                        //calc 5th week rate
-                        if ((day - 29 - weekZeros) == 0) {
-                            weekRates = 0;
-                        }
-                        else {
-                            weekRates = weekRates / (day - 29 - weekZeros);
-                        }
-                        //update week arrays
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounter * weekRates);
-                        weekRow.push(weekRates);
-                        weekRows.push(weekRow);
-                        monthRow = [];
-                        //calc month rate
-                        if ((day - 1 - monthZeros) == 0) {
-                            monthRates = 0;
-                        }
-                        else {
-                            monthRates = monthRates / (day - 1 - monthZeros);
-                        }
-                        //update month arrays
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounter * monthRates);
-                        monthRow.push(monthRates);
-                        monthRows.push(monthRow);
-                        tableDay = 'TablaDay' + tokensArray[i].symbol;
-                        tableWeek = 'TablaWeek' + tokensArray[i].symbol;
-                        tableMonth = 'TablaMonth' + tokensArray[i].symbol;
-                        addTable(sheet, tableDay, 'B2', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G2', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L2', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        tableName = 'Tabla' + tokensArray[i].symbol;
-                        if (txRows.length == 0) {
-                            txRows = getEmptyTransaction();
-                        }
-                        addTable(sheet, tableName, 'B36', [
-                            { name: 'Fecha', filterButton: true },
-                            { name: 'Divisa' },
-                            { name: 'Origen (wallet)' },
-                            { name: 'Origen (usuario)', filterButton: true },
-                            { name: 'Destino (wallet)' },
-                            { name: 'Destino (usuario)', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' }
-                        ], txRows);
-                        //CELL LABELS
-                        sheet.getCell('B35').value = 'TRANSFERENCIAS';
-                        sheet.getCell('B35').font = { bold: true };
-                        sheet.getCell('B1').value = 'TOTAL (diario)';
-                        sheet.getCell('B1').font = { bold: true };
-                        sheet.getCell('G1').value = 'TOTAL (semanal)';
-                        sheet.getCell('G1').font = { bold: true };
-                        sheet.getCell('L1').value = 'TOTAL (mensual)';
-                        sheet.getCell('L1').font = { bold: true };
-                        _a.label = 6;
-                    case 6:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 7:
-                        _a.trys.push([7, 9, , 15]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsMonthTransactionsReport.xlsx')];
-                    case 8:
-                        _a.sent();
-                        return [3 /*break*/, 15];
-                    case 9:
-                        error_2 = _a.sent();
-                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 10:
-                        buffer = _a.sent();
-                        _a.label = 11;
-                    case 11:
-                        _a.trys.push([11, 13, , 14]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthTransactionsReport.xlsx')];
-                    case 12:
-                        _a.sent();
-                        return [3 /*break*/, 14];
-                    case 13:
-                        err_2 = _a.sent();
-                        console.error(err_2);
-                        return [3 /*break*/, 14];
-                    case 14: return [3 /*break*/, 15];
-                    case 15: return [2 /*return*/];
-                }
-            });
-        });
-    };
     Report.prototype.getTransactionReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, transactions, rows, j, array, tableName, error_3, buffer, err_3;
+            var workbook, i, sheet, transactions, rows, j, array, tableName, error_2, buffer, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -559,7 +162,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 12];
                     case 6:
-                        error_3 = _a.sent();
+                        error_2 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 7:
                         buffer = _a.sent();
@@ -571,8 +174,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 11];
                     case 10:
-                        err_3 = _a.sent();
-                        console.error(err_3);
+                        err_2 = _a.sent();
+                        console.error(err_2);
                         return [3 /*break*/, 11];
                     case 11: return [3 /*break*/, 12];
                     case 12: return [2 /*return*/];
@@ -582,7 +185,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getTokenHoldersReport = function (orderBy, orderDirection, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_3, buffer, err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -683,7 +286,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 21];
                     case 15:
-                        error_4 = _a.sent();
+                        error_3 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 16:
                         buffer = _a.sent();
@@ -695,8 +298,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 20];
                     case 19:
-                        err_4 = _a.sent();
-                        console.error(err_4);
+                        err_3 = _a.sent();
+                        console.error(err_3);
                         return [3 /*break*/, 20];
                     case 20: return [3 /*break*/, 21];
                     case 21: return [2 /*return*/];
@@ -706,7 +309,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getPackableHoldersReport = function (orderBy, orderDirection, tokensArray, expiries) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_5, buffer, err_5;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -812,7 +415,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 21];
                     case 15:
-                        error_5 = _a.sent();
+                        error_4 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 16:
                         buffer = _a.sent();
@@ -824,8 +427,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 20];
                     case 19:
-                        err_5 = _a.sent();
-                        console.error(err_5);
+                        err_4 = _a.sent();
+                        console.error(err_4);
                         return [3 /*break*/, 20];
                     case 20: return [3 /*break*/, 21];
                     case 21: return [2 /*return*/];
@@ -835,7 +438,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getCollectableHoldersReport = function (orderBy, orderDirection, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_6, buffer, err_6;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_5, buffer, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -936,7 +539,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 21];
                     case 15:
-                        error_6 = _a.sent();
+                        error_5 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 16:
                         buffer = _a.sent();
@@ -948,8 +551,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 20];
                     case 19:
-                        err_6 = _a.sent();
-                        console.error(err_6);
+                        err_5 = _a.sent();
+                        console.error(err_5);
                         return [3 /*break*/, 20];
                     case 20: return [3 /*break*/, 21];
                     case 21: return [2 /*return*/];
@@ -957,9 +560,9 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getTokenDealsReportV3 = function (monthIndex, year, tokensArray) {
+    Report.prototype.getTokenDealsReportV2 = function (monthIndex, year, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_7, buffer, err_7;
+            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_6, buffer, err_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -976,8 +579,8 @@ var Report = /** @class */ (function () {
                         for (i = 0; i < tokensArray.length; i++) {
                             sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
                             sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                            promises.push(this.setTokenDealsSheetV2(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, tokensArray[i]));
-                            promises.push(this.setPrimaryTokenDealsSheetV2(sheet2, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, tokensArray[i]));
+                            promises.push(setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i]));
+                            promises.push(setPrimaryTokenDealsSheet(sheet2, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i]));
                         }
                         return [4 /*yield*/, Promise.all(promises)];
                     case 1:
@@ -985,25 +588,25 @@ var Report = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 10]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenDealsReportV3.xlsx')];
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenDealsReportV2.xlsx')];
                     case 3:
                         _a.sent();
                         return [3 /*break*/, 10];
                     case 4:
-                        error_7 = _a.sent();
+                        error_6 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 5:
                         buffer = _a.sent();
                         _a.label = 6;
                     case 6:
                         _a.trys.push([6, 8, , 9]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReportV3.xlsx')];
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReportV2.xlsx')];
                     case 7:
                         _a.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        err_7 = _a.sent();
-                        console.error(err_7);
+                        err_6 = _a.sent();
+                        console.error(err_6);
                         return [3 /*break*/, 9];
                     case 9: return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
@@ -1011,1443 +614,9 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.setTokenDealsSheet = function (sheet, sheet2, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var day, week, month, dayCounter, dayCounterPrimary, weekCounter, weekCounterPrimary, weekRates, monthCounter, monthCounterPrimary, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, offersRows, requestsRows, offersPrimaryRows, requestsPrimaryRows, rates, dayRow, weekRow_3, dayRowPrimary, weekRowPrimary_1, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, array, p, deals, q, amount, array, p, deals, q, amount, array, p, deals, q, amount, array, weekRow, weekRowPrimary, monthRow, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName, tableName2, tableName3, tableName4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        dayCounterPrimary = 0;
-                        weekCounter = 0;
-                        weekCounterPrimary = 0;
-                        weekRates = 0;
-                        monthCounter = 0;
-                        monthCounterPrimary = 0;
-                        monthRates = 0;
-                        weekZeros = 0;
-                        monthZeros = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        dayRowsPrimary = [];
-                        weekRowsPrimary = [];
-                        monthRowsPrimary = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        offersPrimaryRows = [];
-                        requestsPrimaryRows = [];
-                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, token.address, token.category)];
-                    case 1:
-                        rates = _a.sent();
-                        _a.label = 2;
-                    case 2:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 7];
-                        dayRow = [];
-                        weekRow_3 = [];
-                        dayRowPrimary = [];
-                        weekRowPrimary_1 = [];
-                        return [4 /*yield*/, try_getOffers(_timeLow, _timeHigh, token.address, this.url)];
-                    case 3:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, try_getOffersPrimary(_timeLow, _timeHigh, token.address, this.url)];
-                    case 4:
-                        dayOffersPrimary = _a.sent();
-                        return [4 /*yield*/, try_getRequests(_timeLow, _timeHigh, token.address, this.url)];
-                    case 5:
-                        dayRequests = _a.sent();
-                        return [4 /*yield*/, try_getRequestsPrimary(_timeLow, _timeHigh, token.address, this.url)];
-                    case 6:
-                        dayRequestsPrimary = _a.sent();
-                        if (dayOffers.length > 0) {
-                            for (p = 0; p < dayOffers.length; p++) {
-                                if (dayOffers[p].deals.length > 0) {
-                                    deals = dayOffers[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                                        dayCounter = dayCounter + amount;
-                                        weekCounter = weekCounter + amount;
-                                        monthCounter = monthCounter + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        offersRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        if (dayOffersPrimary.length > 0) {
-                            for (p = 0; p < dayOffersPrimary.length; p++) {
-                                if (dayOffersPrimary[p].deals.length > 0) {
-                                    deals = dayOffersPrimary[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                                        dayCounterPrimary = dayCounterPrimary + amount;
-                                        weekCounterPrimary = weekCounterPrimary + amount;
-                                        monthCounterPrimary = monthCounterPrimary + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        offersPrimaryRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        if (dayRequests.length > 0) {
-                            for (p = 0; p < dayRequests.length; p++) {
-                                if (dayRequests[p].deals.length > 0) {
-                                    deals = dayRequests[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                                        dayCounter = dayCounter + amount;
-                                        weekCounter = weekCounter + amount;
-                                        monthCounter = monthCounter + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        requestsRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        if (dayRequestsPrimary.length > 0) {
-                            for (p = 0; p < dayRequestsPrimary.length; p++) {
-                                if (dayRequestsPrimary[p].deals.length > 0) {
-                                    deals = dayRequestsPrimary[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                                        dayCounterPrimary = dayCounterPrimary + amount;
-                                        weekCounterPrimary = weekCounterPrimary + amount;
-                                        monthCounterPrimary = monthCounterPrimary + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        requestsPrimaryRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        //update week and month rates
-                        weekRates = weekRates + rates[day - 1];
-                        monthRates = monthRates + rates[day - 1];
-                        if (rates[day - 1] == 0) {
-                            weekZeros++;
-                            monthZeros++;
-                        }
-                        if (day == 7 * week) {
-                            //1 WEEK per iteration
-                            //calc week rate
-                            if ((7 - weekZeros) == 0) {
-                                weekRates = 0;
-                            }
-                            else {
-                                weekRates = weekRates / (7 - weekZeros);
-                            }
-                            //update week secondary arrays
-                            weekRow_3.push(week);
-                            weekRow_3.push(weekCounter);
-                            weekRow_3.push(weekCounter * weekRates);
-                            weekRow_3.push(weekRates);
-                            weekRows.push(weekRow_3);
-                            //update week primary arrays
-                            weekRowPrimary_1.push(week);
-                            weekRowPrimary_1.push(weekCounterPrimary);
-                            weekRowPrimary_1.push(weekCounterPrimary * weekRates);
-                            weekRowPrimary_1.push(weekRates);
-                            weekRowsPrimary.push(weekRowPrimary_1);
-                            //update and reset week counters
-                            week++;
-                            weekCounter = 0;
-                            weekCounterPrimary = 0;
-                            weekRates = 0;
-                            weekZeros = 0;
-                        }
-                        //update day secondary arrays
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounter * rates[day - 1]);
-                        dayRow.push(rates[day - 1]);
-                        dayRows.push(dayRow);
-                        //update day primary arrays
-                        dayRowPrimary.push(day);
-                        dayRowPrimary.push(dayCounterPrimary);
-                        dayRowPrimary.push(dayCounterPrimary * rates[day - 1]);
-                        dayRowPrimary.push(rates[day - 1]);
-                        dayRowsPrimary.push(dayRowPrimary);
-                        //update and reset day counters
-                        day++;
-                        dayCounter = 0;
-                        dayCounterPrimary = 0;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        return [3 /*break*/, 2];
-                    case 7:
-                        weekRow = [];
-                        weekRowPrimary = [];
-                        //calc 5th week rates
-                        if ((day - 29 - weekZeros) == 0) {
-                            weekRates = 0;
-                        }
-                        else {
-                            weekRates = weekRates / (day - 29 - weekZeros);
-                        }
-                        //update 5th week secondary array
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounter * weekRates);
-                        weekRow.push(weekRates);
-                        weekRows.push(weekRow);
-                        //update 5th week primary array
-                        weekRowPrimary.push(week);
-                        weekRowPrimary.push(weekCounterPrimary);
-                        weekRowPrimary.push(weekCounterPrimary * weekRates);
-                        weekRowPrimary.push(weekRates);
-                        weekRowsPrimary.push(weekRowPrimary);
-                        monthRow = [];
-                        monthRowPrimary = [];
-                        if ((day - 1 - monthZeros) == 0) {
-                            monthRates = 0;
-                        }
-                        else {
-                            monthRates = monthRates / (day - 1 - monthZeros);
-                        }
-                        //secondary
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounter * monthRates);
-                        monthRow.push(monthRates);
-                        monthRows.push(monthRow);
-                        //primary
-                        monthRowPrimary.push(month);
-                        monthRowPrimary.push(monthCounterPrimary);
-                        monthRowPrimary.push(monthCounterPrimary * monthRates);
-                        monthRowPrimary.push(monthRates);
-                        monthRowsPrimary.push(monthRowPrimary);
-                        tableDay = 'TablaDay' + token.symbol;
-                        tableWeek = 'TablaWeek' + token.symbol;
-                        tableMonth = 'TablaMonth' + token.symbol;
-                        tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-                        tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-                        tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-                        addTable(sheet, tableDay, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        addTable(sheet2, tableDayPrimary, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRowsPrimary);
-                        addTable(sheet2, tableWeekPrimary, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRowsPrimary);
-                        addTable(sheet2, tableMonthPrimary, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRowsPrimary);
-                        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName = 'Tabla' + token.symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersRows);
-                        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName2 = 'Tabla2' + token.symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName2, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsRows);
-                        sheet2.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet2.getCell('B36').font = { bold: true };
-                        tableName3 = 'TablaPrimario' + token.symbol;
-                        if (offersPrimaryRows.length == 0) {
-                            offersPrimaryRows = getEmtpyDeal();
-                        }
-                        addTable(sheet2, tableName3, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersPrimaryRows);
-                        sheet2.getCell('K36').value = token.symbol + ' DEMANDADO';
-                        sheet2.getCell('K36').font = { bold: true };
-                        tableName4 = 'TablaPrimario2' + token.symbol;
-                        if (requestsPrimaryRows.length == 0) {
-                            requestsPrimaryRows = getEmtpyDeal();
-                        }
-                        addTable(sheet2, tableName4, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsPrimaryRows);
-                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-                        sheet2.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet2.getCell('B2').value = 'TOTAL (diario)';
-                        sheet2.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet2.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet2.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        sheet2.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet2.getCell('L2').font = { bold: true };
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Report.prototype.setTokenDealsSheetV2 = function (sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var day, week, month, dayCounter, weekCounter, monthCounter, weekRates, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, rates, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, array, deals, q, amount, array, nextOfferTimestamp, nextRequestTimestamp, dayRow, weekRow_4, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName, tableName2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        weekCounter = 0;
-                        monthCounter = 0;
-                        weekRates = 0;
-                        monthRates = 0;
-                        weekZeros = 0;
-                        monthZeros = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        return [4 /*yield*/, try_getOffers(timeLow, timeHigh, token.address, this.url)];
-                    case 1:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, try_getRequests(timeLow, timeHigh, token.address, this.url)];
-                    case 2:
-                        dayRequests = _a.sent();
-                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, token.address, token.category)];
-                    case 3:
-                        rates = _a.sent();
-                        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                            nextOffer = dayRequests.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = false;
-                        }
-                        else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                            nextOffer = dayOffers.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = true;
-                        }
-                        else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                            nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                            nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                            if (nextOfferTimestamp < nextRequestTimestamp) {
-                                nextOffer = dayOffers.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = true;
-                            }
-                            else {
-                                nextOffer = dayRequests.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = false;
-                            }
-                        }
-                        else {
-                            nextTimestamp = 0;
-                        }
-                        while (_timeHigh <= timeHigh) {
-                            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
-                                //compute offer
-                                if (nextOffer.deals.length > 0) {
-                                    if (nextIsOffer) {
-                                        deals = nextOffer.deals;
-                                        for (q = 0; q < deals.length; q++) {
-                                            amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                                            dayCounter = dayCounter + amount;
-                                            weekCounter = weekCounter + amount;
-                                            monthCounter = monthCounter + amount;
-                                            array = [];
-                                            array.push(new Date(deals[q].timestamp * 1000));
-                                            array.push(timeConverter(deals[q].offer.timestamp));
-                                            array.push(timeConverter(deals[q].timestamp));
-                                            array.push(deals[q].offer.buyToken.tokenSymbol);
-                                            if (deals[q].seller.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].seller.name);
-                                            }
-                                            if (deals[q].buyer.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].buyer.name);
-                                            }
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                            offersRows.push(array);
-                                            //1 DEAL per iteration
-                                        }
-                                    }
-                                    else {
-                                        deals = nextOffer.deals;
-                                        for (q = 0; q < deals.length; q++) {
-                                            amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                                            dayCounter = dayCounter + amount;
-                                            weekCounter = weekCounter + amount;
-                                            monthCounter = monthCounter + amount;
-                                            array = [];
-                                            array.push(new Date(deals[q].timestamp * 1000));
-                                            array.push(timeConverter(deals[q].offer.timestamp));
-                                            array.push(timeConverter(deals[q].timestamp));
-                                            array.push(deals[q].offer.sellToken.tokenSymbol);
-                                            if (deals[q].seller.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].seller.name);
-                                            }
-                                            if (deals[q].buyer.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].buyer.name);
-                                            }
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                            requestsRows.push(array);
-                                            //1 DEAL per iteration
-                                        }
-                                    }
-                                }
-                                //pop new offer
-                                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                                    nextOffer = dayRequests.pop();
-                                    nextTimestamp = nextOffer.timestamp;
-                                    nextIsOffer = false;
-                                }
-                                else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                                    nextOffer = dayOffers.pop();
-                                    nextTimestamp = nextOffer.timestamp;
-                                    nextIsOffer = true;
-                                }
-                                else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                                    nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                                    nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                                    if (nextOfferTimestamp < nextRequestTimestamp) {
-                                        nextOffer = dayOffers.pop();
-                                        nextTimestamp = nextOffer.timestamp;
-                                        nextIsOffer = true;
-                                    }
-                                    else {
-                                        nextOffer = dayRequests.pop();
-                                        nextTimestamp = nextOffer.timestamp;
-                                        nextIsOffer = false;
-                                    }
-                                }
-                                else {
-                                    nextTimestamp = 0;
-                                }
-                            }
-                            //compute day
-                            //update week and month rates
-                            weekRates = weekRates + rates[day - 1];
-                            monthRates = monthRates + rates[day - 1];
-                            if (rates[day - 1] == 0) {
-                                weekZeros++;
-                                monthZeros++;
-                            }
-                            dayRow = [];
-                            dayRow.push(day);
-                            dayRow.push(dayCounter);
-                            dayRow.push(dayCounter * rates[day - 1]);
-                            dayRow.push(rates[day - 1]);
-                            dayRows.push(dayRow);
-                            dayCounter = 0;
-                            day++;
-                            _timeLow = _timeHigh;
-                            _timeHigh = _timeLow + ONE_UTC_DAY;
-                            //compute week
-                            if (day == 7 * week) {
-                                //WEEK
-                                //calc week rate
-                                if ((7 - weekZeros) == 0) {
-                                    weekRates = 0;
-                                }
-                                else {
-                                    weekRates = weekRates / (7 - weekZeros);
-                                }
-                                weekRow_4 = [];
-                                weekRow_4.push(week);
-                                weekRow_4.push(weekCounter);
-                                weekRow_4.push(weekCounter * weekRates);
-                                weekRow_4.push(weekRates);
-                                weekRows.push(weekRow_4);
-                                weekCounter = 0;
-                                weekRates = 0;
-                                weekZeros = 0;
-                                week++;
-                            }
-                        }
-                        weekRow = [];
-                        //calc 5th week rates
-                        if ((day - 29 - weekZeros) == 0) {
-                            weekRates = 0;
-                        }
-                        else {
-                            weekRates = weekRates / (day - 29 - weekZeros);
-                        }
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounter * weekRates);
-                        weekRow.push(weekRates);
-                        weekRows.push(weekRow);
-                        monthRow = [];
-                        if ((day - 1 - monthZeros) == 0) {
-                            monthRates = 0;
-                        }
-                        else {
-                            monthRates = monthRates / (day - 1 - monthZeros);
-                        }
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounter * monthRates);
-                        monthRow.push(monthRates);
-                        monthRows.push(monthRow);
-                        tableDay = 'TablaDay' + token.symbol;
-                        tableWeek = 'TablaWeek' + token.symbol;
-                        tableMonth = 'TablaMonth' + token.symbol;
-                        addTable(sheet, tableDay, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName = 'Tabla' + token.symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersRows);
-                        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName2 = 'Tabla2' + token.symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName2, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsRows);
-                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Report.prototype.setPrimaryTokenDealsSheetV2 = function (sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var day, week, month, dayCounter, weekCounter, monthCounter, weekRates, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, rates, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, array, deals, q, amount, array, nextOfferTimestamp, nextRequestTimestamp, dayRow, weekRow_5, weekRow, monthRow, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName3, tableName4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        weekCounter = 0;
-                        monthCounter = 0;
-                        weekRates = 0;
-                        monthRates = 0;
-                        weekZeros = 0;
-                        monthZeros = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        return [4 /*yield*/, try_getOffersPrimary(timeLow, timeHigh, token.address, this.url)];
-                    case 1:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, try_getRequestsPrimary(timeLow, timeHigh, token.address, this.url)];
-                    case 2:
-                        dayRequests = _a.sent();
-                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, token.address, token.category)];
-                    case 3:
-                        rates = _a.sent();
-                        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                            nextOffer = dayRequests.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = false;
-                        }
-                        else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                            nextOffer = dayOffers.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = true;
-                        }
-                        else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                            nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                            nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                            if (nextOfferTimestamp < nextRequestTimestamp) {
-                                nextOffer = dayOffers.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = true;
-                            }
-                            else {
-                                nextOffer = dayRequests.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = false;
-                            }
-                        }
-                        else {
-                            nextTimestamp = 0;
-                        }
-                        while (_timeHigh <= timeHigh) {
-                            while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
-                                //compute offer
-                                if (nextOffer.deals.length > 0) {
-                                    if (nextIsOffer) {
-                                        deals = nextOffer.deals;
-                                        for (q = 0; q < deals.length; q++) {
-                                            amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                                            dayCounter = dayCounter + amount;
-                                            weekCounter = weekCounter + amount;
-                                            monthCounter = monthCounter + amount;
-                                            array = [];
-                                            array.push(new Date(deals[q].timestamp * 1000));
-                                            array.push(timeConverter(deals[q].offer.timestamp));
-                                            array.push(timeConverter(deals[q].timestamp));
-                                            array.push(deals[q].offer.buyToken.tokenSymbol);
-                                            if (deals[q].seller.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].seller.name);
-                                            }
-                                            if (deals[q].buyer.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].buyer.name);
-                                            }
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                            offersRows.push(array);
-                                            //1 DEAL per iteration
-                                        }
-                                    }
-                                    else {
-                                        deals = nextOffer.deals;
-                                        for (q = 0; q < deals.length; q++) {
-                                            amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                                            dayCounter = dayCounter + amount;
-                                            weekCounter = weekCounter + amount;
-                                            monthCounter = monthCounter + amount;
-                                            array = [];
-                                            array.push(new Date(deals[q].timestamp * 1000));
-                                            array.push(timeConverter(deals[q].offer.timestamp));
-                                            array.push(timeConverter(deals[q].timestamp));
-                                            array.push(deals[q].offer.sellToken.tokenSymbol);
-                                            if (deals[q].seller.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].seller.name);
-                                            }
-                                            if (deals[q].buyer.name == null) {
-                                                array.push("");
-                                            }
-                                            else {
-                                                array.push(deals[q].buyer.name);
-                                            }
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                            array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                            requestsRows.push(array);
-                                            //1 DEAL per iteration
-                                        }
-                                    }
-                                }
-                                //pop new offer
-                                if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                                    nextOffer = dayRequests.pop();
-                                    nextTimestamp = nextOffer.timestamp;
-                                    nextIsOffer = false;
-                                }
-                                else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                                    nextOffer = dayOffers.pop();
-                                    nextTimestamp = nextOffer.timestamp;
-                                    nextIsOffer = true;
-                                }
-                                else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                                    nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                                    nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                                    if (nextOfferTimestamp < nextRequestTimestamp) {
-                                        nextOffer = dayOffers.pop();
-                                        nextTimestamp = nextOffer.timestamp;
-                                        nextIsOffer = true;
-                                    }
-                                    else {
-                                        nextOffer = dayRequests.pop();
-                                        nextTimestamp = nextOffer.timestamp;
-                                        nextIsOffer = false;
-                                    }
-                                }
-                                else {
-                                    nextTimestamp = 0;
-                                }
-                            }
-                            //compute day
-                            //update week and month rates
-                            weekRates = weekRates + rates[day - 1];
-                            monthRates = monthRates + rates[day - 1];
-                            if (rates[day - 1] == 0) {
-                                weekZeros++;
-                                monthZeros++;
-                            }
-                            dayRow = [];
-                            dayRow.push(day);
-                            dayRow.push(dayCounter);
-                            dayRow.push(dayCounter * rates[day - 1]);
-                            dayRow.push(rates[day - 1]);
-                            dayRows.push(dayRow);
-                            dayCounter = 0;
-                            day++;
-                            _timeLow = _timeHigh;
-                            _timeHigh = _timeLow + ONE_UTC_DAY;
-                            //compute week
-                            if (day == 7 * week) {
-                                //WEEK
-                                //calc week rate
-                                if ((7 - weekZeros) == 0) {
-                                    weekRates = 0;
-                                }
-                                else {
-                                    weekRates = weekRates / (7 - weekZeros);
-                                }
-                                weekRow_5 = [];
-                                weekRow_5.push(week);
-                                weekRow_5.push(weekCounter);
-                                weekRow_5.push(weekCounter * weekRates);
-                                weekRow_5.push(weekRates);
-                                weekRows.push(weekRow_5);
-                                weekCounter = 0;
-                                weekRates = 0;
-                                weekZeros = 0;
-                                week++;
-                            }
-                        }
-                        weekRow = [];
-                        //calc 5th week rates
-                        if ((day - 29 - weekZeros) == 0) {
-                            weekRates = 0;
-                        }
-                        else {
-                            weekRates = weekRates / (day - 29 - weekZeros);
-                        }
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounter * weekRates);
-                        weekRow.push(weekRates);
-                        weekRows.push(weekRow);
-                        monthRow = [];
-                        if ((day - 1 - monthZeros) == 0) {
-                            monthRates = 0;
-                        }
-                        else {
-                            monthRates = monthRates / (day - 1 - monthZeros);
-                        }
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounter * monthRates);
-                        monthRow.push(monthRates);
-                        monthRows.push(monthRow);
-                        tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-                        tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-                        tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-                        addTable(sheet, tableDayPrimary, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeekPrimary, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonthPrimary, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName3 = 'TablaPrimario' + token.symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName3, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersRows);
-                        sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName4 = 'TablaPrimario2' + token.symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName4, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsRows);
-                        sheet.getCell('C1').value = 'Mercado P2P (Primario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Report.prototype.getTokenDealsReportV2 = function (monthIndex, year, tokensArray) {
-        return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, i, day, week, month, dayCounter, dayCounterPrimary, weekCounter, weekCounterPrimary, weekRates, monthCounter, monthCounterPrimary, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, offersRows, requestsRows, offersPrimaryRows, requestsPrimaryRows, sheet, sheet2, rates, dayRow, weekRow_6, dayRowPrimary, weekRowPrimary_2, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, array, p, deals, q, amount, array, p, deals, q, amount, array, p, deals, q, amount, array, weekRow, weekRowPrimary, monthRow, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName, tableName2, tableName3, tableName4, error_8, buffer, err_8;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        workbook = new ExcelJS.Workbook();
-                        toYear = year;
-                        toMonthIndex = monthIndex + 1;
-                        if (monthIndex == 12) {
-                            toYear = year + 1;
-                            toMonthIndex = 1;
-                        }
-                        timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-                        timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
-                        i = 0;
-                        _a.label = 1;
-                    case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 14];
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        dayCounterPrimary = 0;
-                        weekCounter = 0;
-                        weekCounterPrimary = 0;
-                        weekRates = 0;
-                        monthCounter = 0;
-                        monthCounterPrimary = 0;
-                        monthRates = 0;
-                        weekZeros = 0;
-                        monthZeros = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        dayRowsPrimary = [];
-                        weekRowsPrimary = [];
-                        monthRowsPrimary = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        offersPrimaryRows = [];
-                        requestsPrimaryRows = [];
-                        sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-                        sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                        return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, tokensArray[i].address, tokensArray[i].category)];
-                    case 2:
-                        rates = _a.sent();
-                        _a.label = 3;
-                    case 3:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 8];
-                        dayRow = [];
-                        weekRow_6 = [];
-                        dayRowPrimary = [];
-                        weekRowPrimary_2 = [];
-                        return [4 /*yield*/, getOffers(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 4:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, getOffersPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 5:
-                        dayOffersPrimary = _a.sent();
-                        return [4 /*yield*/, getRequests(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 6:
-                        dayRequests = _a.sent();
-                        return [4 /*yield*/, getRequestsPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 7:
-                        dayRequestsPrimary = _a.sent();
-                        if (dayOffers.length > 0) {
-                            for (p = 0; p < dayOffers.length; p++) {
-                                if (dayOffers[p].deals.length > 0) {
-                                    deals = dayOffers[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                                        dayCounter = dayCounter + amount;
-                                        weekCounter = weekCounter + amount;
-                                        monthCounter = monthCounter + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        offersRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        if (dayOffersPrimary.length > 0) {
-                            for (p = 0; p < dayOffersPrimary.length; p++) {
-                                if (dayOffersPrimary[p].deals.length > 0) {
-                                    deals = dayOffersPrimary[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                                        dayCounterPrimary = dayCounterPrimary + amount;
-                                        weekCounterPrimary = weekCounterPrimary + amount;
-                                        monthCounterPrimary = monthCounterPrimary + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        offersPrimaryRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        if (dayRequests.length > 0) {
-                            for (p = 0; p < dayRequests.length; p++) {
-                                if (dayRequests[p].deals.length > 0) {
-                                    deals = dayRequests[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                                        dayCounter = dayCounter + amount;
-                                        weekCounter = weekCounter + amount;
-                                        monthCounter = monthCounter + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        requestsRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        if (dayRequestsPrimary.length > 0) {
-                            for (p = 0; p < dayRequestsPrimary.length; p++) {
-                                if (dayRequestsPrimary[p].deals.length > 0) {
-                                    deals = dayRequestsPrimary[p].deals;
-                                    for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                                        dayCounterPrimary = dayCounterPrimary + amount;
-                                        weekCounterPrimary = weekCounterPrimary + amount;
-                                        monthCounterPrimary = monthCounterPrimary + amount;
-                                        array = [];
-                                        array.push(new Date(deals[q].timestamp * 1000));
-                                        array.push(timeConverter(deals[q].offer.timestamp));
-                                        array.push(timeConverter(deals[q].timestamp));
-                                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
-                                        }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        requestsPrimaryRows.push(array);
-                                    }
-                                }
-                            }
-                        }
-                        //update week and month rates
-                        weekRates = weekRates + rates[day - 1];
-                        monthRates = monthRates + rates[day - 1];
-                        if (rates[day - 1] == 0) {
-                            weekZeros++;
-                            monthZeros++;
-                        }
-                        if (day == 7 * week) {
-                            //1 WEEK per iteration
-                            //calc week rate
-                            if ((7 - weekZeros) == 0) {
-                                weekRates = 0;
-                            }
-                            else {
-                                weekRates = weekRates / (7 - weekZeros);
-                            }
-                            //update week secondary arrays
-                            weekRow_6.push(week);
-                            weekRow_6.push(weekCounter);
-                            weekRow_6.push(weekCounter * weekRates);
-                            weekRow_6.push(weekRates);
-                            weekRows.push(weekRow_6);
-                            //update week primary arrays
-                            weekRowPrimary_2.push(week);
-                            weekRowPrimary_2.push(weekCounterPrimary);
-                            weekRowPrimary_2.push(weekCounterPrimary * weekRates);
-                            weekRowPrimary_2.push(weekRates);
-                            weekRowsPrimary.push(weekRowPrimary_2);
-                            //update and reset week counters
-                            week++;
-                            weekCounter = 0;
-                            weekCounterPrimary = 0;
-                            weekRates = 0;
-                            weekZeros = 0;
-                        }
-                        //update day secondary arrays
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounter * rates[day - 1]);
-                        dayRow.push(rates[day - 1]);
-                        dayRows.push(dayRow);
-                        //update day primary arrays
-                        dayRowPrimary.push(day);
-                        dayRowPrimary.push(dayCounterPrimary);
-                        dayRowPrimary.push(dayCounterPrimary * rates[day - 1]);
-                        dayRowPrimary.push(rates[day - 1]);
-                        dayRowsPrimary.push(dayRowPrimary);
-                        //update and reset day counters
-                        day++;
-                        dayCounter = 0;
-                        dayCounterPrimary = 0;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        return [3 /*break*/, 3];
-                    case 8:
-                        weekRow = [];
-                        weekRowPrimary = [];
-                        //calc 5th week rates
-                        if ((day - 29 - weekZeros) == 0) {
-                            weekRates = 0;
-                        }
-                        else {
-                            weekRates = weekRates / (day - 29 - weekZeros);
-                        }
-                        //update 5th week secondary array
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounter * weekRates);
-                        weekRow.push(weekRates);
-                        weekRows.push(weekRow);
-                        //update 5th week primary array
-                        weekRowPrimary.push(week);
-                        weekRowPrimary.push(weekCounterPrimary);
-                        weekRowPrimary.push(weekCounterPrimary * weekRates);
-                        weekRowPrimary.push(weekRates);
-                        weekRowsPrimary.push(weekRowPrimary);
-                        monthRow = [];
-                        monthRowPrimary = [];
-                        if ((day - 1 - monthZeros) == 0) {
-                            monthRates = 0;
-                        }
-                        else {
-                            monthRates = monthRates / (day - 1 - monthZeros);
-                        }
-                        //secondary
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounter * monthRates);
-                        monthRow.push(monthRates);
-                        monthRows.push(monthRow);
-                        //primary
-                        monthRowPrimary.push(month);
-                        monthRowPrimary.push(monthCounterPrimary);
-                        monthRowPrimary.push(monthCounterPrimary * monthRates);
-                        monthRowPrimary.push(monthRates);
-                        monthRowsPrimary.push(monthRowPrimary);
-                        tableDay = 'TablaDay' + tokensArray[i].symbol;
-                        tableWeek = 'TablaWeek' + tokensArray[i].symbol;
-                        tableMonth = 'TablaMonth' + tokensArray[i].symbol;
-                        tableDayPrimary = 'TablaDayPrimary' + tokensArray[i].symbol;
-                        tableWeekPrimary = 'TablaWeekPrimary' + tokensArray[i].symbol;
-                        tableMonthPrimary = 'TablaMonthPrimary' + tokensArray[i].symbol;
-                        addTable(sheet, tableDay, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        addTable(sheet2, tableDayPrimary, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRowsPrimary);
-                        addTable(sheet2, tableWeekPrimary, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRowsPrimary);
-                        addTable(sheet2, tableMonthPrimary, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRowsPrimary);
-                        sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName = 'Tabla' + tokensArray[i].symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet, tableName, 'B37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], offersRows)];
-                    case 9:
-                        _a.sent();
-                        sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName2 = 'Tabla2' + tokensArray[i].symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet, tableName2, 'K37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], requestsRows)];
-                    case 10:
-                        _a.sent();
-                        sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-                        sheet2.getCell('B36').font = { bold: true };
-                        tableName3 = 'TablaPrimario' + tokensArray[i].symbol;
-                        if (offersPrimaryRows.length == 0) {
-                            offersPrimaryRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet2, tableName3, 'B37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], offersPrimaryRows)];
-                    case 11:
-                        _a.sent();
-                        sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('K36').font = { bold: true };
-                        tableName4 = 'TablaPrimario2' + tokensArray[i].symbol;
-                        if (requestsPrimaryRows.length == 0) {
-                            requestsPrimaryRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet2, tableName4, 'K37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], requestsPrimaryRows)];
-                    case 12:
-                        _a.sent();
-                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-                        sheet2.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet2.getCell('B2').value = 'TOTAL (diario)';
-                        sheet2.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet2.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet2.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        sheet2.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet2.getCell('L2').font = { bold: true };
-                        _a.label = 13;
-                    case 13:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 14:
-                        _a.trys.push([14, 16, , 22]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsMonthTokenDealsReport.xlsx')];
-                    case 15:
-                        _a.sent();
-                        return [3 /*break*/, 22];
-                    case 16:
-                        error_8 = _a.sent();
-                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 17:
-                        buffer = _a.sent();
-                        _a.label = 18;
-                    case 18:
-                        _a.trys.push([18, 20, , 21]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthTokenDealsReport.xlsx')];
-                    case 19:
-                        _a.sent();
-                        return [3 /*break*/, 21];
-                    case 20:
-                        err_8 = _a.sent();
-                        console.error(err_8);
-                        return [3 /*break*/, 21];
-                    case 21: return [3 /*break*/, 22];
-                    case 22: return [2 /*return*/];
-                }
-            });
-        });
-    };
     Report.prototype.getTokenDealsReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_9, buffer, err_9;
+            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_7, buffer, err_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -2689,7 +858,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 30];
                     case 24:
-                        error_9 = _a.sent();
+                        error_7 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 25:
                         buffer = _a.sent();
@@ -2701,8 +870,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 29];
                     case 28:
-                        err_9 = _a.sent();
-                        console.error(err_9);
+                        err_7 = _a.sent();
+                        console.error(err_7);
                         return [3 /*break*/, 29];
                     case 29: return [3 /*break*/, 30];
                     case 30: return [2 /*return*/];
@@ -2710,9 +879,9 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getPackableDealsReportV3 = function (monthIndex, year, tokensArray) {
+    Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_10, buffer, err_10;
+            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_8, buffer, err_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -2729,8 +898,8 @@ var Report = /** @class */ (function () {
                         for (i = 0; i < tokensArray.length; i++) {
                             sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
                             sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                            promises.push(this.setPackableDealsSheetV2(sheet, timeLow, timeHigh, tokensArray[i]));
-                            promises.push(this.setPrimaryPackableDealsSheetV2(sheet2, timeLow, timeHigh, tokensArray[i]));
+                            promises.push(setPackableDealsSheet(sheet, timeLow, timeHigh, this.url, tokensArray[i]));
+                            promises.push(setPrimaryPackableDealsSheet(sheet2, timeLow, timeHigh, this.url, tokensArray[i]));
                         }
                         return [4 /*yield*/, Promise.all(promises)];
                     case 1:
@@ -2738,25 +907,25 @@ var Report = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 10]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableDealsReportV3.xlsx')];
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableDealsReportV2.xlsx')];
                     case 3:
                         _a.sent();
                         return [3 /*break*/, 10];
                     case 4:
-                        error_10 = _a.sent();
+                        error_8 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 5:
                         buffer = _a.sent();
                         _a.label = 6;
                     case 6:
                         _a.trys.push([6, 8, , 9]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReportV3.xlsx')];
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReportV2.xlsx')];
                     case 7:
                         _a.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        err_10 = _a.sent();
-                        console.error(err_10);
+                        err_8 = _a.sent();
+                        console.error(err_8);
                         return [3 /*break*/, 9];
                     case 9: return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
@@ -2764,1661 +933,9 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.setPackableDealsSheet = function (sheet, sheet2, timeLow, timeHigh, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var day, week, month, dayCounter, dayCounterPrimary, weekCounter, weekCounterPrimary, monthCounter, monthCounterPrimary, dayCounterUsd, dayCounterPrimaryUsd, weekCounterUsd, weekCounterPrimaryUsd, monthCounterUsd, monthCounterPrimaryUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, offersRows, requestsRows, offersPrimaryRows, requestsPrimaryRows, dayRow, weekRow_7, dayRowPrimary, weekRowPrimary_3, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, buyAmount, usdAmount, array, p, deals, q, amount, buyAmount, usdAmount, array, p, deals, q, amount, sellAmount, usdAmount, array, p, deals, q, amount, sellAmount, usdAmount, array, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName, tableName2, tableName3, tableName4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        dayCounterPrimary = 0;
-                        weekCounter = 0;
-                        weekCounterPrimary = 0;
-                        monthCounter = 0;
-                        monthCounterPrimary = 0;
-                        dayCounterUsd = 0;
-                        dayCounterPrimaryUsd = 0;
-                        weekCounterUsd = 0;
-                        weekCounterPrimaryUsd = 0;
-                        monthCounterUsd = 0;
-                        monthCounterPrimaryUsd = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        dayRowsPrimary = [];
-                        weekRowsPrimary = [];
-                        monthRowsPrimary = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        offersPrimaryRows = [];
-                        requestsPrimaryRows = [];
-                        _a.label = 1;
-                    case 1:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 38];
-                        dayRow = [];
-                        weekRow_7 = [];
-                        dayRowPrimary = [];
-                        weekRowPrimary_3 = [];
-                        return [4 /*yield*/, try_getPackableOffers(_timeLow, _timeHigh, token.address, this.url)];
-                    case 2:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, try_getPackableOffersPrimary(_timeLow, _timeHigh, token.address, this.url)];
-                    case 3:
-                        dayOffersPrimary = _a.sent();
-                        return [4 /*yield*/, try_getPackableRequests(_timeLow, _timeHigh, token.address, this.url)];
-                    case 4:
-                        dayRequests = _a.sent();
-                        return [4 /*yield*/, try_getPackableRequestsPrimary(_timeLow, _timeHigh, token.address, this.url)];
-                    case 5:
-                        dayRequestsPrimary = _a.sent();
-                        if (!(dayOffers.length > 0)) return [3 /*break*/, 13];
-                        p = 0;
-                        _a.label = 6;
-                    case 6:
-                        if (!(p < dayOffers.length)) return [3 /*break*/, 13];
-                        if (!(dayOffers[p].deals.length > 0)) return [3 /*break*/, 12];
-                        deals = dayOffers[p].deals;
-                        q = 0;
-                        _a.label = 7;
-                    case 7:
-                        if (!(q < deals.length)) return [3 /*break*/, 12];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
-                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 8];
-                        usdAmount = buyAmount;
-                        return [3 /*break*/, 10];
-                    case 8: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
-                    case 9:
-                        usdAmount = _a.sent();
-                        _a.label = 10;
-                    case 10:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        offersRows.push(array);
-                        _a.label = 11;
-                    case 11:
-                        q++;
-                        return [3 /*break*/, 7];
-                    case 12:
-                        p++;
-                        return [3 /*break*/, 6];
-                    case 13:
-                        if (!(dayOffersPrimary.length > 0)) return [3 /*break*/, 21];
-                        p = 0;
-                        _a.label = 14;
-                    case 14:
-                        if (!(p < dayOffersPrimary.length)) return [3 /*break*/, 21];
-                        if (!(dayOffersPrimary[p].deals.length > 0)) return [3 /*break*/, 20];
-                        deals = dayOffersPrimary[p].deals;
-                        q = 0;
-                        _a.label = 15;
-                    case 15:
-                        if (!(q < deals.length)) return [3 /*break*/, 20];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        dayCounterPrimary = dayCounterPrimary + amount;
-                        weekCounterPrimary = weekCounterPrimary + amount;
-                        monthCounterPrimary = monthCounterPrimary + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
-                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 16];
-                        usdAmount = buyAmount;
-                        return [3 /*break*/, 18];
-                    case 16: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
-                    case 17:
-                        usdAmount = _a.sent();
-                        _a.label = 18;
-                    case 18:
-                        dayCounterPrimaryUsd = dayCounterPrimaryUsd + usdAmount;
-                        weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                        monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        offersPrimaryRows.push(array);
-                        _a.label = 19;
-                    case 19:
-                        q++;
-                        return [3 /*break*/, 15];
-                    case 20:
-                        p++;
-                        return [3 /*break*/, 14];
-                    case 21:
-                        if (!(dayRequests.length > 0)) return [3 /*break*/, 29];
-                        p = 0;
-                        _a.label = 22;
-                    case 22:
-                        if (!(p < dayRequests.length)) return [3 /*break*/, 29];
-                        if (!(dayRequests[p].deals.length > 0)) return [3 /*break*/, 28];
-                        deals = dayRequests[p].deals;
-                        q = 0;
-                        _a.label = 23;
-                    case 23:
-                        if (!(q < deals.length)) return [3 /*break*/, 28];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
-                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 24];
-                        usdAmount = sellAmount;
-                        return [3 /*break*/, 26];
-                    case 24: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
-                    case 25:
-                        usdAmount = _a.sent();
-                        _a.label = 26;
-                    case 26:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        requestsRows.push(array);
-                        _a.label = 27;
-                    case 27:
-                        q++;
-                        return [3 /*break*/, 23];
-                    case 28:
-                        p++;
-                        return [3 /*break*/, 22];
-                    case 29:
-                        if (!(dayRequestsPrimary.length > 0)) return [3 /*break*/, 37];
-                        p = 0;
-                        _a.label = 30;
-                    case 30:
-                        if (!(p < dayRequestsPrimary.length)) return [3 /*break*/, 37];
-                        if (!(dayRequestsPrimary[p].deals.length > 0)) return [3 /*break*/, 36];
-                        deals = dayRequestsPrimary[p].deals;
-                        q = 0;
-                        _a.label = 31;
-                    case 31:
-                        if (!(q < deals.length)) return [3 /*break*/, 36];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        dayCounterPrimary = dayCounterPrimary + amount;
-                        weekCounterPrimary = weekCounterPrimary + amount;
-                        monthCounterPrimary = monthCounterPrimary + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
-                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 32];
-                        usdAmount = sellAmount;
-                        return [3 /*break*/, 34];
-                    case 32: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
-                    case 33:
-                        usdAmount = _a.sent();
-                        _a.label = 34;
-                    case 34:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                        monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        requestsPrimaryRows.push(array);
-                        _a.label = 35;
-                    case 35:
-                        q++;
-                        return [3 /*break*/, 31];
-                    case 36:
-                        p++;
-                        return [3 /*break*/, 30];
-                    case 37:
-                        if (day == 7 * week) {
-                            //1 WEEK per iteration
-                            //SECONDARY
-                            weekRow_7.push(week);
-                            weekRow_7.push(weekCounter);
-                            weekRow_7.push(weekCounterUsd);
-                            if (weekCounter == 0)
-                                weekCounter = 1;
-                            weekRow_7.push(weekCounterUsd / weekCounter);
-                            weekRows.push(weekRow_7);
-                            weekCounter = 0;
-                            weekCounterUsd = 0;
-                            //PRIMARY
-                            weekRowPrimary_3.push(week);
-                            weekRowPrimary_3.push(weekCounterPrimary);
-                            weekRowPrimary_3.push(weekCounterPrimaryUsd);
-                            if (weekCounterPrimary == 0)
-                                weekCounterPrimary = 1;
-                            weekRowPrimary_3.push(weekCounterPrimaryUsd / weekCounterPrimary);
-                            weekRowsPrimary.push(weekRowPrimary_3);
-                            weekCounterPrimary = 0;
-                            weekCounterPrimaryUsd = 0;
-                            week++;
-                            //1 WEEK per iteration
-                        }
-                        //secondary
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounterUsd);
-                        if (dayCounter == 0)
-                            dayCounter = 1;
-                        dayRow.push(dayCounterUsd / dayCounter);
-                        dayRows.push(dayRow);
-                        dayCounter = 0;
-                        dayCounterUsd = 0;
-                        //primary
-                        dayRowPrimary.push(day);
-                        dayRowPrimary.push(dayCounterPrimary);
-                        dayRowPrimary.push(dayCounterPrimaryUsd);
-                        if (dayCounterPrimary == 0)
-                            dayCounterPrimary = 1;
-                        dayRowPrimary.push(dayCounterPrimaryUsd / dayCounterPrimary);
-                        dayRowsPrimary.push(dayRowPrimary);
-                        dayCounterPrimary = 0;
-                        dayCounterPrimaryUsd = 0;
-                        day++;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        return [3 /*break*/, 1];
-                    case 38:
-                        weekRow = [];
-                        monthRow = [];
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounterUsd);
-                        if (weekCounter == 0)
-                            weekCounter = 1;
-                        weekRow.push(weekCounterUsd / weekCounter);
-                        weekRows.push(weekRow);
-                        weekRowPrimary = [];
-                        monthRowPrimary = [];
-                        weekRowPrimary.push(week);
-                        weekRowPrimary.push(weekCounterPrimary);
-                        weekRowPrimary.push(weekCounterPrimaryUsd);
-                        if (weekCounterPrimary == 0)
-                            weekCounterPrimary = 1;
-                        weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
-                        weekRowsPrimary.push(weekRowPrimary);
-                        //MONTH
-                        //secondary
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounterUsd);
-                        if (monthCounter == 0)
-                            monthCounter = 1;
-                        monthRow.push(monthCounterUsd / monthCounter);
-                        monthRows.push(monthRow);
-                        //primary
-                        monthRowPrimary.push(month);
-                        monthRowPrimary.push(monthCounterPrimary);
-                        monthRowPrimary.push(monthCounterPrimaryUsd);
-                        if (monthCounterPrimary == 0)
-                            monthCounterPrimary = 1;
-                        monthRowPrimary.push(monthCounterPrimaryUsd / monthCounterPrimary);
-                        monthRowsPrimary.push(monthRowPrimary);
-                        tableDay = 'TablaDay' + token.symbol;
-                        tableWeek = 'TablaWeek' + token.symbol;
-                        tableMonth = 'TablaMonth' + token.symbol;
-                        tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-                        tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-                        tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-                        addTable(sheet, tableDay, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        addTable(sheet2, tableDayPrimary, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRowsPrimary);
-                        addTable(sheet2, tableWeekPrimary, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRowsPrimary);
-                        addTable(sheet2, tableMonthPrimary, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRowsPrimary);
-                        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName = 'Tabla' + token.symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersRows);
-                        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName2 = 'Tabla2' + token.symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName2, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsRows);
-                        sheet2.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet2.getCell('B36').font = { bold: true };
-                        tableName3 = 'TablaPrimario' + token.symbol;
-                        if (offersPrimaryRows.length == 0) {
-                            offersPrimaryRows = getEmtpyDeal();
-                        }
-                        addTable(sheet2, tableName3, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersPrimaryRows);
-                        sheet2.getCell('K36').value = token.symbol + ' DEMANDADO';
-                        sheet2.getCell('K36').font = { bold: true };
-                        tableName4 = 'TablaPrimario2' + token.symbol;
-                        if (requestsPrimaryRows.length == 0) {
-                            requestsPrimaryRows = getEmtpyDeal();
-                        }
-                        addTable(sheet2, tableName4, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsPrimaryRows);
-                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-                        sheet2.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet2.getCell('B2').value = 'TOTAL (diario)';
-                        sheet2.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet2.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet2.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        sheet2.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet2.getCell('L2').font = { bold: true };
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Report.prototype.setPackableDealsSheetV2 = function (sheet, timeLow, timeHigh, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var day, week, month, dayCounter, weekCounter, monthCounter, dayCounterUsd, weekCounterUsd, monthCounterUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, buyAmount, usdAmount, array, deals, q, amount, sellAmount, usdAmount, array, nextOfferTimestamp, nextRequestTimestamp, dayRow, weekRow_8, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName, tableName2;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        weekCounter = 0;
-                        monthCounter = 0;
-                        dayCounterUsd = 0;
-                        weekCounterUsd = 0;
-                        monthCounterUsd = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        return [4 /*yield*/, try_getPackableOffers(timeLow, timeHigh, token.address, this.url)];
-                    case 1:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, try_getPackableRequests(timeLow, timeHigh, token.address, this.url)];
-                    case 2:
-                        dayRequests = _a.sent();
-                        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                            nextOffer = dayRequests.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = false;
-                        }
-                        else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                            nextOffer = dayOffers.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = true;
-                        }
-                        else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                            nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                            nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                            if (nextOfferTimestamp < nextRequestTimestamp) {
-                                nextOffer = dayOffers.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = true;
-                            }
-                            else {
-                                nextOffer = dayRequests.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = false;
-                            }
-                        }
-                        else {
-                            nextTimestamp = 0;
-                        }
-                        _a.label = 3;
-                    case 3:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 19];
-                        _a.label = 4;
-                    case 4:
-                        if (!((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh))) return [3 /*break*/, 18];
-                        if (!(nextOffer.deals.length > 0)) return [3 /*break*/, 17];
-                        if (!nextIsOffer) return [3 /*break*/, 11];
-                        deals = nextOffer.deals;
-                        q = 0;
-                        _a.label = 5;
-                    case 5:
-                        if (!(q < deals.length)) return [3 /*break*/, 10];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
-                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 6];
-                        usdAmount = buyAmount;
-                        return [3 /*break*/, 8];
-                    case 6: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
-                    case 7:
-                        usdAmount = _a.sent();
-                        _a.label = 8;
-                    case 8:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        offersRows.push(array);
-                        _a.label = 9;
-                    case 9:
-                        q++;
-                        return [3 /*break*/, 5];
-                    case 10: return [3 /*break*/, 17];
-                    case 11:
-                        deals = nextOffer.deals;
-                        q = 0;
-                        _a.label = 12;
-                    case 12:
-                        if (!(q < deals.length)) return [3 /*break*/, 17];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
-                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 13];
-                        usdAmount = sellAmount;
-                        return [3 /*break*/, 15];
-                    case 13: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
-                    case 14:
-                        usdAmount = _a.sent();
-                        _a.label = 15;
-                    case 15:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        requestsRows.push(array);
-                        _a.label = 16;
-                    case 16:
-                        q++;
-                        return [3 /*break*/, 12];
-                    case 17:
-                        //pop new offer
-                        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                            nextOffer = dayRequests.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = false;
-                        }
-                        else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                            nextOffer = dayOffers.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = true;
-                        }
-                        else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                            nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                            nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                            if (nextOfferTimestamp < nextRequestTimestamp) {
-                                nextOffer = dayOffers.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = true;
-                            }
-                            else {
-                                nextOffer = dayRequests.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = false;
-                            }
-                        }
-                        else {
-                            nextTimestamp = 0;
-                        }
-                        return [3 /*break*/, 4];
-                    case 18:
-                        dayRow = [];
-                        //secondary
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounterUsd);
-                        if (dayCounter == 0)
-                            dayCounter = 1;
-                        dayRow.push(dayCounterUsd / dayCounter);
-                        dayRows.push(dayRow);
-                        dayCounter = 0;
-                        dayCounterUsd = 0;
-                        day++;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        //compute week
-                        if (day == 7 * week) {
-                            weekRow_8 = [];
-                            //secondary
-                            weekRow_8.push(week);
-                            weekRow_8.push(weekCounter);
-                            weekRow_8.push(weekCounterUsd);
-                            if (weekCounter == 0)
-                                weekCounter = 1;
-                            weekRow_8.push(weekCounterUsd / weekCounter);
-                            weekRows.push(weekRow_8);
-                            weekCounter = 0;
-                            weekCounterUsd = 0;
-                            week++;
-                        }
-                        return [3 /*break*/, 3];
-                    case 19:
-                        weekRow = [];
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounterUsd);
-                        if (weekCounter == 0)
-                            weekCounter = 1;
-                        weekRow.push(weekCounterUsd / weekCounter);
-                        weekRows.push(weekRow);
-                        monthRow = [];
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounterUsd);
-                        if (monthCounter == 0)
-                            monthCounter = 1;
-                        monthRow.push(monthCounterUsd / monthCounter);
-                        monthRows.push(monthRow);
-                        tableDay = 'TablaDay' + token.symbol;
-                        tableWeek = 'TablaWeek' + token.symbol;
-                        tableMonth = 'TablaMonth' + token.symbol;
-                        addTable(sheet, tableDay, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName = 'Tabla' + token.symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersRows);
-                        sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName2 = 'Tabla2' + token.symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName2, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsRows);
-                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Report.prototype.setPrimaryPackableDealsSheetV2 = function (sheet, timeLow, timeHigh, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var day, week, month, dayCounter, weekCounter, monthCounter, dayCounterUsd, weekCounterUsd, monthCounterUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, buyAmount, usdAmount, array, deals, q, amount, sellAmount, usdAmount, array, nextOfferTimestamp, nextRequestTimestamp, dayRow, weekRow_9, weekRow, monthRow, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName3, tableName4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        weekCounter = 0;
-                        monthCounter = 0;
-                        dayCounterUsd = 0;
-                        weekCounterUsd = 0;
-                        monthCounterUsd = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        return [4 /*yield*/, try_getPackableOffersPrimary(timeLow, timeHigh, token.address, this.url)];
-                    case 1:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, try_getPackableRequestsPrimary(timeLow, timeHigh, token.address, this.url)];
-                    case 2:
-                        dayRequests = _a.sent();
-                        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                            nextOffer = dayRequests.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = false;
-                        }
-                        else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                            nextOffer = dayOffers.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = true;
-                        }
-                        else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                            nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                            nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                            if (nextOfferTimestamp < nextRequestTimestamp) {
-                                nextOffer = dayOffers.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = true;
-                            }
-                            else {
-                                nextOffer = dayRequests.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = false;
-                            }
-                        }
-                        else {
-                            nextTimestamp = 0;
-                        }
-                        _a.label = 3;
-                    case 3:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 19];
-                        _a.label = 4;
-                    case 4:
-                        if (!((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh))) return [3 /*break*/, 18];
-                        if (!(nextOffer.deals.length > 0)) return [3 /*break*/, 17];
-                        if (!nextIsOffer) return [3 /*break*/, 11];
-                        deals = nextOffer.deals;
-                        q = 0;
-                        _a.label = 5;
-                    case 5:
-                        if (!(q < deals.length)) return [3 /*break*/, 10];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
-                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 6];
-                        usdAmount = buyAmount;
-                        return [3 /*break*/, 8];
-                    case 6: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
-                    case 7:
-                        usdAmount = _a.sent();
-                        _a.label = 8;
-                    case 8:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        offersRows.push(array);
-                        _a.label = 9;
-                    case 9:
-                        q++;
-                        return [3 /*break*/, 5];
-                    case 10: return [3 /*break*/, 17];
-                    case 11:
-                        deals = nextOffer.deals;
-                        q = 0;
-                        _a.label = 12;
-                    case 12:
-                        if (!(q < deals.length)) return [3 /*break*/, 17];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
-                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 13];
-                        usdAmount = sellAmount;
-                        return [3 /*break*/, 15];
-                    case 13: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
-                    case 14:
-                        usdAmount = _a.sent();
-                        _a.label = 15;
-                    case 15:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        requestsRows.push(array);
-                        _a.label = 16;
-                    case 16:
-                        q++;
-                        return [3 /*break*/, 12];
-                    case 17:
-                        //pop new offer
-                        if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
-                            nextOffer = dayRequests.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = false;
-                        }
-                        else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
-                            nextOffer = dayOffers.pop();
-                            nextTimestamp = nextOffer.timestamp;
-                            nextIsOffer = true;
-                        }
-                        else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
-                            nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
-                            nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
-                            if (nextOfferTimestamp < nextRequestTimestamp) {
-                                nextOffer = dayOffers.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = true;
-                            }
-                            else {
-                                nextOffer = dayRequests.pop();
-                                nextTimestamp = nextOffer.timestamp;
-                                nextIsOffer = false;
-                            }
-                        }
-                        else {
-                            nextTimestamp = 0;
-                        }
-                        return [3 /*break*/, 4];
-                    case 18:
-                        dayRow = [];
-                        //secondary
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounterUsd);
-                        if (dayCounter == 0)
-                            dayCounter = 1;
-                        dayRow.push(dayCounterUsd / dayCounter);
-                        dayRows.push(dayRow);
-                        dayCounter = 0;
-                        dayCounterUsd = 0;
-                        day++;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        //compute week
-                        if (day == 7 * week) {
-                            weekRow_9 = [];
-                            //secondary
-                            weekRow_9.push(week);
-                            weekRow_9.push(weekCounter);
-                            weekRow_9.push(weekCounterUsd);
-                            if (weekCounter == 0)
-                                weekCounter = 1;
-                            weekRow_9.push(weekCounterUsd / weekCounter);
-                            weekRows.push(weekRow_9);
-                            weekCounter = 0;
-                            weekCounterUsd = 0;
-                            week++;
-                        }
-                        return [3 /*break*/, 3];
-                    case 19:
-                        weekRow = [];
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounterUsd);
-                        if (weekCounter == 0)
-                            weekCounter = 1;
-                        weekRow.push(weekCounterUsd / weekCounter);
-                        weekRows.push(weekRow);
-                        monthRow = [];
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounterUsd);
-                        if (monthCounter == 0)
-                            monthCounter = 1;
-                        monthRow.push(monthCounterUsd / monthCounter);
-                        monthRows.push(monthRow);
-                        tableDayPrimary = 'TablaDayPrimary' + token.symbol;
-                        tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
-                        tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
-                        addTable(sheet, tableDayPrimary, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeekPrimary, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonthPrimary, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName3 = 'TablaPrimario' + token.symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName3, 'B37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], offersRows);
-                        sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName4 = 'TablaPrimario2' + token.symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        addTable(sheet, tableName4, 'K37', [
-                            { name: 'Fecha (pacto)', filterButton: true },
-                            { name: 'Hora (oferta)' },
-                            { name: 'Hora (pacto)' },
-                            { name: 'Contrapartida', filterButton: true },
-                            { name: 'Vendedor (usuario)', filterButton: true },
-                            { name: 'Comprador (usuario)', filterButton: true },
-                            { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
-                            { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                        ], requestsRows);
-                        sheet.getCell('C1').value = 'Mercado P2P (Primario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        return [2 /*return*/];
-                }
-            });
-        });
-    };
-    Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray) {
-        return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, i, day, week, month, dayCounter, dayCounterPrimary, weekCounter, weekCounterPrimary, monthCounter, monthCounterPrimary, dayCounterUsd, dayCounterPrimaryUsd, weekCounterUsd, weekCounterPrimaryUsd, monthCounterUsd, monthCounterPrimaryUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, dayRowsPrimary, weekRowsPrimary, monthRowsPrimary, offersRows, requestsRows, offersPrimaryRows, requestsPrimaryRows, sheet, sheet2, dayRow, weekRow_10, dayRowPrimary, weekRowPrimary_4, dayOffers, dayOffersPrimary, dayRequests, dayRequestsPrimary, p, deals, q, amount, buyAmount, usdAmount, array, p, deals, q, amount, buyAmount, usdAmount, array, p, deals, q, amount, sellAmount, usdAmount, array, p, deals, q, amount, sellAmount, usdAmount, array, weekRow, monthRow, weekRowPrimary, monthRowPrimary, tableDay, tableWeek, tableMonth, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName, tableName2, tableName3, tableName4, error_11, buffer, err_11;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        workbook = new ExcelJS.Workbook();
-                        toYear = year;
-                        toMonthIndex = monthIndex + 1;
-                        if (monthIndex == 12) {
-                            toYear = year + 1;
-                            toMonthIndex = 1;
-                        }
-                        timeLow = getUtcTimeFromDate(year, monthIndex, 1);
-                        timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
-                        i = 0;
-                        _a.label = 1;
-                    case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 45];
-                        day = 1;
-                        week = 1;
-                        month = 1;
-                        dayCounter = 0;
-                        dayCounterPrimary = 0;
-                        weekCounter = 0;
-                        weekCounterPrimary = 0;
-                        monthCounter = 0;
-                        monthCounterPrimary = 0;
-                        dayCounterUsd = 0;
-                        dayCounterPrimaryUsd = 0;
-                        weekCounterUsd = 0;
-                        weekCounterPrimaryUsd = 0;
-                        monthCounterUsd = 0;
-                        monthCounterPrimaryUsd = 0;
-                        _timeLow = timeLow;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        dayRows = [];
-                        weekRows = [];
-                        monthRows = [];
-                        dayRowsPrimary = [];
-                        weekRowsPrimary = [];
-                        monthRowsPrimary = [];
-                        offersRows = [];
-                        requestsRows = [];
-                        offersPrimaryRows = [];
-                        requestsPrimaryRows = [];
-                        sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-                        sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                        _a.label = 2;
-                    case 2:
-                        if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 39];
-                        dayRow = [];
-                        weekRow_10 = [];
-                        dayRowPrimary = [];
-                        weekRowPrimary_4 = [];
-                        return [4 /*yield*/, getPackableOffers(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 3:
-                        dayOffers = _a.sent();
-                        return [4 /*yield*/, getPackableOffersPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 4:
-                        dayOffersPrimary = _a.sent();
-                        return [4 /*yield*/, getPackableRequests(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 5:
-                        dayRequests = _a.sent();
-                        return [4 /*yield*/, getPackableRequestsPrimary(_timeLow, _timeHigh, tokensArray[i].address, this.url)];
-                    case 6:
-                        dayRequestsPrimary = _a.sent();
-                        if (!(dayOffers.length > 0)) return [3 /*break*/, 14];
-                        p = 0;
-                        _a.label = 7;
-                    case 7:
-                        if (!(p < dayOffers.length)) return [3 /*break*/, 14];
-                        if (!(dayOffers[p].deals.length > 0)) return [3 /*break*/, 13];
-                        deals = dayOffers[p].deals;
-                        q = 0;
-                        _a.label = 8;
-                    case 8:
-                        if (!(q < deals.length)) return [3 /*break*/, 13];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
-                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 9];
-                        usdAmount = buyAmount;
-                        return [3 /*break*/, 11];
-                    case 9: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
-                    case 10:
-                        usdAmount = _a.sent();
-                        _a.label = 11;
-                    case 11:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        offersRows.push(array);
-                        _a.label = 12;
-                    case 12:
-                        q++;
-                        return [3 /*break*/, 8];
-                    case 13:
-                        p++;
-                        return [3 /*break*/, 7];
-                    case 14:
-                        if (!(dayOffersPrimary.length > 0)) return [3 /*break*/, 22];
-                        p = 0;
-                        _a.label = 15;
-                    case 15:
-                        if (!(p < dayOffersPrimary.length)) return [3 /*break*/, 22];
-                        if (!(dayOffersPrimary[p].deals.length > 0)) return [3 /*break*/, 21];
-                        deals = dayOffersPrimary[p].deals;
-                        q = 0;
-                        _a.label = 16;
-                    case 16:
-                        if (!(q < deals.length)) return [3 /*break*/, 21];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        dayCounterPrimary = dayCounterPrimary + amount;
-                        weekCounterPrimary = weekCounterPrimary + amount;
-                        monthCounterPrimary = monthCounterPrimary + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
-                            (deals[q].offer.buyToken.id == Constants.USC.address) ||
-                            (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 17];
-                        usdAmount = buyAmount;
-                        return [3 /*break*/, 19];
-                    case 17: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
-                    case 18:
-                        usdAmount = _a.sent();
-                        _a.label = 19;
-                    case 19:
-                        dayCounterPrimaryUsd = dayCounterPrimaryUsd + usdAmount;
-                        weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                        monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.buyToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        offersPrimaryRows.push(array);
-                        _a.label = 20;
-                    case 20:
-                        q++;
-                        return [3 /*break*/, 16];
-                    case 21:
-                        p++;
-                        return [3 /*break*/, 15];
-                    case 22:
-                        if (!(dayRequests.length > 0)) return [3 /*break*/, 30];
-                        p = 0;
-                        _a.label = 23;
-                    case 23:
-                        if (!(p < dayRequests.length)) return [3 /*break*/, 30];
-                        if (!(dayRequests[p].deals.length > 0)) return [3 /*break*/, 29];
-                        deals = dayRequests[p].deals;
-                        q = 0;
-                        _a.label = 24;
-                    case 24:
-                        if (!(q < deals.length)) return [3 /*break*/, 29];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        dayCounter = dayCounter + amount;
-                        weekCounter = weekCounter + amount;
-                        monthCounter = monthCounter + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
-                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 25];
-                        usdAmount = sellAmount;
-                        return [3 /*break*/, 27];
-                    case 25: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
-                    case 26:
-                        usdAmount = _a.sent();
-                        _a.label = 27;
-                    case 27:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterUsd = weekCounterUsd + usdAmount;
-                        monthCounterUsd = monthCounterUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        requestsRows.push(array);
-                        _a.label = 28;
-                    case 28:
-                        q++;
-                        return [3 /*break*/, 24];
-                    case 29:
-                        p++;
-                        return [3 /*break*/, 23];
-                    case 30:
-                        if (!(dayRequestsPrimary.length > 0)) return [3 /*break*/, 38];
-                        p = 0;
-                        _a.label = 31;
-                    case 31:
-                        if (!(p < dayRequestsPrimary.length)) return [3 /*break*/, 38];
-                        if (!(dayRequestsPrimary[p].deals.length > 0)) return [3 /*break*/, 37];
-                        deals = dayRequestsPrimary[p].deals;
-                        q = 0;
-                        _a.label = 32;
-                    case 32:
-                        if (!(q < deals.length)) return [3 /*break*/, 37];
-                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                        sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                        dayCounterPrimary = dayCounterPrimary + amount;
-                        weekCounterPrimary = weekCounterPrimary + amount;
-                        monthCounterPrimary = monthCounterPrimary + amount;
-                        usdAmount = 0;
-                        if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
-                            (deals[q].offer.sellToken.id == Constants.USC.address) ||
-                            (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 33];
-                        usdAmount = sellAmount;
-                        return [3 /*break*/, 35];
-                    case 33: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
-                    case 34:
-                        usdAmount = _a.sent();
-                        _a.label = 35;
-                    case 35:
-                        dayCounterUsd = dayCounterUsd + usdAmount;
-                        weekCounterPrimaryUsd = weekCounterPrimaryUsd + usdAmount;
-                        monthCounterPrimaryUsd = monthCounterPrimaryUsd + usdAmount;
-                        array = [];
-                        array.push(new Date(deals[q].timestamp * 1000));
-                        array.push(timeConverter(deals[q].offer.timestamp));
-                        array.push(timeConverter(deals[q].timestamp));
-                        array.push(deals[q].offer.sellToken.tokenSymbol);
-                        if (deals[q].seller.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].seller.name);
-                        }
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(deals[q].buyer.name);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                        requestsPrimaryRows.push(array);
-                        _a.label = 36;
-                    case 36:
-                        q++;
-                        return [3 /*break*/, 32];
-                    case 37:
-                        p++;
-                        return [3 /*break*/, 31];
-                    case 38:
-                        if (day == 7 * week) {
-                            //1 WEEK per iteration
-                            //SECONDARY
-                            weekRow_10.push(week);
-                            weekRow_10.push(weekCounter);
-                            weekRow_10.push(weekCounterUsd);
-                            if (weekCounter == 0)
-                                weekCounter = 1;
-                            weekRow_10.push(weekCounterUsd / weekCounter);
-                            weekRows.push(weekRow_10);
-                            weekCounter = 0;
-                            weekCounterUsd = 0;
-                            //PRIMARY
-                            weekRowPrimary_4.push(week);
-                            weekRowPrimary_4.push(weekCounterPrimary);
-                            weekRowPrimary_4.push(weekCounterPrimaryUsd);
-                            if (weekCounterPrimary == 0)
-                                weekCounterPrimary = 1;
-                            weekRowPrimary_4.push(weekCounterPrimaryUsd / weekCounterPrimary);
-                            weekRowsPrimary.push(weekRowPrimary_4);
-                            weekCounterPrimary = 0;
-                            weekCounterPrimaryUsd = 0;
-                            week++;
-                            //1 WEEK per iteration
-                        }
-                        //secondary
-                        dayRow.push(day);
-                        dayRow.push(dayCounter);
-                        dayRow.push(dayCounterUsd);
-                        if (dayCounter == 0)
-                            dayCounter = 1;
-                        dayRow.push(dayCounterUsd / dayCounter);
-                        dayRows.push(dayRow);
-                        dayCounter = 0;
-                        dayCounterUsd = 0;
-                        //primary
-                        dayRowPrimary.push(day);
-                        dayRowPrimary.push(dayCounterPrimary);
-                        dayRowPrimary.push(dayCounterPrimaryUsd);
-                        if (dayCounterPrimary == 0)
-                            dayCounterPrimary = 1;
-                        dayRowPrimary.push(dayCounterPrimaryUsd / dayCounterPrimary);
-                        dayRowsPrimary.push(dayRowPrimary);
-                        dayCounterPrimary = 0;
-                        dayCounterPrimaryUsd = 0;
-                        day++;
-                        _timeLow = _timeHigh;
-                        _timeHigh = _timeLow + ONE_UTC_DAY;
-                        return [3 /*break*/, 2];
-                    case 39:
-                        weekRow = [];
-                        monthRow = [];
-                        weekRow.push(week);
-                        weekRow.push(weekCounter);
-                        weekRow.push(weekCounterUsd);
-                        if (weekCounter == 0)
-                            weekCounter = 1;
-                        weekRow.push(weekCounterUsd / weekCounter);
-                        weekRows.push(weekRow);
-                        weekRowPrimary = [];
-                        monthRowPrimary = [];
-                        weekRowPrimary.push(week);
-                        weekRowPrimary.push(weekCounterPrimary);
-                        weekRowPrimary.push(weekCounterPrimaryUsd);
-                        if (weekCounterPrimary == 0)
-                            weekCounterPrimary = 1;
-                        weekRowPrimary.push(weekCounterPrimaryUsd / weekCounterPrimary);
-                        weekRowsPrimary.push(weekRowPrimary);
-                        //MONTH
-                        //secondary
-                        monthRow.push(month);
-                        monthRow.push(monthCounter);
-                        monthRow.push(monthCounterUsd);
-                        if (monthCounter == 0)
-                            monthCounter = 1;
-                        monthRow.push(monthCounterUsd / monthCounter);
-                        monthRows.push(monthRow);
-                        //primary
-                        monthRowPrimary.push(month);
-                        monthRowPrimary.push(monthCounterPrimary);
-                        monthRowPrimary.push(monthCounterPrimaryUsd);
-                        if (monthCounterPrimary == 0)
-                            monthCounterPrimary = 1;
-                        monthRowPrimary.push(monthCounterPrimaryUsd / monthCounterPrimary);
-                        monthRowsPrimary.push(monthRowPrimary);
-                        tableDay = 'TablaDay' + tokensArray[i].symbol;
-                        tableWeek = 'TablaWeek' + tokensArray[i].symbol;
-                        tableMonth = 'TablaMonth' + tokensArray[i].symbol;
-                        tableDayPrimary = 'TablaDayPrimary' + tokensArray[i].symbol;
-                        tableWeekPrimary = 'TablaWeekPrimary' + tokensArray[i].symbol;
-                        tableMonthPrimary = 'TablaMonthPrimary' + tokensArray[i].symbol;
-                        addTable(sheet, tableDay, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRows);
-                        addTable(sheet, tableWeek, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRows);
-                        addTable(sheet, tableMonth, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRows);
-                        addTable(sheet2, tableDayPrimary, 'B3', [
-                            { name: 'Día', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], dayRowsPrimary);
-                        addTable(sheet2, tableWeekPrimary, 'G3', [
-                            { name: 'Semana', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], weekRowsPrimary);
-                        addTable(sheet2, tableMonthPrimary, 'L3', [
-                            { name: 'Mes', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' },
-                            { name: 'Tipo de cambio' }
-                        ], monthRowsPrimary);
-                        sheet.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-                        sheet.getCell('B36').font = { bold: true };
-                        tableName = 'Tabla' + tokensArray[i].symbol;
-                        if (offersRows.length == 0) {
-                            offersRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet, tableName, 'B37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], offersRows)];
-                    case 40:
-                        _a.sent();
-                        sheet.getCell('K36').value = 'PACTOS (' + tokensArray[i].symbol + ' DEMANDADO)';
-                        sheet.getCell('K36').font = { bold: true };
-                        tableName2 = 'Tabla2' + tokensArray[i].symbol;
-                        if (requestsRows.length == 0) {
-                            requestsRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet, tableName2, 'K37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], requestsRows)];
-                    case 41:
-                        _a.sent();
-                        sheet2.getCell('B36').value = 'PACTOS (' + tokensArray[i].symbol + ' OFERTADO)';
-                        sheet2.getCell('B36').font = { bold: true };
-                        tableName3 = 'TablaPrimario' + tokensArray[i].symbol;
-                        if (offersPrimaryRows.length == 0) {
-                            offersPrimaryRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet2, tableName3, 'B37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], offersPrimaryRows)];
-                    case 42:
-                        _a.sent();
-                        sheet2.getCell('K36').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('K36').font = { bold: true };
-                        tableName4 = 'TablaPrimario2' + tokensArray[i].symbol;
-                        if (requestsPrimaryRows.length == 0) {
-                            requestsPrimaryRows = getEmtpyDeal();
-                        }
-                        return [4 /*yield*/, addTable(sheet2, tableName4, 'K37', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], requestsPrimaryRows)];
-                    case 43:
-                        _a.sent();
-                        sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                        sheet.getCell('C1').font = { bold: true };
-                        sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-                        sheet2.getCell('C1').font = { bold: true };
-                        sheet.getCell('B2').value = 'TOTAL (diario)';
-                        sheet.getCell('B2').font = { bold: true };
-                        sheet2.getCell('B2').value = 'TOTAL (diario)';
-                        sheet2.getCell('B2').font = { bold: true };
-                        sheet.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet.getCell('G2').font = { bold: true };
-                        sheet2.getCell('G2').value = 'TOTAL (semanal)';
-                        sheet2.getCell('G2').font = { bold: true };
-                        sheet.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet.getCell('L2').font = { bold: true };
-                        sheet2.getCell('L2').value = 'TOTAL (mensual)';
-                        sheet2.getCell('L2').font = { bold: true };
-                        _a.label = 44;
-                    case 44:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 45:
-                        _a.trys.push([45, 47, , 53]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsMonthPackableDealsReport.xlsx')];
-                    case 46:
-                        _a.sent();
-                        return [3 /*break*/, 53];
-                    case 47:
-                        error_11 = _a.sent();
-                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 48:
-                        buffer = _a.sent();
-                        _a.label = 49;
-                    case 49:
-                        _a.trys.push([49, 51, , 52]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsMonthPackableDealsReport.xlsx')];
-                    case 50:
-                        _a.sent();
-                        return [3 /*break*/, 52];
-                    case 51:
-                        err_11 = _a.sent();
-                        console.error(err_11);
-                        return [3 /*break*/, 52];
-                    case 52: return [3 /*break*/, 53];
-                    case 53: return [2 /*return*/];
-                }
-            });
-        });
-    };
     Report.prototype.getPackableDealsReport = function (timeLow, timeHigh, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_12, buffer, err_12;
+            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_9, buffer, err_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -4658,7 +1175,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 30];
                     case 24:
-                        error_12 = _a.sent();
+                        error_9 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 25:
                         buffer = _a.sent();
@@ -4670,8 +1187,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 29];
                     case 28:
-                        err_12 = _a.sent();
-                        console.error(err_12);
+                        err_9 = _a.sent();
+                        console.error(err_9);
                         return [3 /*break*/, 29];
                     case 29: return [3 /*break*/, 30];
                     case 30: return [2 /*return*/];
@@ -4870,10 +1387,1369 @@ var Report = /** @class */ (function () {
     return Report;
 }());
 exports.Report = Report;
+function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token) {
+    return __awaiter(this, void 0, void 0, function () {
+        var day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, txRows, rates, transactions, nextTx, nextTimestamp, txDayRow, amount, weekRow_1, dayRow, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    day = 1;
+                    week = 1;
+                    month = 1;
+                    dayCounter = 0;
+                    weekCounter = 0;
+                    weekRates = 0;
+                    monthCounter = 0;
+                    monthRates = 0;
+                    weekZeros = 0;
+                    monthZeros = 0;
+                    _timeLow = timeLow;
+                    _timeHigh = _timeLow + ONE_UTC_DAY;
+                    dayRows = [];
+                    weekRows = [];
+                    monthRows = [];
+                    txRows = [];
+                    return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, token.address, token.category)];
+                case 1:
+                    rates = _a.sent();
+                    return [4 /*yield*/, try_getTransactions(timeLow, timeHigh, token.address, url)];
+                case 2:
+                    transactions = _a.sent();
+                    if (transactions.length > 0) {
+                        nextTx = transactions.pop();
+                        nextTimestamp = nextTx.timestamp;
+                    }
+                    else {
+                        nextTimestamp = 0;
+                    }
+                    while (_timeHigh <= timeHigh) {
+                        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+                            txDayRow = [];
+                            amount = parseFloat(utils_1.weiToEther(nextTx.amount));
+                            dayCounter = dayCounter + amount;
+                            weekCounter = weekCounter + amount;
+                            monthCounter = monthCounter + amount;
+                            //TXs Table
+                            txDayRow.push(new Date(nextTx.timestamp * 1000));
+                            txDayRow.push(nextTx.currency.tokenSymbol);
+                            txDayRow.push(nextTx.from.id);
+                            if (nextTx.from.name == null) {
+                                txDayRow.push("");
+                            }
+                            else {
+                                txDayRow.push(nextTx.from.name.id);
+                            }
+                            txDayRow.push(nextTx.to.id);
+                            if (nextTx.to.name == null) {
+                                txDayRow.push("");
+                            }
+                            else {
+                                txDayRow.push(nextTx.to.name.id);
+                            }
+                            txDayRow.push(parseFloat(utils_1.weiToEther(nextTx.amount)));
+                            txRows.push(txDayRow);
+                            //pop new tx
+                            if (transactions.length > 0) {
+                                nextTx = transactions.pop();
+                                nextTimestamp = nextTx.timestamp;
+                            }
+                            else {
+                                nextTimestamp = 0;
+                            }
+                        }
+                        //update week and month rate counters
+                        weekRates = weekRates + rates[day - 1];
+                        monthRates = monthRates + rates[day - 1];
+                        if (rates[day - 1] == 0) {
+                            weekZeros++;
+                            monthZeros++;
+                        }
+                        //compute week
+                        if (day == 7 * week) {
+                            //calc this week rate
+                            if ((7 - weekZeros) == 0) {
+                                weekRates = 0;
+                            }
+                            else {
+                                weekRates = weekRates / (7 - weekZeros);
+                            }
+                            weekRow_1 = [];
+                            weekRow_1.push(week);
+                            weekRow_1.push(weekCounter);
+                            weekRow_1.push(weekCounter * weekRates);
+                            weekRow_1.push(weekRates);
+                            weekRows.push(weekRow_1);
+                            //reset and update counters
+                            week++;
+                            weekCounter = 0;
+                            weekRates = 0;
+                            weekZeros = 0;
+                        }
+                        dayRow = [];
+                        dayRow.push(day);
+                        dayRow.push(dayCounter);
+                        dayRow.push(dayCounter * rates[day - 1]);
+                        dayRow.push(rates[day - 1]);
+                        dayRows.push(dayRow);
+                        //update and reset day counters
+                        day++;
+                        dayCounter = 0;
+                        _timeLow = _timeHigh;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                    }
+                    weekRow = [];
+                    //calc 5th week rate
+                    if ((day - 29 - weekZeros) == 0) {
+                        weekRates = 0;
+                    }
+                    else {
+                        weekRates = weekRates / (day - 29 - weekZeros);
+                    }
+                    //update week arrays
+                    weekRow.push(week);
+                    weekRow.push(weekCounter);
+                    weekRow.push(weekCounter * weekRates);
+                    weekRow.push(weekRates);
+                    weekRows.push(weekRow);
+                    monthRow = [];
+                    //calc month rate
+                    if ((day - 1 - monthZeros) == 0) {
+                        monthRates = 0;
+                    }
+                    else {
+                        monthRates = monthRates / (day - 1 - monthZeros);
+                    }
+                    //update month arrays
+                    monthRow.push(month);
+                    monthRow.push(monthCounter);
+                    monthRow.push(monthCounter * monthRates);
+                    monthRow.push(monthRates);
+                    monthRows.push(monthRow);
+                    tableDay = 'TablaDay' + token.symbol;
+                    tableWeek = 'TablaWeek' + token.symbol;
+                    tableMonth = 'TablaMonth' + token.symbol;
+                    addTable(sheet, tableDay, 'B2', [
+                        { name: 'Día', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], dayRows);
+                    addTable(sheet, tableWeek, 'G2', [
+                        { name: 'Semana', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], weekRows);
+                    addTable(sheet, tableMonth, 'L2', [
+                        { name: 'Mes', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], monthRows);
+                    tableName = 'Tabla' + token.symbol;
+                    if (txRows.length == 0) {
+                        txRows = getEmptyTransaction();
+                    }
+                    addTable(sheet, tableName, 'B36', [
+                        { name: 'Fecha', filterButton: true },
+                        { name: 'Divisa' },
+                        { name: 'Origen (wallet)' },
+                        { name: 'Origen (usuario)', filterButton: true },
+                        { name: 'Destino (wallet)' },
+                        { name: 'Destino (usuario)', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' }
+                    ], txRows);
+                    //CELL LABELS
+                    sheet.getCell('B35').value = 'TRANSFERENCIAS';
+                    sheet.getCell('B35').font = { bold: true };
+                    sheet.getCell('B1').value = 'TOTAL (diario)';
+                    sheet.getCell('B1').font = { bold: true };
+                    sheet.getCell('G1').value = 'TOTAL (semanal)';
+                    sheet.getCell('G1').font = { bold: true };
+                    sheet.getCell('L1').value = 'TOTAL (mensual)';
+                    sheet.getCell('L1').font = { bold: true };
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token) {
+    return __awaiter(this, void 0, void 0, function () {
+        var day, week, month, dayCounter, weekCounter, monthCounter, weekRates, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, rates, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, array, deals, q, amount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_2, dayRow, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName, tableName2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    day = 1;
+                    week = 1;
+                    month = 1;
+                    dayCounter = 0;
+                    weekCounter = 0;
+                    monthCounter = 0;
+                    weekRates = 0;
+                    monthRates = 0;
+                    weekZeros = 0;
+                    monthZeros = 0;
+                    _timeLow = timeLow;
+                    _timeHigh = _timeLow + ONE_UTC_DAY;
+                    dayRows = [];
+                    weekRows = [];
+                    monthRows = [];
+                    offersRows = [];
+                    requestsRows = [];
+                    return [4 /*yield*/, try_getOffers(timeLow, timeHigh, token.address, url)];
+                case 1:
+                    dayOffers = _a.sent();
+                    return [4 /*yield*/, try_getRequests(timeLow, timeHigh, token.address, url)];
+                case 2:
+                    dayRequests = _a.sent();
+                    return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, token.address, token.category)];
+                case 3:
+                    rates = _a.sent();
+                    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                    else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    }
+                    else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                        nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                        nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                        if (nextOfferTimestamp < nextRequestTimestamp) {
+                            nextOffer = dayOffers.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = true;
+                        }
+                        else {
+                            nextOffer = dayRequests.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = false;
+                        }
+                    }
+                    else {
+                        nextTimestamp = 0;
+                    }
+                    while (_timeHigh <= timeHigh) {
+                        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+                            //compute offer
+                            if (nextOffer.deals.length > 0) {
+                                if (nextIsOffer) {
+                                    deals = nextOffer.deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                                        dayCounter = dayCounter + amount;
+                                        weekCounter = weekCounter + amount;
+                                        monthCounter = monthCounter + amount;
+                                        array = [];
+                                        array.push(new Date(deals[q].timestamp * 1000));
+                                        array.push(timeConverter(deals[q].offer.timestamp));
+                                        array.push(timeConverter(deals[q].timestamp));
+                                        array.push(deals[q].offer.buyToken.tokenSymbol);
+                                        if (deals[q].seller.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].seller.name);
+                                        }
+                                        if (deals[q].buyer.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].buyer.name);
+                                        }
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                                        offersRows.push(array);
+                                        //1 DEAL per iteration
+                                    }
+                                }
+                                else {
+                                    deals = nextOffer.deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                                        dayCounter = dayCounter + amount;
+                                        weekCounter = weekCounter + amount;
+                                        monthCounter = monthCounter + amount;
+                                        array = [];
+                                        array.push(new Date(deals[q].timestamp * 1000));
+                                        array.push(timeConverter(deals[q].offer.timestamp));
+                                        array.push(timeConverter(deals[q].timestamp));
+                                        array.push(deals[q].offer.sellToken.tokenSymbol);
+                                        if (deals[q].seller.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].seller.name);
+                                        }
+                                        if (deals[q].buyer.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].buyer.name);
+                                        }
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                                        requestsRows.push(array);
+                                        //1 DEAL per iteration
+                                    }
+                                }
+                            }
+                            //pop new offer
+                            if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                                nextOffer = dayRequests.pop();
+                                nextTimestamp = nextOffer.timestamp;
+                                nextIsOffer = false;
+                            }
+                            else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                                nextOffer = dayOffers.pop();
+                                nextTimestamp = nextOffer.timestamp;
+                                nextIsOffer = true;
+                            }
+                            else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                                nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                                nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                                if (nextOfferTimestamp < nextRequestTimestamp) {
+                                    nextOffer = dayOffers.pop();
+                                    nextTimestamp = nextOffer.timestamp;
+                                    nextIsOffer = true;
+                                }
+                                else {
+                                    nextOffer = dayRequests.pop();
+                                    nextTimestamp = nextOffer.timestamp;
+                                    nextIsOffer = false;
+                                }
+                            }
+                            else {
+                                nextTimestamp = 0;
+                            }
+                        }
+                        //update week and month rates
+                        weekRates = weekRates + rates[day - 1];
+                        monthRates = monthRates + rates[day - 1];
+                        if (rates[day - 1] == 0) {
+                            weekZeros++;
+                            monthZeros++;
+                        }
+                        //compute week
+                        if (day == 7 * week) {
+                            //WEEK
+                            //calc week rate
+                            if ((7 - weekZeros) == 0) {
+                                weekRates = 0;
+                            }
+                            else {
+                                weekRates = weekRates / (7 - weekZeros);
+                            }
+                            weekRow_2 = [];
+                            weekRow_2.push(week);
+                            weekRow_2.push(weekCounter);
+                            weekRow_2.push(weekCounter * weekRates);
+                            weekRow_2.push(weekRates);
+                            weekRows.push(weekRow_2);
+                            weekCounter = 0;
+                            weekRates = 0;
+                            weekZeros = 0;
+                            week++;
+                        }
+                        dayRow = [];
+                        dayRow.push(day);
+                        dayRow.push(dayCounter);
+                        dayRow.push(dayCounter * rates[day - 1]);
+                        dayRow.push(rates[day - 1]);
+                        dayRows.push(dayRow);
+                        dayCounter = 0;
+                        day++;
+                        _timeLow = _timeHigh;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                    }
+                    weekRow = [];
+                    //calc 5th week rates
+                    if ((day - 29 - weekZeros) == 0) {
+                        weekRates = 0;
+                    }
+                    else {
+                        weekRates = weekRates / (day - 29 - weekZeros);
+                    }
+                    weekRow.push(week);
+                    weekRow.push(weekCounter);
+                    weekRow.push(weekCounter * weekRates);
+                    weekRow.push(weekRates);
+                    weekRows.push(weekRow);
+                    monthRow = [];
+                    if ((day - 1 - monthZeros) == 0) {
+                        monthRates = 0;
+                    }
+                    else {
+                        monthRates = monthRates / (day - 1 - monthZeros);
+                    }
+                    monthRow.push(month);
+                    monthRow.push(monthCounter);
+                    monthRow.push(monthCounter * monthRates);
+                    monthRow.push(monthRates);
+                    monthRows.push(monthRow);
+                    tableDay = 'TablaDay' + token.symbol;
+                    tableWeek = 'TablaWeek' + token.symbol;
+                    tableMonth = 'TablaMonth' + token.symbol;
+                    addTable(sheet, tableDay, 'B3', [
+                        { name: 'Día', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], dayRows);
+                    addTable(sheet, tableWeek, 'G3', [
+                        { name: 'Semana', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], weekRows);
+                    addTable(sheet, tableMonth, 'L3', [
+                        { name: 'Mes', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], monthRows);
+                    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+                    sheet.getCell('B36').font = { bold: true };
+                    tableName = 'Tabla' + token.symbol;
+                    if (offersRows.length == 0) {
+                        offersRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName, 'B37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], offersRows);
+                    sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+                    sheet.getCell('K36').font = { bold: true };
+                    tableName2 = 'Tabla2' + token.symbol;
+                    if (requestsRows.length == 0) {
+                        requestsRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName2, 'K37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], requestsRows);
+                    sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+                    sheet.getCell('C1').font = { bold: true };
+                    sheet.getCell('B2').value = 'TOTAL (diario)';
+                    sheet.getCell('B2').font = { bold: true };
+                    sheet.getCell('G2').value = 'TOTAL (semanal)';
+                    sheet.getCell('G2').font = { bold: true };
+                    sheet.getCell('L2').value = 'TOTAL (mensual)';
+                    sheet.getCell('L2').font = { bold: true };
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token) {
+    return __awaiter(this, void 0, void 0, function () {
+        var day, week, month, dayCounter, weekCounter, monthCounter, weekRates, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, rates, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, array, deals, q, amount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_3, dayRow, weekRow, monthRow, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName3, tableName4;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    day = 1;
+                    week = 1;
+                    month = 1;
+                    dayCounter = 0;
+                    weekCounter = 0;
+                    monthCounter = 0;
+                    weekRates = 0;
+                    monthRates = 0;
+                    weekZeros = 0;
+                    monthZeros = 0;
+                    _timeLow = timeLow;
+                    _timeHigh = _timeLow + ONE_UTC_DAY;
+                    dayRows = [];
+                    weekRows = [];
+                    monthRows = [];
+                    offersRows = [];
+                    requestsRows = [];
+                    return [4 /*yield*/, try_getOffersPrimary(timeLow, timeHigh, token.address, url)];
+                case 1:
+                    dayOffers = _a.sent();
+                    return [4 /*yield*/, try_getRequestsPrimary(timeLow, timeHigh, token.address, url)];
+                case 2:
+                    dayRequests = _a.sent();
+                    return [4 /*yield*/, getDayRate(year, monthIndex, toYear, toMonthIndex, token.address, token.category)];
+                case 3:
+                    rates = _a.sent();
+                    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                    else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    }
+                    else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                        nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                        nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                        if (nextOfferTimestamp < nextRequestTimestamp) {
+                            nextOffer = dayOffers.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = true;
+                        }
+                        else {
+                            nextOffer = dayRequests.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = false;
+                        }
+                    }
+                    else {
+                        nextTimestamp = 0;
+                    }
+                    while (_timeHigh <= timeHigh) {
+                        while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
+                            //compute offer
+                            if (nextOffer.deals.length > 0) {
+                                if (nextIsOffer) {
+                                    deals = nextOffer.deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                                        dayCounter = dayCounter + amount;
+                                        weekCounter = weekCounter + amount;
+                                        monthCounter = monthCounter + amount;
+                                        array = [];
+                                        array.push(new Date(deals[q].timestamp * 1000));
+                                        array.push(timeConverter(deals[q].offer.timestamp));
+                                        array.push(timeConverter(deals[q].timestamp));
+                                        array.push(deals[q].offer.buyToken.tokenSymbol);
+                                        if (deals[q].seller.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].seller.name);
+                                        }
+                                        if (deals[q].buyer.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].buyer.name);
+                                        }
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                                        offersRows.push(array);
+                                        //1 DEAL per iteration
+                                    }
+                                }
+                                else {
+                                    deals = nextOffer.deals;
+                                    for (q = 0; q < deals.length; q++) {
+                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                                        dayCounter = dayCounter + amount;
+                                        weekCounter = weekCounter + amount;
+                                        monthCounter = monthCounter + amount;
+                                        array = [];
+                                        array.push(new Date(deals[q].timestamp * 1000));
+                                        array.push(timeConverter(deals[q].offer.timestamp));
+                                        array.push(timeConverter(deals[q].timestamp));
+                                        array.push(deals[q].offer.sellToken.tokenSymbol);
+                                        if (deals[q].seller.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].seller.name);
+                                        }
+                                        if (deals[q].buyer.name == null) {
+                                            array.push("");
+                                        }
+                                        else {
+                                            array.push(deals[q].buyer.name);
+                                        }
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                                        requestsRows.push(array);
+                                        //1 DEAL per iteration
+                                    }
+                                }
+                            }
+                            //pop new offer
+                            if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                                nextOffer = dayRequests.pop();
+                                nextTimestamp = nextOffer.timestamp;
+                                nextIsOffer = false;
+                            }
+                            else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                                nextOffer = dayOffers.pop();
+                                nextTimestamp = nextOffer.timestamp;
+                                nextIsOffer = true;
+                            }
+                            else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                                nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                                nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                                if (nextOfferTimestamp < nextRequestTimestamp) {
+                                    nextOffer = dayOffers.pop();
+                                    nextTimestamp = nextOffer.timestamp;
+                                    nextIsOffer = true;
+                                }
+                                else {
+                                    nextOffer = dayRequests.pop();
+                                    nextTimestamp = nextOffer.timestamp;
+                                    nextIsOffer = false;
+                                }
+                            }
+                            else {
+                                nextTimestamp = 0;
+                            }
+                        }
+                        //update week and month rates
+                        weekRates = weekRates + rates[day - 1];
+                        monthRates = monthRates + rates[day - 1];
+                        if (rates[day - 1] == 0) {
+                            weekZeros++;
+                            monthZeros++;
+                        }
+                        //compute week
+                        if (day == 7 * week) {
+                            //WEEK
+                            //calc week rate
+                            if ((7 - weekZeros) == 0) {
+                                weekRates = 0;
+                            }
+                            else {
+                                weekRates = weekRates / (7 - weekZeros);
+                            }
+                            weekRow_3 = [];
+                            weekRow_3.push(week);
+                            weekRow_3.push(weekCounter);
+                            weekRow_3.push(weekCounter * weekRates);
+                            weekRow_3.push(weekRates);
+                            weekRows.push(weekRow_3);
+                            weekCounter = 0;
+                            weekRates = 0;
+                            weekZeros = 0;
+                            week++;
+                        }
+                        dayRow = [];
+                        dayRow.push(day);
+                        dayRow.push(dayCounter);
+                        dayRow.push(dayCounter * rates[day - 1]);
+                        dayRow.push(rates[day - 1]);
+                        dayRows.push(dayRow);
+                        dayCounter = 0;
+                        day++;
+                        _timeLow = _timeHigh;
+                        _timeHigh = _timeLow + ONE_UTC_DAY;
+                    }
+                    weekRow = [];
+                    //calc 5th week rates
+                    if ((day - 29 - weekZeros) == 0) {
+                        weekRates = 0;
+                    }
+                    else {
+                        weekRates = weekRates / (day - 29 - weekZeros);
+                    }
+                    weekRow.push(week);
+                    weekRow.push(weekCounter);
+                    weekRow.push(weekCounter * weekRates);
+                    weekRow.push(weekRates);
+                    weekRows.push(weekRow);
+                    monthRow = [];
+                    if ((day - 1 - monthZeros) == 0) {
+                        monthRates = 0;
+                    }
+                    else {
+                        monthRates = monthRates / (day - 1 - monthZeros);
+                    }
+                    monthRow.push(month);
+                    monthRow.push(monthCounter);
+                    monthRow.push(monthCounter * monthRates);
+                    monthRow.push(monthRates);
+                    monthRows.push(monthRow);
+                    tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+                    tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+                    tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+                    addTable(sheet, tableDayPrimary, 'B3', [
+                        { name: 'Día', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], dayRows);
+                    addTable(sheet, tableWeekPrimary, 'G3', [
+                        { name: 'Semana', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], weekRows);
+                    addTable(sheet, tableMonthPrimary, 'L3', [
+                        { name: 'Mes', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], monthRows);
+                    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+                    sheet.getCell('B36').font = { bold: true };
+                    tableName3 = 'TablaPrimario' + token.symbol;
+                    if (offersRows.length == 0) {
+                        offersRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName3, 'B37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], offersRows);
+                    sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
+                    sheet.getCell('K36').font = { bold: true };
+                    tableName4 = 'TablaPrimario2' + token.symbol;
+                    if (requestsRows.length == 0) {
+                        requestsRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName4, 'K37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], requestsRows);
+                    sheet.getCell('C1').value = 'Mercado P2P (Primario)';
+                    sheet.getCell('C1').font = { bold: true };
+                    sheet.getCell('B2').value = 'TOTAL (diario)';
+                    sheet.getCell('B2').font = { bold: true };
+                    sheet.getCell('G2').value = 'TOTAL (semanal)';
+                    sheet.getCell('G2').font = { bold: true };
+                    sheet.getCell('L2').value = 'TOTAL (mensual)';
+                    sheet.getCell('L2').font = { bold: true };
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
+    return __awaiter(this, void 0, void 0, function () {
+        var day, week, month, dayCounter, weekCounter, monthCounter, dayCounterUsd, weekCounterUsd, monthCounterUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, buyAmount, usdAmount, array, deals, q, amount, sellAmount, usdAmount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_4, dayRow, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName, tableName2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    day = 1;
+                    week = 1;
+                    month = 1;
+                    dayCounter = 0;
+                    weekCounter = 0;
+                    monthCounter = 0;
+                    dayCounterUsd = 0;
+                    weekCounterUsd = 0;
+                    monthCounterUsd = 0;
+                    _timeLow = timeLow;
+                    _timeHigh = _timeLow + ONE_UTC_DAY;
+                    dayRows = [];
+                    weekRows = [];
+                    monthRows = [];
+                    offersRows = [];
+                    requestsRows = [];
+                    return [4 /*yield*/, try_getPackableOffers(timeLow, timeHigh, token.address, url)];
+                case 1:
+                    dayOffers = _a.sent();
+                    return [4 /*yield*/, try_getPackableRequests(timeLow, timeHigh, token.address, url)];
+                case 2:
+                    dayRequests = _a.sent();
+                    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                    else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    }
+                    else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                        nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                        nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                        if (nextOfferTimestamp < nextRequestTimestamp) {
+                            nextOffer = dayOffers.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = true;
+                        }
+                        else {
+                            nextOffer = dayRequests.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = false;
+                        }
+                    }
+                    else {
+                        nextTimestamp = 0;
+                    }
+                    _a.label = 3;
+                case 3:
+                    if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 19];
+                    _a.label = 4;
+                case 4:
+                    if (!((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh))) return [3 /*break*/, 18];
+                    if (!(nextOffer.deals.length > 0)) return [3 /*break*/, 17];
+                    if (!nextIsOffer) return [3 /*break*/, 11];
+                    deals = nextOffer.deals;
+                    q = 0;
+                    _a.label = 5;
+                case 5:
+                    if (!(q < deals.length)) return [3 /*break*/, 10];
+                    amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                    buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                    dayCounter = dayCounter + amount;
+                    weekCounter = weekCounter + amount;
+                    monthCounter = monthCounter + amount;
+                    usdAmount = 0;
+                    if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
+                        (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                        (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 6];
+                    usdAmount = buyAmount;
+                    return [3 /*break*/, 8];
+                case 6: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
+                case 7:
+                    usdAmount = _a.sent();
+                    _a.label = 8;
+                case 8:
+                    dayCounterUsd = dayCounterUsd + usdAmount;
+                    weekCounterUsd = weekCounterUsd + usdAmount;
+                    monthCounterUsd = monthCounterUsd + usdAmount;
+                    array = [];
+                    array.push(new Date(deals[q].timestamp * 1000));
+                    array.push(timeConverter(deals[q].offer.timestamp));
+                    array.push(timeConverter(deals[q].timestamp));
+                    array.push(deals[q].offer.buyToken.tokenSymbol);
+                    if (deals[q].seller.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].seller.name);
+                    }
+                    if (deals[q].buyer.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].buyer.name);
+                    }
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                    offersRows.push(array);
+                    _a.label = 9;
+                case 9:
+                    q++;
+                    return [3 /*break*/, 5];
+                case 10: return [3 /*break*/, 17];
+                case 11:
+                    deals = nextOffer.deals;
+                    q = 0;
+                    _a.label = 12;
+                case 12:
+                    if (!(q < deals.length)) return [3 /*break*/, 17];
+                    amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                    sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                    dayCounter = dayCounter + amount;
+                    weekCounter = weekCounter + amount;
+                    monthCounter = monthCounter + amount;
+                    usdAmount = 0;
+                    if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
+                        (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                        (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 13];
+                    usdAmount = sellAmount;
+                    return [3 /*break*/, 15];
+                case 13: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
+                case 14:
+                    usdAmount = _a.sent();
+                    _a.label = 15;
+                case 15:
+                    dayCounterUsd = dayCounterUsd + usdAmount;
+                    weekCounterUsd = weekCounterUsd + usdAmount;
+                    monthCounterUsd = monthCounterUsd + usdAmount;
+                    array = [];
+                    array.push(new Date(deals[q].timestamp * 1000));
+                    array.push(timeConverter(deals[q].offer.timestamp));
+                    array.push(timeConverter(deals[q].timestamp));
+                    array.push(deals[q].offer.sellToken.tokenSymbol);
+                    if (deals[q].seller.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].seller.name);
+                    }
+                    if (deals[q].buyer.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].buyer.name);
+                    }
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                    requestsRows.push(array);
+                    _a.label = 16;
+                case 16:
+                    q++;
+                    return [3 /*break*/, 12];
+                case 17:
+                    //pop new offer
+                    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                    else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    }
+                    else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                        nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                        nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                        if (nextOfferTimestamp < nextRequestTimestamp) {
+                            nextOffer = dayOffers.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = true;
+                        }
+                        else {
+                            nextOffer = dayRequests.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = false;
+                        }
+                    }
+                    else {
+                        nextTimestamp = 0;
+                    }
+                    return [3 /*break*/, 4];
+                case 18:
+                    //compute week
+                    if (day == 7 * week) {
+                        weekRow_4 = [];
+                        //secondary
+                        weekRow_4.push(week);
+                        weekRow_4.push(weekCounter);
+                        weekRow_4.push(weekCounterUsd);
+                        if (weekCounter == 0)
+                            weekCounter = 1;
+                        weekRow_4.push(weekCounterUsd / weekCounter);
+                        weekRows.push(weekRow_4);
+                        weekCounter = 0;
+                        weekCounterUsd = 0;
+                        week++;
+                    }
+                    dayRow = [];
+                    dayRow.push(day);
+                    dayRow.push(dayCounter);
+                    dayRow.push(dayCounterUsd);
+                    if (dayCounter == 0)
+                        dayCounter = 1;
+                    dayRow.push(dayCounterUsd / dayCounter);
+                    dayRows.push(dayRow);
+                    dayCounter = 0;
+                    dayCounterUsd = 0;
+                    day++;
+                    _timeLow = _timeHigh;
+                    _timeHigh = _timeLow + ONE_UTC_DAY;
+                    return [3 /*break*/, 3];
+                case 19:
+                    weekRow = [];
+                    weekRow.push(week);
+                    weekRow.push(weekCounter);
+                    weekRow.push(weekCounterUsd);
+                    if (weekCounter == 0)
+                        weekCounter = 1;
+                    weekRow.push(weekCounterUsd / weekCounter);
+                    weekRows.push(weekRow);
+                    monthRow = [];
+                    monthRow.push(month);
+                    monthRow.push(monthCounter);
+                    monthRow.push(monthCounterUsd);
+                    if (monthCounter == 0)
+                        monthCounter = 1;
+                    monthRow.push(monthCounterUsd / monthCounter);
+                    monthRows.push(monthRow);
+                    tableDay = 'TablaDay' + token.symbol;
+                    tableWeek = 'TablaWeek' + token.symbol;
+                    tableMonth = 'TablaMonth' + token.symbol;
+                    addTable(sheet, tableDay, 'B3', [
+                        { name: 'Día', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], dayRows);
+                    addTable(sheet, tableWeek, 'G3', [
+                        { name: 'Semana', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], weekRows);
+                    addTable(sheet, tableMonth, 'L3', [
+                        { name: 'Mes', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], monthRows);
+                    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+                    sheet.getCell('B36').font = { bold: true };
+                    tableName = 'Tabla' + token.symbol;
+                    if (offersRows.length == 0) {
+                        offersRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName, 'B37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], offersRows);
+                    sheet.getCell('K36').value = 'PACTOS (' + token.symbol + ' DEMANDADO)';
+                    sheet.getCell('K36').font = { bold: true };
+                    tableName2 = 'Tabla2' + token.symbol;
+                    if (requestsRows.length == 0) {
+                        requestsRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName2, 'K37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], requestsRows);
+                    sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
+                    sheet.getCell('C1').font = { bold: true };
+                    sheet.getCell('B2').value = 'TOTAL (diario)';
+                    sheet.getCell('B2').font = { bold: true };
+                    sheet.getCell('G2').value = 'TOTAL (semanal)';
+                    sheet.getCell('G2').font = { bold: true };
+                    sheet.getCell('L2').value = 'TOTAL (mensual)';
+                    sheet.getCell('L2').font = { bold: true };
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
+    return __awaiter(this, void 0, void 0, function () {
+        var day, week, month, dayCounter, weekCounter, monthCounter, dayCounterUsd, weekCounterUsd, monthCounterUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, buyAmount, usdAmount, array, deals, q, amount, sellAmount, usdAmount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_5, dayRow, weekRow, monthRow, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName3, tableName4;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    day = 1;
+                    week = 1;
+                    month = 1;
+                    dayCounter = 0;
+                    weekCounter = 0;
+                    monthCounter = 0;
+                    dayCounterUsd = 0;
+                    weekCounterUsd = 0;
+                    monthCounterUsd = 0;
+                    _timeLow = timeLow;
+                    _timeHigh = _timeLow + ONE_UTC_DAY;
+                    dayRows = [];
+                    weekRows = [];
+                    monthRows = [];
+                    offersRows = [];
+                    requestsRows = [];
+                    return [4 /*yield*/, try_getPackableOffersPrimary(timeLow, timeHigh, token.address, url)];
+                case 1:
+                    dayOffers = _a.sent();
+                    return [4 /*yield*/, try_getPackableRequestsPrimary(timeLow, timeHigh, token.address, url)];
+                case 2:
+                    dayRequests = _a.sent();
+                    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                    else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    }
+                    else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                        nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                        nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                        if (nextOfferTimestamp < nextRequestTimestamp) {
+                            nextOffer = dayOffers.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = true;
+                        }
+                        else {
+                            nextOffer = dayRequests.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = false;
+                        }
+                    }
+                    else {
+                        nextTimestamp = 0;
+                    }
+                    _a.label = 3;
+                case 3:
+                    if (!(_timeHigh <= timeHigh)) return [3 /*break*/, 19];
+                    _a.label = 4;
+                case 4:
+                    if (!((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh))) return [3 /*break*/, 18];
+                    if (!(nextOffer.deals.length > 0)) return [3 /*break*/, 17];
+                    if (!nextIsOffer) return [3 /*break*/, 11];
+                    deals = nextOffer.deals;
+                    q = 0;
+                    _a.label = 5;
+                case 5:
+                    if (!(q < deals.length)) return [3 /*break*/, 10];
+                    amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                    buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                    dayCounter = dayCounter + amount;
+                    weekCounter = weekCounter + amount;
+                    monthCounter = monthCounter + amount;
+                    usdAmount = 0;
+                    if (!((deals[q].offer.buyToken.id == Constants.USD.address) ||
+                        (deals[q].offer.buyToken.id == Constants.USC.address) ||
+                        (deals[q].offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 6];
+                    usdAmount = buyAmount;
+                    return [3 /*break*/, 8];
+                case 6: return [4 /*yield*/, convertToUsd(buyAmount, deals[q].offer.buyToken.id, deals[q].timestamp)];
+                case 7:
+                    usdAmount = _a.sent();
+                    _a.label = 8;
+                case 8:
+                    dayCounterUsd = dayCounterUsd + usdAmount;
+                    weekCounterUsd = weekCounterUsd + usdAmount;
+                    monthCounterUsd = monthCounterUsd + usdAmount;
+                    array = [];
+                    array.push(new Date(deals[q].timestamp * 1000));
+                    array.push(timeConverter(deals[q].offer.timestamp));
+                    array.push(timeConverter(deals[q].timestamp));
+                    array.push(deals[q].offer.buyToken.tokenSymbol);
+                    if (deals[q].seller.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].seller.name);
+                    }
+                    if (deals[q].buyer.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].buyer.name);
+                    }
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                    offersRows.push(array);
+                    _a.label = 9;
+                case 9:
+                    q++;
+                    return [3 /*break*/, 5];
+                case 10: return [3 /*break*/, 17];
+                case 11:
+                    deals = nextOffer.deals;
+                    q = 0;
+                    _a.label = 12;
+                case 12:
+                    if (!(q < deals.length)) return [3 /*break*/, 17];
+                    amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                    sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                    dayCounter = dayCounter + amount;
+                    weekCounter = weekCounter + amount;
+                    monthCounter = monthCounter + amount;
+                    usdAmount = 0;
+                    if (!((deals[q].offer.sellToken.id == Constants.USD.address) ||
+                        (deals[q].offer.sellToken.id == Constants.USC.address) ||
+                        (deals[q].offer.sellToken.id == Constants.PEL.address))) return [3 /*break*/, 13];
+                    usdAmount = sellAmount;
+                    return [3 /*break*/, 15];
+                case 13: return [4 /*yield*/, convertToUsd(sellAmount, deals[q].offer.sellToken.id, deals[q].timestamp)];
+                case 14:
+                    usdAmount = _a.sent();
+                    _a.label = 15;
+                case 15:
+                    dayCounterUsd = dayCounterUsd + usdAmount;
+                    weekCounterUsd = weekCounterUsd + usdAmount;
+                    monthCounterUsd = monthCounterUsd + usdAmount;
+                    array = [];
+                    array.push(new Date(deals[q].timestamp * 1000));
+                    array.push(timeConverter(deals[q].offer.timestamp));
+                    array.push(timeConverter(deals[q].timestamp));
+                    array.push(deals[q].offer.sellToken.tokenSymbol);
+                    if (deals[q].seller.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].seller.name);
+                    }
+                    if (deals[q].buyer.name == null) {
+                        array.push("");
+                    }
+                    else {
+                        array.push(deals[q].buyer.name);
+                    }
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                    requestsRows.push(array);
+                    _a.label = 16;
+                case 16:
+                    q++;
+                    return [3 /*break*/, 12];
+                case 17:
+                    //pop new offer
+                    if ((dayOffers.length == 0) && (dayRequests.length > 0)) {
+                        nextOffer = dayRequests.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = false;
+                    }
+                    else if ((dayRequests.length == 0) && (dayOffers.length > 0)) {
+                        nextOffer = dayOffers.pop();
+                        nextTimestamp = nextOffer.timestamp;
+                        nextIsOffer = true;
+                    }
+                    else if ((dayOffers.length > 0) || (dayRequests.length > 0)) {
+                        nextOfferTimestamp = dayOffers[dayOffers.length - 1].timestamp;
+                        nextRequestTimestamp = dayRequests[dayRequests.length - 1].timestamp;
+                        if (nextOfferTimestamp < nextRequestTimestamp) {
+                            nextOffer = dayOffers.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = true;
+                        }
+                        else {
+                            nextOffer = dayRequests.pop();
+                            nextTimestamp = nextOffer.timestamp;
+                            nextIsOffer = false;
+                        }
+                    }
+                    else {
+                        nextTimestamp = 0;
+                    }
+                    return [3 /*break*/, 4];
+                case 18:
+                    //compute week
+                    if (day == 7 * week) {
+                        weekRow_5 = [];
+                        weekRow_5.push(week);
+                        weekRow_5.push(weekCounter);
+                        weekRow_5.push(weekCounterUsd);
+                        if (weekCounter == 0)
+                            weekCounter = 1;
+                        weekRow_5.push(weekCounterUsd / weekCounter);
+                        weekRows.push(weekRow_5);
+                        weekCounter = 0;
+                        weekCounterUsd = 0;
+                        week++;
+                    }
+                    dayRow = [];
+                    dayRow.push(day);
+                    dayRow.push(dayCounter);
+                    dayRow.push(dayCounterUsd);
+                    if (dayCounter == 0)
+                        dayCounter = 1;
+                    dayRow.push(dayCounterUsd / dayCounter);
+                    dayRows.push(dayRow);
+                    dayCounter = 0;
+                    dayCounterUsd = 0;
+                    day++;
+                    _timeLow = _timeHigh;
+                    _timeHigh = _timeLow + ONE_UTC_DAY;
+                    return [3 /*break*/, 3];
+                case 19:
+                    weekRow = [];
+                    weekRow.push(week);
+                    weekRow.push(weekCounter);
+                    weekRow.push(weekCounterUsd);
+                    if (weekCounter == 0)
+                        weekCounter = 1;
+                    weekRow.push(weekCounterUsd / weekCounter);
+                    weekRows.push(weekRow);
+                    monthRow = [];
+                    monthRow.push(month);
+                    monthRow.push(monthCounter);
+                    monthRow.push(monthCounterUsd);
+                    if (monthCounter == 0)
+                        monthCounter = 1;
+                    monthRow.push(monthCounterUsd / monthCounter);
+                    monthRows.push(monthRow);
+                    tableDayPrimary = 'TablaDayPrimary' + token.symbol;
+                    tableWeekPrimary = 'TablaWeekPrimary' + token.symbol;
+                    tableMonthPrimary = 'TablaMonthPrimary' + token.symbol;
+                    addTable(sheet, tableDayPrimary, 'B3', [
+                        { name: 'Día', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], dayRows);
+                    addTable(sheet, tableWeekPrimary, 'G3', [
+                        { name: 'Semana', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], weekRows);
+                    addTable(sheet, tableMonthPrimary, 'L3', [
+                        { name: 'Mes', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' },
+                        { name: 'Monto (USD)', totalsRowFunction: 'sum' },
+                        { name: 'Tipo de cambio' }
+                    ], monthRows);
+                    sheet.getCell('B36').value = 'PACTOS (' + token.symbol + ' OFERTADO)';
+                    sheet.getCell('B36').font = { bold: true };
+                    tableName3 = 'TablaPrimario' + token.symbol;
+                    if (offersRows.length == 0) {
+                        offersRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName3, 'B37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], offersRows);
+                    sheet.getCell('K36').value = token.symbol + ' DEMANDADO';
+                    sheet.getCell('K36').font = { bold: true };
+                    tableName4 = 'TablaPrimario2' + token.symbol;
+                    if (requestsRows.length == 0) {
+                        requestsRows = getEmtpyDeal();
+                    }
+                    addTable(sheet, tableName4, 'K37', [
+                        { name: 'Fecha (pacto)', filterButton: true },
+                        { name: 'Hora (oferta)' },
+                        { name: 'Hora (pacto)' },
+                        { name: 'Contrapartida', filterButton: true },
+                        { name: 'Vendedor (usuario)', filterButton: true },
+                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
+                        { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                    ], requestsRows);
+                    sheet.getCell('C1').value = 'Mercado P2P (Primario)';
+                    sheet.getCell('C1').font = { bold: true };
+                    sheet.getCell('B2').value = 'TOTAL (diario)';
+                    sheet.getCell('B2').font = { bold: true };
+                    sheet.getCell('G2').value = 'TOTAL (semanal)';
+                    sheet.getCell('G2').font = { bold: true };
+                    sheet.getCell('L2').value = 'TOTAL (mensual)';
+                    sheet.getCell('L2').font = { bold: true };
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
 function try_getTransactions(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var transactions, error_13;
+        var transactions, error_10;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4883,7 +2759,7 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries) {
                     transactions = _a.sent();
                     return [2 /*return*/, transactions];
                 case 2:
-                    error_13 = _a.sent();
+                    error_10 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4893,8 +2769,8 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, transactions];
                 case 4:
-                    console.error(error_13);
-                    throw new Error(error_13);
+                    console.error(error_10);
+                    throw new Error(error_10);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4937,7 +2813,7 @@ function getTransactions(_timeLow, _timeHigh, _tokenAddress, _url) {
 function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_14;
+        var offers, error_11;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4947,7 +2823,7 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_14 = _a.sent();
+                    error_11 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4957,8 +2833,8 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_14);
-                    throw new Error(error_14);
+                    console.error(error_11);
+                    throw new Error(error_11);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5001,7 +2877,7 @@ function getOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_15;
+        var offers, error_12;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5011,7 +2887,7 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_15 = _a.sent();
+                    error_12 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5021,8 +2897,8 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_15);
-                    throw new Error(error_15);
+                    console.error(error_12);
+                    throw new Error(error_12);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5065,7 +2941,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_16;
+        var offers, error_13;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5075,7 +2951,7 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_16 = _a.sent();
+                    error_13 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5085,8 +2961,8 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_16);
-                    throw new Error(error_16);
+                    console.error(error_13);
+                    throw new Error(error_13);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5129,7 +3005,7 @@ function getOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_17;
+        var offers, error_14;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5139,7 +3015,7 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_17 = _a.sent();
+                    error_14 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5149,8 +3025,8 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_17);
-                    throw new Error(error_17);
+                    console.error(error_14);
+                    throw new Error(error_14);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5193,7 +3069,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_18;
+        var offers, error_15;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5203,7 +3079,7 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_18 = _a.sent();
+                    error_15 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5213,8 +3089,8 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_18);
-                    throw new Error(error_18);
+                    console.error(error_15);
+                    throw new Error(error_15);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5257,7 +3133,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_19;
+        var offers, error_16;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5267,7 +3143,7 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_19 = _a.sent();
+                    error_16 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5277,8 +3153,8 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_19);
-                    throw new Error(error_19);
+                    console.error(error_16);
+                    throw new Error(error_16);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5321,7 +3197,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
 function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_20;
+        var offers, error_17;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5331,7 +3207,7 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_20 = _a.sent();
+                    error_17 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5341,8 +3217,8 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_20);
-                    throw new Error(error_20);
+                    console.error(error_17);
+                    throw new Error(error_17);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5385,7 +3261,7 @@ function getPackableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_21;
+        var offers, error_18;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5395,7 +3271,7 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_21 = _a.sent();
+                    error_18 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5405,8 +3281,8 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_21);
-                    throw new Error(error_21);
+                    console.error(error_18);
+                    throw new Error(error_18);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5449,7 +3325,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_22;
+        var offers, error_19;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5459,7 +3335,7 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_22 = _a.sent();
+                    error_19 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5469,8 +3345,8 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_22);
-                    throw new Error(error_22);
+                    console.error(error_19);
+                    throw new Error(error_19);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5513,7 +3389,7 @@ function getPackableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_23;
+        var offers, error_20;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5523,7 +3399,7 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_23 = _a.sent();
+                    error_20 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -5533,8 +3409,8 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_23);
-                    throw new Error(error_23);
+                    console.error(error_20);
+                    throw new Error(error_20);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -5696,7 +3572,7 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_24, dates, rates, responseData, i, len, j, rates2, rates3, j, error_25;
+        var from, to, responseData, rates, factor, i, len, j, error_21, dates, rates, responseData, i, len, j, rates2, rates3, j, error_22;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5744,9 +3620,9 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     }
                     return [2 /*return*/, rates];
                 case 3:
-                    error_24 = _a.sent();
-                    console.error(error_24);
-                    throw new Error(error_24);
+                    error_21 = _a.sent();
+                    console.error(error_21);
+                    throw new Error(error_21);
                 case 4: return [3 /*break*/, 13];
                 case 5:
                     if (!((token == Constants.USD.address) ||
@@ -5763,7 +3639,7 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     return [4 /*yield*/, getPiPrice(dates[0], dates[1], 'mainnet')];
                 case 8:
                     responseData = _a.sent();
-                    for (i = 23; i < responseData.length; i = i + 24) {
+                    for (i = 22; i < responseData.length; i = i + 24) {
                         rates.push(responseData[i].piPrice);
                     }
                     len = 31 - rates.length;
@@ -5781,9 +3657,9 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     }
                     return [2 /*return*/, rates3];
                 case 10:
-                    error_25 = _a.sent();
-                    console.error(error_25);
-                    throw new Error(error_25);
+                    error_22 = _a.sent();
+                    console.error(error_22);
+                    throw new Error(error_22);
                 case 11: return [3 /*break*/, 13];
                 case 12: return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
                 case 13: return [2 /*return*/];
@@ -5878,7 +3754,7 @@ function convertToUsd(amount, token, timestamp) {
 }
 function requestRateEndPoint(from, to, token) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPoint, body, response, responseData, error_26;
+        var endPoint, body, response, responseData, error_23;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5905,9 +3781,9 @@ function requestRateEndPoint(from, to, token) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_26 = _a.sent();
-                    console.error(error_26);
-                    throw new Error(error_26);
+                    error_23 = _a.sent();
+                    console.error(error_23);
+                    throw new Error(error_23);
                 case 6: return [2 /*return*/];
             }
         });
