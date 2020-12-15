@@ -21,7 +21,8 @@ export class Report {
     async getTransactionReportV2(
         monthIndex: number,
         year: number,
-        tokensArray: any[]
+        tokensArray: any[],
+        name?: string
     ) {
         const workbook = new ExcelJS.Workbook();
 
@@ -50,7 +51,8 @@ export class Report {
                 toMonthIndex,
                 toYear,
                 this.url,
-                tokensArray[i]
+                tokensArray[i],
+                name
             ));
         }
 
@@ -72,13 +74,20 @@ export class Report {
     async getTransactionReport(
         timeLow: number,
         timeHigh: number,
-        tokensArray: any[]
+        tokensArray: any[],
+        name?: string,
     ) {
         const workbook = new ExcelJS.Workbook();
 
         for (let i = 0; i < tokensArray.length; i++) {
             let sheet = workbook.addWorksheet(tokensArray[i].symbol);
-            let transactions = await getTransactions(timeLow, timeHigh, tokensArray[i].address, this.url);
+            let transactions: any[];
+
+            if (name == undefined) {
+                transactions = await getTransactions(timeLow, timeHigh, tokensArray[i].address, this.url);
+            } else {
+                transactions = await getTransactionsByName(timeLow, timeHigh, tokensArray[i].address, name, this.url);
+            }
 
             if (transactions.length > 0) {
                 let rows = [];
@@ -1431,7 +1440,8 @@ async function setTransactionSheet(
     toMonthIndex: number,
     toYear: number,
     url: string,
-    token: any
+    token: any,
+    name?: string
 ) {
     //define vars
     let day = 1;
@@ -1461,7 +1471,7 @@ async function setTransactionSheet(
         token.category
     );
 
-    let transactions = await try_getTransactions(timeLow, timeHigh, token.address, url);
+    let transactions = await try_getTransactions(timeLow, timeHigh, token.address, url, 0, name);
 
     let nextTx: any;
     let nextTimestamp: number;
@@ -3130,11 +3140,19 @@ async function try_getTransactions(
     _timeHigh: number, 
     token: string,
     url: string,
-    retries: number = 0
+    retries: number = 0,
+    name?:string
 ) {
     let transactions: any;
     try {
         transactions = await getTransactions(_timeLow, _timeHigh, token, url);
+
+        if (name == undefined) {
+            transactions = await getTransactions(_timeLow, _timeHigh, token, url);
+        } else {
+            transactions = await getTransactionsByName(_timeLow, _timeHigh, token, name, url);
+        }
+
         return transactions;
     } catch (error) {
         if (retries < 10) {
@@ -3170,6 +3188,33 @@ async function getTransactions(
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryTransactions = response.transactions;
+        transactions = transactions.concat(queryTransactions);
+    }
+
+    return transactions;
+}
+
+async function getTransactionsByName(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _tokenAddress: string,
+    _name: string,
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } } } }';
+    let queryService = new Query('bank', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryTransactions = response.names[0].wallet.transactions;
+    let transactions = queryTransactions;
+
+    while(queryTransactions.length >= 1000) {
+        skip = transactions.length;
+        query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryTransactions = response.names[0].wallet.transactions;
         transactions = transactions.concat(queryTransactions);
     }
 
