@@ -3453,26 +3453,33 @@ function getPackableRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
 function getPiPrice(_timeLow, _timeHigh, _url) {
     if (_url === void 0) { _url = 'mainnet'; }
     return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryPrices, prices, query_1;
         return __generator(this, function (_a) {
-            /*let skip = 0;
-            let query = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }'
-            let queryService = new Query('piprice', _url);
-            queryService.setCustomQuery(query);
-            let response = await queryService.request();
-            let queryPrices = response.prices;
-            let prices = queryPrices;
-        
-            while(queryPrices.length >= 1000) {
-                skip = prices.length;
-                let query = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }'
-                queryService.setCustomQuery(query);
-                response = await queryService.request();
-                queryPrices = response.offerPackables;
-                prices = prices.concat(queryPrices);
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }';
+                    queryService = new graph_1.Query('piprice', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryPrices = response.prices;
+                    prices = queryPrices;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryPrices.length >= 1000)) return [3 /*break*/, 4];
+                    skip = prices.length;
+                    query_1 = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }';
+                    queryService.setCustomQuery(query_1);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryPrices = response.offerPackables;
+                    prices = prices.concat(queryPrices);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, prices];
             }
-        
-            return prices;*/
-            return [2 /*return*/, []];
         });
     });
 }

@@ -3691,7 +3691,7 @@ async function getPiPrice(
     _timeHigh: number, 
     _url: string = 'mainnet'
 ) {
-    /*let skip = 0;
+    let skip = 0;
     let query = '{ prices (where: {timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + '} orderBy: timestamp, orderDirection:asc, first: 1000, skip: ' + skip + ') { id supply collateral piPrice collateralPrice timestamp } }'
     let queryService = new Query('piprice', _url);
     queryService.setCustomQuery(query);
@@ -3708,8 +3708,7 @@ async function getPiPrice(
         prices = prices.concat(queryPrices);
     }
 
-    return prices;*/
-    return [];
+    return prices;
 }
 
 function addTable(
