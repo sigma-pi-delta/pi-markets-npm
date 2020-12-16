@@ -668,7 +668,7 @@ export class QueryTemplates {
         first: number,
         skip: number
     ) {
-        let customQuery = '{ auctions (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } }';
+        let customQuery = '{ auctions (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } }';
         let query = new Query("auction", this.network);
         query.setCustomQuery(customQuery);
 
@@ -688,13 +688,33 @@ export class QueryTemplates {
         first: number,
         skip: number
     ) {
-        let customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder { id name offchainReputation } timestamp isCancel auctionToken { id tokenSymbol } bidToken { id tokenSymbol } auction { id owner { id name offchainReputation } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
+        let customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } timestamp isCancel auctionToken { id tokenSymbol } bidToken { id tokenSymbol } auction { id owner { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
         let query = new Query("auction", this.network);
         query.setCustomQuery(customQuery);
 
         try {
             let response = await query.request();
             if (response != undefined) return response.bids;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getAuctionsUserStats(
+        filter: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number
+    ) {
+        let customQuery = '{ users (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } }';
+        let query = new Query("auction", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.users;
         } catch(error) {
             console.error(error);
             throw new Error(error);

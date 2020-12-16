@@ -883,7 +883,7 @@ var QueryTemplates = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ auctions (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } }';
+                        customQuery = '{ auctions (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id owner { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } }';
                         query = new Query("auction", this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -910,7 +910,7 @@ var QueryTemplates = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder { id name offchainReputation } timestamp isCancel auctionToken { id tokenSymbol } bidToken { id tokenSymbol } auction { id owner { id name offchainReputation } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
+                        customQuery = '{ bids (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { bid bidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } timestamp isCancel auctionToken { id tokenSymbol } bidToken { id tokenSymbol } auction { id owner { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } auctionToken { id tokenSymbol } auctionAmount auctionCollectable { tokenId metadata reference } auctionPackable { tokenId metadata } bidToken { id tokenSymbol } bidPrice minValue maxBid maxBidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } startTime endTime auditor category bids (orderBy:bid, orderDirection:desc) { bid bidder { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } bidEntity { isCancel } timestamp } isOpen isClose isDealPaid isDealCancelled isKillable isKilled } } }';
                         query = new Query("auction", this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -926,6 +926,33 @@ var QueryTemplates = /** @class */ (function () {
                         error_25 = _a.sent();
                         console.error(error_25);
                         throw new Error(error_25);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getAuctionsUserStats = function (filter, orderBy, orderDirection, first, skip) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_26;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ users (where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id name offchainReputation auctionsAsOwner biddedAuctions totalBids bidderGoodDeals bidderBadDeals } }';
+                        query = new Query("auction", this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.users];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_26 = _a.sent();
+                        console.error(error_26);
+                        throw new Error(error_26);
                     case 4: return [2 /*return*/];
                 }
             });
