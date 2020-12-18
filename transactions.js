@@ -39,6 +39,7 @@ exports.__esModule = true;
 exports.ErrorObj = exports.Transactions = void 0;
 var ethers_1 = require("ethers");
 var Constants = require("./constants");
+var node_fetch_1 = require("node-fetch");
 var Transactions = /** @class */ (function () {
     function Transactions() {
     }
@@ -55,12 +56,11 @@ var Transactions = /** @class */ (function () {
                         return [2 /*return*/, _receipt];
                     case 2:
                         error_1 = _a.sent();
-                        console.error(error_1);
-                        return [4 /*yield*/, this.getRequireErrorMsg(_response.transactionHash)];
+                        return [4 /*yield*/, this.getRequireErrorMsg(_response.hash)];
                     case 3:
                         _requireMsg = _a.sent();
-                        _errorObj = new ErrorObj(_requireMsg, _response.transactionHash, error_1);
-                        throw new Error(String(_errorObj));
+                        _errorObj = new ErrorObj(_requireMsg, _response.hash, error_1);
+                        throw new Error(JSON.stringify(_errorObj));
                     case 4: return [2 /*return*/];
                 }
             });
@@ -175,7 +175,7 @@ var Transactions = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, fetch(Constants.TRACES_URL, {
+                        return [4 /*yield*/, node_fetch_1["default"](Constants.TRACES_URL, {
                                 "method": 'POST',
                                 "headers": {
                                     "Accept": 'application/json',

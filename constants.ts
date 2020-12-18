@@ -290,7 +290,7 @@ const CMT_TESTNET = {
 
 // OTHER
 const MIN_GAS_PRICE = "1000000000";
-const OVERRIDES = {gasPrice: 1000000000};
+const OVERRIDES = {gasPrice: 1000000000, gasLimit: 900000};
 const OVERRIDES_BACKEND = {gasPrice: 0};
 
 export { 

@@ -1,5 +1,6 @@
 import { ethers } from 'ethers';
 import * as Constants from './constants';
+import fetch from 'node-fetch';
 
 export class Transactions {
 
@@ -8,16 +9,15 @@ export class Transactions {
             let _receipt = await _response.wait();
             return _receipt;
         } catch(error) {
-            console.error(error);
 
-            let _requireMsg = await this.getRequireErrorMsg(_response.transactionHash);
+            let _requireMsg = await this.getRequireErrorMsg(_response.hash);
             let _errorObj = new ErrorObj(
                 _requireMsg,
-                _response.transactionHash,
+                _response.hash,
                 error 
             )
 
-            throw new Error(String(_errorObj));
+            throw new Error(JSON.stringify(_errorObj));
         }
     }
 
