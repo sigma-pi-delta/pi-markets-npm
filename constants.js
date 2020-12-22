@@ -4,13 +4,13 @@ exports.DIA_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.USD_TE
 // URL
 var RPC_URL = "https://connect.pichain.io";
 exports.RPC_URL = RPC_URL;
-var RPC_URL_TESTNET = "http://52.28.106.166:23001";
+var RPC_URL_TESTNET = "https://testnet.pimarkets.io";
 exports.RPC_URL_TESTNET = RPC_URL_TESTNET;
 var TRACES_URL = "http://18.192.148.106:8545";
 exports.TRACES_URL = TRACES_URL;
 var GRAPH_URL = "https://graph.pimarkets.io";
 exports.GRAPH_URL = GRAPH_URL;
-var GRAPH_URL_TESTNET = "http://35.157.102.244:8000";
+var GRAPH_URL_TESTNET = "https://graph-test.pimarkets.io";
 exports.GRAPH_URL_TESTNET = GRAPH_URL_TESTNET;
 // SUBGRAPHS
 var BANK_SUBGRAPH = "/subgraphs/name/gperezalba/bank-subgraph-mainnet";
@@ -352,7 +352,7 @@ var CMT_TESTNET = {
     address: "0x993817a0bfffb2c86eba1b641446aac9c0bfa1ee",
     expiry: {
         nov20: "",
-        nov21: ""
+        nov21: "0x2290139cf07fc7d4a1b773f5eba277831c21149bfdbd74a1a49c7d765bfc07bf"
     },
     category: 3
 };

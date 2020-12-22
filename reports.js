@@ -102,91 +102,94 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getTransactionReport = function (timeLow, timeHigh, tokensArray, name) {
+    Report.prototype.getTransactionReport = function (timeLow, timeHigh, name) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, transactions, rows, j, array, tableName, error_2, buffer, err_2;
+            var workbook, sheet, transactions, rows, j, array, usdAmount, tableName, error_2, buffer, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         workbook = new ExcelJS.Workbook();
-                        i = 0;
-                        _a.label = 1;
+                        sheet = workbook.addWorksheet("ALL_TXS");
+                        if (!(name == undefined)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, getAllTransactions(timeLow, timeHigh, this.url)];
                     case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 7];
-                        sheet = workbook.addWorksheet(tokensArray[i].symbol);
-                        transactions = void 0;
-                        if (!(name == undefined)) return [3 /*break*/, 3];
-                        return [4 /*yield*/, getTransactions(timeLow, timeHigh, tokensArray[i].address, this.url)];
-                    case 2:
                         transactions = _a.sent();
-                        return [3 /*break*/, 5];
-                    case 3: return [4 /*yield*/, getTransactionsByName(timeLow, timeHigh, tokensArray[i].address, name, this.url)];
+                        return [3 /*break*/, 4];
+                    case 2: return [4 /*yield*/, getAllTransactionsByName(timeLow, timeHigh, name, this.url)];
+                    case 3:
+                        transactions = _a.sent();
+                        _a.label = 4;
                     case 4:
-                        transactions = _a.sent();
+                        if (!(transactions.length > 0)) return [3 /*break*/, 9];
+                        rows = [];
+                        j = 0;
                         _a.label = 5;
                     case 5:
-                        if (transactions.length > 0) {
-                            rows = [];
-                            for (j = 0; j < transactions.length; j++) {
-                                array = [];
-                                array.push(new Date(transactions[j].timestamp * 1000));
-                                array.push(transactions[j].currency.tokenSymbol);
-                                array.push(transactions[j].from.id);
-                                if (transactions[j].from.name == null) {
-                                    array.push("");
-                                }
-                                else {
-                                    array.push(transactions[j].from.name.id);
-                                }
-                                array.push(transactions[j].to.id);
-                                if (transactions[j].to.name == null) {
-                                    array.push("");
-                                }
-                                else {
-                                    array.push(transactions[j].to.name.id);
-                                }
-                                array.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
-                                rows.push(array);
-                            }
-                            tableName = 'Tabla' + tokensArray[i].symbol;
-                            addTable(sheet, tableName, 'B2', [
-                                { name: 'Fecha', filterButton: true },
-                                { name: 'Divisa' },
-                                { name: 'Origen (wallet)' },
-                                { name: 'Origen (usuario)', filterButton: true },
-                                { name: 'Destino (wallet)' },
-                                { name: 'Destino (usuario)', filterButton: true },
-                                { name: 'Monto', totalsRowFunction: 'sum' }
-                            ], rows);
+                        if (!(j < transactions.length)) return [3 /*break*/, 8];
+                        array = [];
+                        array.push(new Date(transactions[j].timestamp * 1000));
+                        array.push(transactions[j].currency.tokenSymbol);
+                        array.push(transactions[j].from.id);
+                        if (transactions[j].from.name == null) {
+                            array.push("");
                         }
-                        _a.label = 6;
+                        else {
+                            array.push(transactions[j].from.name.id);
+                        }
+                        array.push(transactions[j].to.id);
+                        if (transactions[j].to.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(transactions[j].to.name.id);
+                        }
+                        array.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
+                        return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(transactions[j].amount)), transactions[j].currency.id, transactions[j].timestamp)];
                     case 6:
-                        i++;
-                        return [3 /*break*/, 1];
+                        usdAmount = _a.sent();
+                        array.push(usdAmount);
+                        rows.push(array);
+                        _a.label = 7;
                     case 7:
-                        _a.trys.push([7, 9, , 15]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx')];
+                        j++;
+                        return [3 /*break*/, 5];
                     case 8:
-                        _a.sent();
-                        return [3 /*break*/, 15];
+                        tableName = 'Tabla';
+                        addTable(sheet, tableName, 'B2', [
+                            { name: 'Fecha', filterButton: true },
+                            { name: 'Divisa' },
+                            { name: 'Origen (wallet)' },
+                            { name: 'Origen (usuario)', filterButton: true },
+                            { name: 'Destino (wallet)' },
+                            { name: 'Destino (usuario)', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' },
+                            { name: 'Monto (USD)', totalsRowFunction: 'sum' }
+                        ], rows);
+                        _a.label = 9;
                     case 9:
+                        _a.trys.push([9, 11, , 17]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx')];
+                    case 10:
+                        _a.sent();
+                        return [3 /*break*/, 17];
+                    case 11:
                         error_2 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 10:
-                        buffer = _a.sent();
-                        _a.label = 11;
-                    case 11:
-                        _a.trys.push([11, 13, , 14]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReport.xlsx')];
                     case 12:
-                        _a.sent();
-                        return [3 /*break*/, 14];
+                        buffer = _a.sent();
+                        _a.label = 13;
                     case 13:
+                        _a.trys.push([13, 15, , 16]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReport.xlsx')];
+                    case 14:
+                        _a.sent();
+                        return [3 /*break*/, 16];
+                    case 15:
                         err_2 = _a.sent();
                         console.error(err_2);
-                        return [3 /*break*/, 14];
-                    case 14: return [3 /*break*/, 15];
-                    case 15: return [2 /*return*/];
+                        return [3 /*break*/, 16];
+                    case 16: return [3 /*break*/, 17];
+                    case 17: return [2 /*return*/];
                 }
             });
         });
@@ -622,274 +625,244 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getTokenDealsReport = function (timeLow, timeHigh, tokensArray) {
+    Report.prototype.getTokenDealsReport = function (timeLow, timeHigh) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_7, buffer, err_7;
+            var workbook, sheet, deals, dealsPrimary, rows, nextDeal, nextDealTimestamp, nextDealPrimaryTimestamp, array, tableName, error_7, buffer, err_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         workbook = new ExcelJS.Workbook();
-                        i = 0;
-                        _a.label = 1;
+                        sheet = workbook.addWorksheet('ALL_TOKEN_DEALS');
+                        return [4 /*yield*/, getAllDeals(timeLow, timeHigh, this.url)];
                     case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 22];
-                        sheet = void 0;
-                        sheet2 = void 0;
-                        return [4 /*yield*/, getOffers(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                        deals = _a.sent();
+                        return [4 /*yield*/, getAllDealsPrimary(timeLow, timeHigh, this.url)];
                     case 2:
-                        offers = _a.sent();
-                        return [4 /*yield*/, getOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
-                    case 3:
-                        offersPrimary = _a.sent();
-                        return [4 /*yield*/, getRequests(timeLow, timeHigh, tokensArray[i].address, this.url)];
-                    case 4:
-                        requests = _a.sent();
-                        return [4 /*yield*/, getRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
-                    case 5:
-                        requestsPrimary = _a.sent();
-                        if ((offers.length > 0) || (requests.length > 0)) {
-                            sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-                            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                            sheet.getCell('C1').font = { bold: true };
-                        }
-                        if ((offersPrimary.length > 0) || (requestsPrimary.length > 0)) {
-                            sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-                            sheet2.getCell('C1').font = { bold: true };
-                        }
-                        if (!(offers.length > 0)) return [3 /*break*/, 9];
+                        dealsPrimary = _a.sent();
                         rows = [];
-                        j = 0;
-                        _a.label = 6;
-                    case 6:
-                        if (!(j < offers.length)) return [3 /*break*/, 9];
-                        if (!(offers[j].deals.length > 0)) return [3 /*break*/, 8];
-                        deals = offers[j].deals;
-                        for (k = 0; k < deals.length; k++) {
+                        while ((deals.length > 0) || (dealsPrimary.length > 0)) {
+                            nextDealTimestamp = 0;
+                            if (deals.length > 0) {
+                                nextDealTimestamp = deals[deals.length - 1].timestamp;
+                            }
+                            nextDealPrimaryTimestamp = 0;
+                            if (dealsPrimary.length > 0) {
+                                nextDealPrimaryTimestamp = dealsPrimary[dealsPrimary.length - 1].timestamp;
+                            }
+                            if ((nextDealTimestamp != 0) && (nextDealPrimaryTimestamp != 0)) {
+                                if (nextDealTimestamp < nextDealPrimaryTimestamp) {
+                                    nextDeal = deals.pop();
+                                }
+                                else {
+                                    nextDeal = dealsPrimary.pop();
+                                }
+                            }
+                            else if (nextDealTimestamp == 0) {
+                                nextDeal = dealsPrimary.pop();
+                            }
+                            else if (nextDealPrimaryTimestamp == 0) {
+                                nextDeal = deals.pop();
+                            }
                             array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
+                            array.push(new Date(nextDeal.timestamp * 1000));
+                            array.push(timeConverter(nextDeal.offer.timestamp));
+                            array.push(timeConverter(nextDeal.timestamp));
+                            array.push(nextDeal.offer.sellToken.tokenSymbol);
+                            array.push(nextDeal.offer.buyToken.tokenSymbol);
+                            if (nextDeal.seller.name == null) {
                                 array.push("");
                             }
                             else {
-                                array.push(deals[k].seller.name);
+                                array.push(nextDeal.seller.name);
                             }
-                            if (deals[k].buyer.name == null) {
+                            if (nextDeal.buyer.name == null) {
                                 array.push("");
                             }
                             else {
-                                array.push(deals[k].buyer.name);
+                                array.push(nextDeal.buyer.name);
                             }
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(nextDeal.sellAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
                             rows.push(array);
                         }
-                        sheet.getCell('B2').value = tokensArray[i].symbol + ' OFERTADO';
-                        sheet.getCell('B2').font = { bold: true };
-                        tableName = 'Tabla' + tokensArray[i].symbol;
+                        tableName = 'Tabla';
                         return [4 /*yield*/, addTable(sheet, tableName, 'B3', [
                                 { name: 'Fecha (pacto)', filterButton: true },
                                 { name: 'Hora (oferta)' },
                                 { name: 'Hora (pacto)' },
+                                { name: 'Oferta', filterButton: true },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto pactado ', totalsRowFunction: 'sum' },
                                 { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                             ], rows)];
-                    case 7:
+                    case 3:
                         _a.sent();
-                        _a.label = 8;
-                    case 8:
-                        j++;
-                        return [3 /*break*/, 6];
-                    case 9:
-                        if (!(requests.length > 0)) return [3 /*break*/, 13];
-                        rows = [];
-                        j = 0;
-                        _a.label = 10;
-                    case 10:
-                        if (!(j < requests.length)) return [3 /*break*/, 13];
-                        if (!(requests[j].deals.length > 0)) return [3 /*break*/, 12];
-                        deals = requests[j].deals;
-                        for (k = 0; k < deals.length; k++) {
-                            array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].seller.name);
-                            }
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].buyer.name);
-                            }
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }
-                        sheet.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet.getCell('K2').font = { bold: true };
-                        tableName = 'Tabla2' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet, tableName, 'K3', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], rows)];
-                    case 11:
-                        _a.sent();
-                        _a.label = 12;
-                    case 12:
-                        j++;
-                        return [3 /*break*/, 10];
-                    case 13:
-                        if (!(offersPrimary.length > 0)) return [3 /*break*/, 17];
-                        rows = [];
-                        j = 0;
-                        _a.label = 14;
-                    case 14:
-                        if (!(j < offersPrimary.length)) return [3 /*break*/, 17];
-                        if (!(offersPrimary[j].deals.length > 0)) return [3 /*break*/, 16];
-                        deals = offersPrimary[j].deals;
-                        for (k = 0; k < deals.length; k++) {
-                            array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].seller.name);
-                            }
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].buyer.name);
-                            }
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
-                            rows.push(array);
-                        }
-                        sheet2.getCell('B2').value = tokensArray[i].symbol + ' OFERTADO';
-                        sheet2.getCell('B2').font = { bold: true };
-                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet2, tableName, 'B3', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], rows)];
-                    case 15:
-                        _a.sent();
-                        _a.label = 16;
-                    case 16:
-                        j++;
-                        return [3 /*break*/, 14];
-                    case 17:
-                        if (!(requestsPrimary.length > 0)) return [3 /*break*/, 21];
-                        rows = [];
-                        j = 0;
-                        _a.label = 18;
-                    case 18:
-                        if (!(j < requestsPrimary.length)) return [3 /*break*/, 21];
-                        if (!(requestsPrimary[j].deals.length > 0)) return [3 /*break*/, 20];
-                        deals = requestsPrimary[j].deals;
-                        for (k = 0; k < deals.length; k++) {
-                            array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].seller.name);
-                            }
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].buyer.name);
-                            }
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].buyAmount)));
-                            array.push(parseFloat(utils_1.weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }
-                        sheet2.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('K2').font = { bold: true };
-                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet2, tableName, 'K3', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], rows)];
-                    case 19:
-                        _a.sent();
-                        _a.label = 20;
-                    case 20:
-                        j++;
-                        return [3 /*break*/, 18];
-                    case 21:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 22:
-                        _a.trys.push([22, 24, , 30]);
+                        _a.label = 4;
+                    case 4:
+                        _a.trys.push([4, 6, , 12]);
                         return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenDealsReport.xlsx')];
-                    case 23:
+                    case 5:
                         _a.sent();
-                        return [3 /*break*/, 30];
-                    case 24:
+                        return [3 /*break*/, 12];
+                    case 6:
                         error_7 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 25:
+                    case 7:
                         buffer = _a.sent();
-                        _a.label = 26;
-                    case 26:
-                        _a.trys.push([26, 28, , 29]);
+                        _a.label = 8;
+                    case 8:
+                        _a.trys.push([8, 10, , 11]);
                         return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenDealsReport.xlsx')];
-                    case 27:
+                    case 9:
                         _a.sent();
-                        return [3 /*break*/, 29];
-                    case 28:
+                        return [3 /*break*/, 11];
+                    case 10:
                         err_7 = _a.sent();
                         console.error(err_7);
-                        return [3 /*break*/, 29];
-                    case 29: return [3 /*break*/, 30];
-                    case 30: return [2 /*return*/];
+                        return [3 /*break*/, 11];
+                    case 11: return [3 /*break*/, 12];
+                    case 12: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Report.prototype.getDealsReport = function (timeLow, timeHigh) {
+        return __awaiter(this, void 0, void 0, function () {
+            var workbook, sheet, deals, dealsPrimary, dealsPack, dealsPrimaryPack, rows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array, tableName, error_8, buffer, err_8;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        workbook = new ExcelJS.Workbook();
+                        sheet = workbook.addWorksheet('ALL_DEALS');
+                        return [4 /*yield*/, getAllDeals(timeLow, timeHigh, this.url)];
+                    case 1:
+                        deals = _a.sent();
+                        return [4 /*yield*/, getAllDealsPrimary(timeLow, timeHigh, this.url)];
+                    case 2:
+                        dealsPrimary = _a.sent();
+                        return [4 /*yield*/, getAllPackableDeals(timeLow, timeHigh, this.url)];
+                    case 3:
+                        dealsPack = _a.sent();
+                        return [4 /*yield*/, getAllPackableDealPrimary(timeLow, timeHigh, this.url)];
+                    case 4:
+                        dealsPrimaryPack = _a.sent();
+                        rows = [];
+                        while ((deals.length > 0) || (dealsPrimary.length > 0) || (dealsPack.length > 0) || (dealsPrimaryPack.length > 0)) {
+                            _array = [];
+                            nextDealTimestamp = timeHigh;
+                            if (deals.length > 0) {
+                                nextDealTimestamp = deals[deals.length - 1].timestamp;
+                            }
+                            nextDealPrimaryTimestamp = timeHigh;
+                            if (dealsPrimary.length > 0) {
+                                nextDealPrimaryTimestamp = dealsPrimary[dealsPrimary.length - 1].timestamp;
+                            }
+                            nextDealPackTimestamp = timeHigh;
+                            if (dealsPack.length > 0) {
+                                nextDealPackTimestamp = dealsPack[dealsPack.length - 1].timestamp;
+                            }
+                            nextDealPrimaryPackTimestamp = timeHigh;
+                            if (dealsPrimaryPack.length > 0) {
+                                nextDealPrimaryPackTimestamp = dealsPrimaryPack[dealsPrimaryPack.length - 1].timestamp;
+                            }
+                            _array.push(nextDealTimestamp);
+                            _array.push(nextDealPrimaryTimestamp);
+                            _array.push(nextDealPackTimestamp);
+                            _array.push(nextDealPrimaryPackTimestamp);
+                            index = 0;
+                            min = _array[0];
+                            for (i = 1; i < _array.length; i++) {
+                                if (_array[i] < min) {
+                                    min = _array[i];
+                                    index = i;
+                                }
+                            }
+                            switch (index) {
+                                case 0:
+                                    nextDeal = deals.pop();
+                                    break;
+                                case 1:
+                                    nextDeal = dealsPrimary.pop();
+                                    break;
+                                case 2:
+                                    nextDeal = dealsPack.pop();
+                                    break;
+                                case 3:
+                                    nextDeal = dealsPrimaryPack.pop();
+                                    break;
+                                default:
+                                    break;
+                            }
+                            array = [];
+                            array.push(new Date(nextDeal.timestamp * 1000));
+                            array.push(timeConverter(nextDeal.offer.timestamp));
+                            array.push(timeConverter(nextDeal.timestamp));
+                            array.push(nextDeal.offer.sellToken.tokenSymbol);
+                            array.push(nextDeal.offer.buyToken.tokenSymbol);
+                            if (nextDeal.seller.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(nextDeal.seller.name);
+                            }
+                            if (nextDeal.buyer.name == null) {
+                                array.push("");
+                            }
+                            else {
+                                array.push(nextDeal.buyer.name);
+                            }
+                            array.push(parseFloat(utils_1.weiToEther(nextDeal.sellAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
+                            rows.push(array);
+                        }
+                        tableName = 'Tabla';
+                        return [4 /*yield*/, addTable(sheet, tableName, 'B3', [
+                                { name: 'Fecha (pacto)', filterButton: true },
+                                { name: 'Hora (oferta)' },
+                                { name: 'Hora (pacto)' },
+                                { name: 'Oferta', filterButton: true },
+                                { name: 'Contrapartida', filterButton: true },
+                                { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Monto pactado ', totalsRowFunction: 'sum' },
+                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
+                            ], rows)];
+                    case 5:
+                        _a.sent();
+                        _a.label = 6;
+                    case 6:
+                        _a.trys.push([6, 8, , 14]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsDealsReport.xlsx')];
+                    case 7:
+                        _a.sent();
+                        return [3 /*break*/, 14];
+                    case 8:
+                        error_8 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 9:
+                        buffer = _a.sent();
+                        _a.label = 10;
+                    case 10:
+                        _a.trys.push([10, 12, , 13]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsDealsReport.xlsx')];
+                    case 11:
+                        _a.sent();
+                        return [3 /*break*/, 13];
+                    case 12:
+                        err_8 = _a.sent();
+                        console.error(err_8);
+                        return [3 /*break*/, 13];
+                    case 13: return [3 /*break*/, 14];
+                    case 14: return [2 /*return*/];
                 }
             });
         });
     };
     Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_8, buffer, err_8;
+            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_9, buffer, err_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -920,7 +893,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 10];
                     case 4:
-                        error_8 = _a.sent();
+                        error_9 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 5:
                         buffer = _a.sent();
@@ -932,8 +905,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        err_8 = _a.sent();
-                        console.error(err_8);
+                        err_9 = _a.sent();
+                        console.error(err_9);
                         return [3 /*break*/, 9];
                     case 9: return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
@@ -941,265 +914,105 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getPackableDealsReport = function (timeLow, timeHigh, tokensArray) {
+    Report.prototype.getPackableDealsReport = function (timeLow, timeHigh) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, i, sheet, sheet2, offers, offersPrimary, requests, requestsPrimary, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, rows, j, deals, k, array, tableName, error_9, buffer, err_9;
+            var workbook, sheet, deals, dealsPrimary, rows, nextDeal, nextDealTimestamp, nextDealPrimaryTimestamp, array, tableName, error_10, buffer, err_10;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         workbook = new ExcelJS.Workbook();
-                        i = 0;
-                        _a.label = 1;
+                        sheet = workbook.addWorksheet('ALL_PACKABLE_DEALS');
+                        return [4 /*yield*/, getAllPackableDeals(timeLow, timeHigh, this.url)];
                     case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 22];
-                        sheet = void 0;
-                        sheet2 = void 0;
-                        return [4 /*yield*/, getPackableOffers(timeLow, timeHigh, tokensArray[i].address, this.url)];
+                        deals = _a.sent();
+                        return [4 /*yield*/, getAllPackableDealPrimary(timeLow, timeHigh, this.url)];
                     case 2:
-                        offers = _a.sent();
-                        return [4 /*yield*/, getPackableOffersPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
-                    case 3:
-                        offersPrimary = _a.sent();
-                        return [4 /*yield*/, getPackableRequests(timeLow, timeHigh, tokensArray[i].address, this.url)];
-                    case 4:
-                        requests = _a.sent();
-                        return [4 /*yield*/, getPackableRequestsPrimary(timeLow, timeHigh, tokensArray[i].address, this.url)];
-                    case 5:
-                        requestsPrimary = _a.sent();
-                        if ((offers.length > 0) || (requests.length > 0)) {
-                            sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
-                            sheet.getCell('C1').value = 'Mercado P2P (Secundario)';
-                            sheet.getCell('C1').font = { bold: true };
-                        }
-                        if ((offersPrimary.length > 0) || (requestsPrimary.length > 0)) {
-                            sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                            sheet2.getCell('C1').value = 'Mercado P2P (Primario)';
-                            sheet2.getCell('C1').font = { bold: true };
-                        }
-                        if (!(offers.length > 0)) return [3 /*break*/, 9];
+                        dealsPrimary = _a.sent();
                         rows = [];
-                        j = 0;
-                        _a.label = 6;
-                    case 6:
-                        if (!(j < offers.length)) return [3 /*break*/, 9];
-                        if (!(offers[j].deals.length > 0)) return [3 /*break*/, 8];
-                        deals = offers[j].deals;
-                        for (k = 0; k < deals.length; k++) {
+                        while ((deals.length > 0) || (dealsPrimary.length > 0)) {
+                            nextDealTimestamp = 0;
+                            if (deals.length > 0) {
+                                nextDealTimestamp = deals[deals.length - 1].timestamp;
+                            }
+                            nextDealPrimaryTimestamp = 0;
+                            if (dealsPrimary.length > 0) {
+                                nextDealPrimaryTimestamp = dealsPrimary[dealsPrimary.length - 1].timestamp;
+                            }
+                            if ((nextDealTimestamp != 0) && (nextDealPrimaryTimestamp != 0)) {
+                                if (nextDealTimestamp < nextDealPrimaryTimestamp) {
+                                    nextDeal = deals.pop();
+                                }
+                                else {
+                                    nextDeal = dealsPrimary.pop();
+                                }
+                            }
+                            else if (nextDealTimestamp == 0) {
+                                nextDeal = dealsPrimary.pop();
+                            }
+                            else if (nextDealPrimaryTimestamp == 0) {
+                                nextDeal = deals.pop();
+                            }
                             array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
+                            array.push(new Date(nextDeal.timestamp * 1000));
+                            array.push(timeConverter(nextDeal.offer.timestamp));
+                            array.push(timeConverter(nextDeal.timestamp));
+                            array.push(nextDeal.offer.sellToken.tokenSymbol);
+                            array.push(nextDeal.offer.buyToken.tokenSymbol);
+                            if (nextDeal.seller.name == null) {
                                 array.push("");
                             }
                             else {
-                                array.push(deals[k].seller.name);
+                                array.push(nextDeal.seller.name);
                             }
-                            if (deals[k].buyer.name == null) {
+                            if (nextDeal.buyer.name == null) {
                                 array.push("");
                             }
                             else {
-                                array.push(deals[k].buyer.name);
+                                array.push(nextDeal.buyer.name);
                             }
-                            array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
-                            array.push(parseInt(utils_1.weiToEther(deals[k].buyAmount)));
+                            array.push(parseInt(utils_1.weiToEther(nextDeal.sellAmount)));
+                            array.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
                             rows.push(array);
                         }
-                        sheet.getCell('B2').value = tokensArray[i].symbol + ' OFERTADO';
-                        sheet.getCell('B2').font = { bold: true };
-                        tableName = 'Tabla' + tokensArray[i].symbol;
+                        tableName = 'Tabla';
                         return [4 /*yield*/, addTable(sheet, tableName, 'B3', [
                                 { name: 'Fecha (pacto)', filterButton: true },
                                 { name: 'Hora (oferta)' },
                                 { name: 'Hora (pacto)' },
+                                { name: 'Oferta', filterButton: true },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
+                                { name: 'Monto pactado ', totalsRowFunction: 'sum' },
                                 { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                             ], rows)];
-                    case 7:
+                    case 3:
                         _a.sent();
+                        _a.label = 4;
+                    case 4:
+                        _a.trys.push([4, 6, , 12]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableDealsReport.xlsx')];
+                    case 5:
+                        _a.sent();
+                        return [3 /*break*/, 12];
+                    case 6:
+                        error_10 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 7:
+                        buffer = _a.sent();
                         _a.label = 8;
                     case 8:
-                        j++;
-                        return [3 /*break*/, 6];
-                    case 9:
-                        if (!(requests.length > 0)) return [3 /*break*/, 13];
-                        rows = [];
-                        j = 0;
-                        _a.label = 10;
-                    case 10:
-                        if (!(j < requests.length)) return [3 /*break*/, 13];
-                        if (!(requests[j].deals.length > 0)) return [3 /*break*/, 12];
-                        deals = requests[j].deals;
-                        for (k = 0; k < deals.length; k++) {
-                            array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].seller.name);
-                            }
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].buyer.name);
-                            }
-                            array.push(parseInt(utils_1.weiToEther(deals[k].buyAmount)));
-                            array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }
-                        sheet.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet.getCell('K2').font = { bold: true };
-                        tableName = 'Tabla2' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet, tableName, 'K3', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], rows)];
-                    case 11:
-                        _a.sent();
-                        _a.label = 12;
-                    case 12:
-                        j++;
-                        return [3 /*break*/, 10];
-                    case 13:
-                        if (!(offersPrimary.length > 0)) return [3 /*break*/, 17];
-                        rows = [];
-                        j = 0;
-                        _a.label = 14;
-                    case 14:
-                        if (!(j < offersPrimary.length)) return [3 /*break*/, 17];
-                        if (!(offersPrimary[j].deals.length > 0)) return [3 /*break*/, 16];
-                        deals = offersPrimary[j].deals;
-                        for (k = 0; k < deals.length; k++) {
-                            array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.buyToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].seller.name);
-                            }
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].buyer.name);
-                            }
-                            array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
-                            array.push(parseInt(utils_1.weiToEther(deals[k].buyAmount)));
-                            rows.push(array);
-                        }
-                        sheet2.getCell('B2').value = tokensArray[i].symbol + ' OFERTADO';
-                        sheet2.getCell('B2').font = { bold: true };
-                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet2, tableName, 'B3', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], rows)];
-                    case 15:
-                        _a.sent();
-                        _a.label = 16;
-                    case 16:
-                        j++;
-                        return [3 /*break*/, 14];
-                    case 17:
-                        if (!(requestsPrimary.length > 0)) return [3 /*break*/, 21];
-                        rows = [];
-                        j = 0;
-                        _a.label = 18;
-                    case 18:
-                        if (!(j < requestsPrimary.length)) return [3 /*break*/, 21];
-                        if (!(requestsPrimary[j].deals.length > 0)) return [3 /*break*/, 20];
-                        deals = requestsPrimary[j].deals;
-                        for (k = 0; k < deals.length; k++) {
-                            array = [];
-                            array.push(new Date(deals[k].timestamp * 1000));
-                            array.push(timeConverter(deals[k].offer.timestamp));
-                            array.push(timeConverter(deals[k].timestamp));
-                            array.push(deals[k].offer.sellToken.tokenSymbol);
-                            if (deals[k].seller.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].seller.name);
-                            }
-                            if (deals[k].buyer.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(deals[k].buyer.name);
-                            }
-                            array.push(parseInt(utils_1.weiToEther(deals[k].buyAmount)));
-                            array.push(parseInt(utils_1.weiToEther(deals[k].sellAmount)));
-                            rows.push(array);
-                        }
-                        sheet2.getCell('K2').value = tokensArray[i].symbol + ' DEMANDADO';
-                        sheet2.getCell('K2').font = { bold: true };
-                        tableName = 'TablaPrimario' + tokensArray[i].symbol;
-                        return [4 /*yield*/, addTable(sheet2, tableName, 'K3', [
-                                { name: 'Fecha (pacto)', filterButton: true },
-                                { name: 'Hora (oferta)' },
-                                { name: 'Hora (pacto)' },
-                                { name: 'Contrapartida', filterButton: true },
-                                { name: 'Vendedor (usuario)', filterButton: true },
-                                { name: 'Comprador (usuario)', filterButton: true },
-                                { name: 'Monto pactado (primario) (' + tokensArray[i].symbol + ')', totalsRowFunction: 'sum' },
-                                { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
-                            ], rows)];
-                    case 19:
-                        _a.sent();
-                        _a.label = 20;
-                    case 20:
-                        j++;
-                        return [3 /*break*/, 18];
-                    case 21:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 22:
-                        _a.trys.push([22, 24, , 30]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableDealsReport.xlsx')];
-                    case 23:
-                        _a.sent();
-                        return [3 /*break*/, 30];
-                    case 24:
-                        error_9 = _a.sent();
-                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 25:
-                        buffer = _a.sent();
-                        _a.label = 26;
-                    case 26:
-                        _a.trys.push([26, 28, , 29]);
+                        _a.trys.push([8, 10, , 11]);
                         return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReport.xlsx')];
-                    case 27:
+                    case 9:
                         _a.sent();
-                        return [3 /*break*/, 29];
-                    case 28:
-                        err_9 = _a.sent();
-                        console.error(err_9);
-                        return [3 /*break*/, 29];
-                    case 29: return [3 /*break*/, 30];
-                    case 30: return [2 /*return*/];
+                        return [3 /*break*/, 11];
+                    case 10:
+                        err_10 = _a.sent();
+                        console.error(err_10);
+                        return [3 /*break*/, 11];
+                    case 11: return [3 /*break*/, 12];
+                    case 12: return [2 /*return*/];
                 }
             });
         });
@@ -2757,7 +2570,7 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
 function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var transactions, error_10;
+        var transactions, error_11;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -2776,7 +2589,7 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
                     _a.label = 5;
                 case 5: return [2 /*return*/, transactions];
                 case 6:
-                    error_10 = _a.sent();
+                    error_11 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 8];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -2786,8 +2599,8 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, transactions];
                 case 8:
-                    console.error(error_10);
-                    throw new Error(error_10);
+                    console.error(error_11);
+                    throw new Error(error_11);
                 case 9: return [3 /*break*/, 10];
                 case 10: return [2 /*return*/];
             }
@@ -2802,7 +2615,7 @@ function getTransactions(_timeLow, _timeHigh, _tokenAddress, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } }';
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
                     queryService = new graph_1.Query('bank', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -2814,7 +2627,40 @@ function getTransactions(_timeLow, _timeHigh, _tokenAddress, _url) {
                 case 2:
                     if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
                     skip = transactions.length;
-                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } }';
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryTransactions = response.transactions;
+                    transactions = transactions.concat(queryTransactions);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, transactions];
+            }
+        });
+    });
+}
+function getAllTransactions(_timeLow, _timeHigh, _tokenAddress, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryTransactions, transactions;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    queryService = new graph_1.Query('bank', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryTransactions = response.transactions;
+                    transactions = queryTransactions;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
+                    skip = transactions.length;
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -2835,7 +2681,7 @@ function getTransactionsByName(_timeLow, _timeHigh, _tokenAddress, _name, _url) 
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } } } }';
+                    query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
                     queryService = new graph_1.Query('bank', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -2847,7 +2693,40 @@ function getTransactionsByName(_timeLow, _timeHigh, _tokenAddress, _name, _url) 
                 case 2:
                     if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
                     skip = transactions.length;
-                    query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol } amount timestamp } } } }';
+                    query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryTransactions = response.names[0].wallet.transactions;
+                    transactions = transactions.concat(queryTransactions);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, transactions];
+            }
+        });
+    });
+}
+function getAllTransactionsByName(_timeLow, _timeHigh, _name, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryTransactions, transactions;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
+                    queryService = new graph_1.Query('bank', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryTransactions = response.names[0].wallet.transactions;
+                    transactions = queryTransactions;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
+                    skip = transactions.length;
+                    query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -2863,7 +2742,7 @@ function getTransactionsByName(_timeLow, _timeHigh, _tokenAddress, _name, _url) 
 function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_11;
+        var offers, error_12;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -2873,7 +2752,7 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_11 = _a.sent();
+                    error_12 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -2883,8 +2762,8 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_11);
-                    throw new Error(error_11);
+                    console.error(error_12);
+                    throw new Error(error_12);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -2924,10 +2803,43 @@ function getOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
         });
     });
 }
+function getAllDeals(_timeLow, _timeHigh, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryOffers, offers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ deals (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService = new graph_1.Query('p2p', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryOffers = response.deals;
+                    offers = queryOffers;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
+                    skip = offers.length;
+                    query = '{ deals (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryOffers = response.deals;
+                    offers = offers.concat(queryOffers);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, offers];
+            }
+        });
+    });
+}
 function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_12;
+        var offers, error_13;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -2937,7 +2849,7 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_12 = _a.sent();
+                    error_13 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -2947,8 +2859,8 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_12);
-                    throw new Error(error_12);
+                    console.error(error_13);
+                    throw new Error(error_13);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -2991,7 +2903,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_13;
+        var offers, error_14;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3001,7 +2913,7 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_13 = _a.sent();
+                    error_14 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3011,8 +2923,8 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_13);
-                    throw new Error(error_13);
+                    console.error(error_14);
+                    throw new Error(error_14);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3052,10 +2964,43 @@ function getOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
         });
     });
 }
+function getAllDealsPrimary(_timeLow, _timeHigh, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryOffers, offers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ deals (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService = new graph_1.Query('p2p-primary', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryOffers = response.deals;
+                    offers = queryOffers;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
+                    skip = offers.length;
+                    query = '{ deals (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryOffers = response.deals;
+                    offers = offers.concat(queryOffers);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, offers];
+            }
+        });
+    });
+}
 function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_14;
+        var offers, error_15;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3065,7 +3010,7 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_14 = _a.sent();
+                    error_15 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3075,8 +3020,8 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_14);
-                    throw new Error(error_14);
+                    console.error(error_15);
+                    throw new Error(error_15);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3119,7 +3064,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_15;
+        var offers, error_16;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3129,7 +3074,7 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_15 = _a.sent();
+                    error_16 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3139,8 +3084,8 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_15);
-                    throw new Error(error_15);
+                    console.error(error_16);
+                    throw new Error(error_16);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3183,7 +3128,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_16;
+        var offers, error_17;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3193,7 +3138,7 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_16 = _a.sent();
+                    error_17 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3203,8 +3148,8 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_16);
-                    throw new Error(error_16);
+                    console.error(error_17);
+                    throw new Error(error_17);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3247,7 +3192,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
 function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_17;
+        var offers, error_18;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3257,7 +3202,7 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_17 = _a.sent();
+                    error_18 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3267,8 +3212,8 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_17);
-                    throw new Error(error_17);
+                    console.error(error_18);
+                    throw new Error(error_18);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3308,10 +3253,43 @@ function getPackableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
         });
     });
 }
+function getAllPackableDeals(_timeLow, _timeHigh, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryOffers, offers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ dealPackables (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService = new graph_1.Query('p2p', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryOffers = response.dealPackables;
+                    offers = queryOffers;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
+                    skip = offers.length;
+                    query = '{ dealPackables (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryOffers = response.dealPackables;
+                    offers = offers.concat(queryOffers);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, offers];
+            }
+        });
+    });
+}
 function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_18;
+        var offers, error_19;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3321,7 +3299,7 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_18 = _a.sent();
+                    error_19 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3331,8 +3309,8 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_18);
-                    throw new Error(error_18);
+                    console.error(error_19);
+                    throw new Error(error_19);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3375,7 +3353,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_19;
+        var offers, error_20;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3385,7 +3363,7 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_19 = _a.sent();
+                    error_20 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3395,8 +3373,8 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_19);
-                    throw new Error(error_19);
+                    console.error(error_20);
+                    throw new Error(error_20);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3436,10 +3414,43 @@ function getPackableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
         });
     });
 }
+function getAllPackableDealPrimary(_timeLow, _timeHigh, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryOffers, offers;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ dealPackables (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService = new graph_1.Query('p2p-primary', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryOffers = response.dealPackables;
+                    offers = queryOffers;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryOffers.length >= 1000)) return [3 /*break*/, 4];
+                    skip = offers.length;
+                    query = '{ dealPackables (where: {timestamp_gt: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy: timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { timestamp offer { buyToken { tokenSymbol id } sellToken { tokenSymbol id } timestamp timestamp } seller { id name } buyer { id name } sellAmount buyAmount timestamp } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryOffers = response.dealPackables;
+                    offers = offers.concat(queryOffers);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, offers];
+            }
+        });
+    });
+}
 function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_20;
+        var offers, error_21;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3449,7 +3460,7 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_20 = _a.sent();
+                    error_21 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3459,8 +3470,8 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_20);
-                    throw new Error(error_20);
+                    console.error(error_21);
+                    throw new Error(error_21);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3514,7 +3525,10 @@ function getPiPrice(_timeLow, _timeHigh, _url) {
                     return [4 /*yield*/, queryService.request()];
                 case 1:
                     response = _a.sent();
-                    queryPrices = response.prices;
+                    queryPrices = [];
+                    if (response.prices != undefined) {
+                        queryPrices = response.prices;
+                    }
                     prices = queryPrices;
                     _a.label = 2;
                 case 2:
@@ -3622,23 +3636,26 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_21, dates, rates, responseData, i, len, j, rates2, rates3, j, error_22;
+        var from, to, responseData, rates, factor, i, len, j, error_22, dates, rates, responseData, i, len, j, rates2, rates3, j, error_23;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
+                    if (!((fromYear == 2020) && (fromMonth < 11))) return [3 /*break*/, 1];
+                    return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+                case 1:
                     if (!((tokenCategory == 1) &&
                         (token != Constants.PI.address) &&
                         (token != Constants.USD.address) &&
                         (token != Constants.USC.address) &&
-                        (token != Constants.PEL.address))) return [3 /*break*/, 5];
+                        (token != Constants.PEL.address))) return [3 /*break*/, 6];
                     from = fromYear + "-" + fromMonth + "-01";
                     to = toYear + "-" + toMonth + "-01";
                     responseData = void 0;
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, requestRateEndPoint(from, to, token)];
+                    _a.label = 2;
                 case 2:
+                    _a.trys.push([2, 4, , 5]);
+                    return [4 /*yield*/, requestRateEndPoint(from, to, token)];
+                case 3:
                     responseData = _a.sent();
                     rates = [];
                     factor = 1;
@@ -3669,25 +3686,25 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                         }
                     }
                     return [2 /*return*/, rates];
-                case 3:
-                    error_21 = _a.sent();
-                    console.error(error_21);
-                    throw new Error(error_21);
-                case 4: return [3 /*break*/, 13];
-                case 5:
+                case 4:
+                    error_22 = _a.sent();
+                    console.error(error_22);
+                    throw new Error(error_22);
+                case 5: return [3 /*break*/, 14];
+                case 6:
                     if (!((token == Constants.USD.address) ||
                         (token == Constants.USC.address) ||
-                        (token == Constants.PEL.address))) return [3 /*break*/, 6];
+                        (token == Constants.PEL.address))) return [3 /*break*/, 7];
                     return [2 /*return*/, [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]];
-                case 6:
-                    if (!(token == Constants.PI.address)) return [3 /*break*/, 12];
+                case 7:
+                    if (!(token == Constants.PI.address)) return [3 /*break*/, 13];
                     dates = convertMonthAndYearToUTC(fromYear, fromMonth, toYear, toMonth);
                     rates = [];
-                    _a.label = 7;
-                case 7:
-                    _a.trys.push([7, 10, , 11]);
-                    return [4 /*yield*/, getPiPrice(dates[0], dates[1], 'mainnet')];
+                    _a.label = 8;
                 case 8:
+                    _a.trys.push([8, 11, , 12]);
+                    return [4 /*yield*/, getPiPrice(dates[0], dates[1], 'mainnet')];
+                case 9:
                     responseData = _a.sent();
                     for (i = 22; i < responseData.length; i = i + 24) {
                         rates.push(responseData[i].piPrice);
@@ -3699,20 +3716,20 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                         }
                     }
                     return [4 /*yield*/, getDayRate(fromYear, fromMonth, toYear, toMonth, Constants.BTC.address, Constants.BTC.category)];
-                case 9:
+                case 10:
                     rates2 = _a.sent();
                     rates3 = [];
                     for (j = 0; j < rates.length; j++) {
                         rates3.push(rates[j] * rates2[j]);
                     }
                     return [2 /*return*/, rates3];
-                case 10:
-                    error_22 = _a.sent();
-                    console.error(error_22);
-                    throw new Error(error_22);
-                case 11: return [3 /*break*/, 13];
-                case 12: return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
-                case 13: return [2 /*return*/];
+                case 11:
+                    error_23 = _a.sent();
+                    console.error(error_23);
+                    throw new Error(error_23);
+                case 12: return [3 /*break*/, 14];
+                case 13: return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+                case 14: return [2 /*return*/];
             }
         });
     });
@@ -3746,7 +3763,7 @@ function convertToUsd(amount, token, timestamp) {
                     from = endPointDates[0];
                     to = endPointDates[1];
                     if (!(token == Constants.PI.address)) return [3 /*break*/, 5];
-                    return [4 /*yield*/, getPiPrice(timestamp, (timestamp + ONE_UTC_DAY), 'mainnet')];
+                    return [4 /*yield*/, getPiPrice(timestamp, (+timestamp + +ONE_UTC_DAY), 'mainnet')];
                 case 1:
                     rates = _a.sent();
                     if (!(rates.length == 0)) return [3 /*break*/, 2];
@@ -3804,7 +3821,7 @@ function convertToUsd(amount, token, timestamp) {
 }
 function requestRateEndPoint(from, to, token) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPoint, body, response, responseData, error_23;
+        var endPoint, body, response, responseData, error_24;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3831,9 +3848,9 @@ function requestRateEndPoint(from, to, token) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_23 = _a.sent();
-                    console.error(error_23);
-                    throw new Error(error_23);
+                    error_24 = _a.sent();
+                    console.error(error_24);
+                    throw new Error(error_24);
                 case 6: return [2 /*return*/];
             }
         });
