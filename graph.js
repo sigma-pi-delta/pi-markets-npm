@@ -39,6 +39,7 @@ exports.__esModule = true;
 exports.QueryTemplates = exports.Query = exports.Graph = void 0;
 var Constants = require("./constants");
 var node_fetch_1 = require("node-fetch");
+var Utils = require("./utils");
 var Graph = /** @class */ (function () {
     function Graph() {
     }
@@ -953,6 +954,33 @@ var QueryTemplates = /** @class */ (function () {
                         error_26 = _a.sent();
                         console.error(error_26);
                         throw new Error(error_26);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getAuctionsCommission = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_27;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ factories { commission } }';
+                        query = new Query("auction", this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, Utils.weiToEther(response.factories[0].commission)];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_27 = _a.sent();
+                        console.error(error_27);
+                        throw new Error(error_27);
                     case 4: return [2 /*return*/];
                 }
             });

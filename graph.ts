@@ -1,6 +1,6 @@
 import * as Constants from './constants';
 import fetch from 'node-fetch';
-import { ethers } from 'ethers';
+import * as Utils from './utils'
 
 export class Graph {
 
@@ -715,6 +715,20 @@ export class QueryTemplates {
         try {
             let response = await query.request();
             if (response != undefined) return response.users;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getAuctionsCommission() {
+        let customQuery = '{ factories { commission } }';
+        let query = new Query("auction", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return Utils.weiToEther(response.factories[0].commission);
         } catch(error) {
             console.error(error);
             throw new Error(error);
