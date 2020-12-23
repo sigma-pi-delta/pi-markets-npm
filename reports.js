@@ -807,12 +807,14 @@ var Report = /** @class */ (function () {
                             else {
                                 array.push(nextDeal.seller.name);
                             }
+                            array.push(nextDeal.seller.id);
                             if (nextDeal.buyer.name == null) {
                                 array.push("");
                             }
                             else {
                                 array.push(nextDeal.buyer.name);
                             }
+                            array.push(nextDeal.buyer.id);
                             array.push(parseFloat(utils_1.weiToEther(nextDeal.sellAmount)));
                             array.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
                             rows.push(array);
@@ -825,7 +827,9 @@ var Report = /** @class */ (function () {
                                 { name: 'Oferta', filterButton: true },
                                 { name: 'Contrapartida', filterButton: true },
                                 { name: 'Vendedor (usuario)', filterButton: true },
+                                { name: 'Vendedor (wallet)', filterButton: true },
                                 { name: 'Comprador (usuario)', filterButton: true },
+                                { name: 'Comprador (wallet)', filterButton: true },
                                 { name: 'Monto pactado ', totalsRowFunction: 'sum' },
                                 { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                             ], rows)];

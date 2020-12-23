@@ -821,11 +821,15 @@ export class Report {
                 array.push(nextDeal.seller.name);
             }
 
+            array.push(nextDeal.seller.id)
+
             if (nextDeal.buyer.name == null) {
                 array.push("");
             } else {
                 array.push(nextDeal.buyer.name);
             }
+
+            array.push(nextDeal.buyer.id)
 
             array.push(parseFloat(weiToEther(nextDeal.sellAmount)));
             array.push(parseFloat(weiToEther(nextDeal.buyAmount)));
@@ -845,7 +849,9 @@ export class Report {
                 {name: 'Oferta', filterButton: true},
                 {name: 'Contrapartida', filterButton: true},
                 {name: 'Vendedor (usuario)', filterButton: true},
+                {name: 'Vendedor (wallet)', filterButton: true},
                 {name: 'Comprador (usuario)', filterButton: true},
+                {name: 'Comprador (wallet)', filterButton: true},
                 {name: 'Monto pactado ', totalsRowFunction: 'sum'},
                 {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
             ],
