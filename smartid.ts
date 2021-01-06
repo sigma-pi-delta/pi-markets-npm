@@ -965,6 +965,35 @@ export class SmartID {
             throw new Error(error);
         }
     }
+
+    async noBidWithdrawl(
+        auctionAddress: string
+    ) {
+        let auctionContract = this.contractsService.getContractSigner(
+            auctionAddress, 
+            Constants.AUCTION_ABI, 
+            this.signer
+        );
+        let bidData = auctionContract.interface.functions.noBidWithdrawl.encode([]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forward.encode([
+            auctionAddress,
+            bidData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 export class SmartIDLogin {
