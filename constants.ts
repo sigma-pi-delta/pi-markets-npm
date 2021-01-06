@@ -236,6 +236,14 @@ const CRMA = {
     },
     category: 3
 };
+const NOVA = {
+    symbol: "NOVA",
+    address: "0xb22ebd9cb54dc2edb313f313f106244312a57055",
+    expiry: {
+        mar21: ["mar21", "0x517db52c70c84d1b828d562544c64beb72a50fce076ab14c63c37f3de9577246"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -290,7 +298,7 @@ const CMT_TESTNET = {
 
 // OTHER
 const MIN_GAS_PRICE = "1000000000";
-const OVERRIDES = {gasPrice: 1000000000, gasLimit: 900000};
+const OVERRIDES = {gasPrice: 1000000000, gasLimit: 4000000};
 const OVERRIDES_BACKEND = {gasPrice: 0};
 
 export { 
@@ -361,6 +369,7 @@ export {
     BNC,
     FVIA,
     CRMA,
+    NOVA,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,
