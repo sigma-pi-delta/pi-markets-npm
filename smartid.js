@@ -1392,7 +1392,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.setNewIdentityDD = function (identity, dataHashDD, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var controllerContract, registryAddress, signer, identityFactory, response, error_39, receipt, receiptError_3;
+            var controllerContract, registryAddress, signer, registry, response, error_39, receipt, receiptError_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1401,11 +1401,11 @@ var SmartIDRegistry = /** @class */ (function () {
                     case 1:
                         registryAddress = _a.sent();
                         signer = this.walletsService.createWalletFromPrivKey(signerPrivateKey);
-                        identityFactory = this.contractsService.getContractSigner(registryAddress, Constants.REGISTRY_ABI, signer);
+                        registry = this.contractsService.getContractSigner(registryAddress, Constants.REGISTRY_ABI, signer);
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, identityFactory.setNewIdentityDD(identity, dataHashDD, Constants.OVERRIDES_BACKEND)];
+                        return [4 /*yield*/, registry.setNewIdentityDD(identity, dataHashDD, Constants.OVERRIDES_BACKEND)];
                     case 3:
                         response = _a.sent();
                         return [3 /*break*/, 5];
@@ -1428,20 +1428,22 @@ var SmartIDRegistry = /** @class */ (function () {
             });
         });
     };
-    SmartIDRegistry.prototype.updateReputation = function (user, reputation, signerPrivateKey) {
+    SmartIDRegistry.prototype.setNewHashKYC = function (identity, dataHashDD, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var p2pAddress, signer, p2pContract, response, error_40, receipt, receiptError_4;
+            var controllerContract, registryAddress, signer, registryKYC, response, error_40, receipt, receiptError_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("16")];
+                    case 0:
+                        controllerContract = this.contractsService.getContractCaller(Constants.CONTROLLER_ADDRESS, Constants.CONTROLLER_ABI);
+                        return [4 /*yield*/, controllerContract.addresses("19")];
                     case 1:
-                        p2pAddress = _a.sent();
+                        registryAddress = _a.sent();
                         signer = this.walletsService.createWalletFromPrivKey(signerPrivateKey);
-                        p2pContract = this.contractsService.getContractSigner(p2pAddress, Constants.P2P_ABI, signer);
+                        registryKYC = this.contractsService.getContractSigner(registryAddress, Constants.REGISTRY_KYC_ABI, signer);
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, p2pContract.updateReputation(user, reputation, Constants.OVERRIDES_BACKEND)];
+                        return [4 /*yield*/, registryKYC.setNewHash(identity, dataHashDD, Constants.OVERRIDES_BACKEND)];
                     case 3:
                         response = _a.sent();
                         return [3 /*break*/, 5];
@@ -1459,6 +1461,42 @@ var SmartIDRegistry = /** @class */ (function () {
                         receiptError_4 = _a.sent();
                         console.error(receiptError_4);
                         throw new Error(receiptError_4);
+                    case 8: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SmartIDRegistry.prototype.updateReputation = function (user, reputation, signerPrivateKey) {
+        return __awaiter(this, void 0, void 0, function () {
+            var p2pAddress, signer, p2pContract, response, error_41, receipt, receiptError_5;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("16")];
+                    case 1:
+                        p2pAddress = _a.sent();
+                        signer = this.walletsService.createWalletFromPrivKey(signerPrivateKey);
+                        p2pContract = this.contractsService.getContractSigner(p2pAddress, Constants.P2P_ABI, signer);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, p2pContract.updateReputation(user, reputation, Constants.OVERRIDES_BACKEND)];
+                    case 3:
+                        response = _a.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
+                        error_41 = _a.sent();
+                        console.error(error_41);
+                        throw new Error(error_41);
+                    case 5:
+                        _a.trys.push([5, 7, , 8]);
+                        return [4 /*yield*/, this.transactionsService.getReceipt(response)];
+                    case 6:
+                        receipt = _a.sent();
+                        return [2 /*return*/, receipt];
+                    case 7:
+                        receiptError_5 = _a.sent();
+                        console.error(receiptError_5);
+                        throw new Error(receiptError_5);
                     case 8: return [2 /*return*/];
                 }
             });

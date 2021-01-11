@@ -1208,7 +1208,7 @@ export class SmartIDRegistry {
         );
         const registryAddress = await controllerContract.addresses("1");
         const signer = this.walletsService.createWalletFromPrivKey(signerPrivateKey);
-        const identityFactory = this.contractsService.getContractSigner(
+        const registry = this.contractsService.getContractSigner(
             registryAddress,
             Constants.REGISTRY_ABI,
             signer
@@ -1217,7 +1217,42 @@ export class SmartIDRegistry {
         let response: any;
 
         try {
-            response = await identityFactory.setNewIdentityDD(
+            response = await registry.setNewIdentityDD(
+                identity,
+                dataHashDD,
+                Constants.OVERRIDES_BACKEND
+            )
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        }
+
+        try {
+            let receipt = await this.transactionsService.getReceipt(response);
+            return receipt;
+        } catch (receiptError) {
+            console.error(receiptError);
+            throw new Error(receiptError);
+        }
+    }
+
+    async setNewHashKYC(identity: string, dataHashDD: string, signerPrivateKey: string) {
+        const controllerContract = this.contractsService.getContractCaller(
+            Constants.CONTROLLER_ADDRESS,
+            Constants.CONTROLLER_ABI
+        );
+        const registryAddress = await controllerContract.addresses("19");
+        const signer = this.walletsService.createWalletFromPrivKey(signerPrivateKey);
+        const registryKYC = this.contractsService.getContractSigner(
+            registryAddress,
+            Constants.REGISTRY_KYC_ABI,
+            signer
+        );
+
+        let response: any;
+
+        try {
+            response = await registryKYC.setNewHash(
                 identity,
                 dataHashDD,
                 Constants.OVERRIDES_BACKEND
