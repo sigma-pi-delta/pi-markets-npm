@@ -4,6 +4,7 @@ import * as Constants from './constants';
 import { Query, QueryTemplates } from './graph';
 import { weiToEther } from './utils';
 import fetch from 'node-fetch';
+import { Blockchain } from './blockchain';
 const FileSaver = require('file-saver');
 
 const ONE_UTC_DAY = 86400;
@@ -1017,6 +1018,320 @@ export class Report {
             
             try {
                 await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableDealsReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
+    async getUserDealsReport(
+        nickname: string,
+        monthIndex: number,
+        year: number
+    ) {
+        //GENERAL
+        const workbook = new ExcelJS.Workbook();
+
+        let generalSheet = workbook.addWorksheet('Resumen');
+        let dealSheet = workbook.addWorksheet('Pactos');
+        let txSheet = workbook.addWorksheet('Transferencias');
+
+        let toYear = year;
+        let toMonthIndex = monthIndex + 1;
+
+        if (monthIndex == 12) {
+            toYear = year + 1;
+            toMonthIndex = 1;
+        }
+
+        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+
+        let deals = await getUserAllDeals(nickname, timeLow, timeHigh, this.url);
+        let dealsPack = await getUserPackableAllDeals(nickname, timeLow, timeHigh, this.url);
+        let dealsPrimary = await getUserAllDealsPrimary(nickname, timeLow, timeHigh, this.url);
+        let dealsPrimaryPack = await getUserPackableAllDealsPrimary(nickname, timeLow, timeHigh, this.url);
+        let txs = await getAllTransactionsByName(timeLow, timeHigh, nickname, this.url);
+
+        //DEALS
+        let totalUsd = 0;
+        let totalDeals = 0;
+        let dealRows = [];
+        let nextDeal: any;
+
+        while ((deals.length > 0) || (dealsPrimary.length > 0) || (dealsPack.length > 0) || (dealsPrimaryPack.length > 0)) {
+            let _array: number[] = [];
+
+            let nextDealTimestamp = timeHigh;
+            if (deals.length > 0) {
+                nextDealTimestamp = deals[deals.length - 1].timestamp;
+            }
+
+            let nextDealPrimaryTimestamp = timeHigh;
+            if (dealsPrimary.length > 0) {
+                nextDealPrimaryTimestamp = dealsPrimary[dealsPrimary.length - 1].timestamp;
+            }
+
+            let nextDealPackTimestamp = timeHigh;
+            if (dealsPack.length > 0) {
+                nextDealPackTimestamp = dealsPack[dealsPack.length - 1].timestamp;
+            }
+
+            let nextDealPrimaryPackTimestamp = timeHigh;
+            if (dealsPrimaryPack.length > 0) {
+                nextDealPrimaryPackTimestamp = dealsPrimaryPack[dealsPrimaryPack.length - 1].timestamp;
+            }
+
+            _array.push(nextDealTimestamp)
+            _array.push(nextDealPrimaryTimestamp)
+            _array.push(nextDealPackTimestamp)
+            _array.push(nextDealPrimaryPackTimestamp)
+
+            let index = 0;
+            let min = _array[0];
+            for (let i = 1; i < _array.length; i++) {
+                if (_array[i] < min) {
+                    min = _array[i];
+                    index = i;
+                }
+            }
+
+            switch (index) {
+                case 0:
+                    nextDeal = deals.pop();
+                    break;
+                case 1:
+                    nextDeal = dealsPrimary.pop();
+                    break;
+                case 2:
+                    nextDeal = dealsPack.pop();
+                    break;
+                case 3:
+                    nextDeal = dealsPrimaryPack.pop();
+                    break;
+            
+                default:
+                    break;
+            }
+
+            let array = [];
+
+            array.push(new Date(nextDeal.timestamp * 1000));
+            array.push(timeConverter(nextDeal.offer.timestamp));
+            array.push(timeConverter(nextDeal.timestamp));
+            array.push(nextDeal.offer.sellToken.tokenSymbol);
+            array.push(nextDeal.offer.buyToken.tokenSymbol);
+
+            if (nextDeal.seller.name == null) {
+                array.push("");
+            } else {
+                array.push(nextDeal.seller.name);
+            }
+
+            array.push(nextDeal.seller.id)
+
+            if (nextDeal.buyer.name == null) {
+                array.push("");
+            } else {
+                array.push(nextDeal.buyer.name);
+            }
+
+            array.push(nextDeal.buyer.id)
+
+            array.push(parseFloat(weiToEther(nextDeal.sellAmount)));
+            array.push(parseFloat(weiToEther(nextDeal.buyAmount)));
+            
+            let usdAmount = 0;
+
+            if (
+                (nextDeal.offer.buyToken.id == Constants.USD.address) ||
+                (nextDeal.offer.buyToken.id == Constants.USC.address) ||
+                (nextDeal.offer.buyToken.id == Constants.PEL.address)
+            ) {
+                usdAmount = parseFloat(weiToEther(nextDeal.buyAmount));
+            } else {
+                usdAmount = await convertToUsd(
+                    parseFloat(weiToEther(nextDeal.buyAmount)), 
+                    nextDeal.offer.buyToken.id,
+                    nextDeal.timestamp
+                );
+            }
+
+            array.push(usdAmount);
+
+            totalUsd = +totalUsd + +usdAmount;
+            totalDeals++;
+            dealRows.push(array);
+        }
+
+        if (dealRows.length > 0) {
+            dealSheet.getCell('B2').value = 'PACTOS';
+            dealSheet.getCell('B2').font = {bold: true};
+            let tableName = 'Month_Deals';
+            
+            addTable(
+                dealSheet,
+                tableName,
+                'B4',
+                [
+                    {name: 'Fecha (pacto)', filterButton: true},
+                    {name: 'Hora (oferta)'},
+                    {name: 'Hora (pacto)'},
+                    {name: 'Oferta', filterButton: true},
+                    {name: 'Contrapartida', filterButton: true},
+                    {name: 'Vendedor (usuario)', filterButton: true},
+                    {name: 'Vendedor (wallet)', filterButton: true},
+                    {name: 'Comprador (usuario)', filterButton: true},
+                    {name: 'Comprador (wallet)', filterButton: true},
+                    {name: 'Monto pactado'},
+                    {name: 'Monto contrapartida'},
+                    {name: 'Monto contrapartida (USD)', totalsRowFunction: 'sum'}
+                ],
+                dealRows
+            );
+        } else {
+            dealSheet.getCell('B2').value = 'NO HAY PACTOS';
+            dealSheet.getCell('B2').font = {bold: true};
+        }
+
+        //GENERAL
+        let array = [];
+        let rows = [];
+        let months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+        generalSheet.getCell('B2').value = 'RESUMEN ' + months[monthIndex - 1] + ' ' + year;
+        generalSheet.getCell('B2').font = {bold: true};
+
+        array.push(nickname);
+        array.push(totalUsd);
+        array.push(totalDeals);
+        rows.push(array);
+
+        let tableNameGeneral = 'General';
+        
+        addTable(
+            generalSheet,
+            tableNameGeneral,
+            'B4',
+            [
+                {name: 'Usuario'},
+                {name: 'Total pactado (USD)'},
+                {name: 'Número total de pactos'}
+            ],
+            rows
+        );
+
+        let bc = new Blockchain(this.url);
+        let firstBlockNumber = 0;
+        let lastBlockNumber = 0;
+
+        if (txs.length == 0) {
+            let prevTx = await getUserLastTxBeforeTime(nickname, timeLow, this.url);
+
+            if (prevTx != null) {
+                let [txHash, logIndex] = String(prevTx).split('-');
+                let tx = await bc.getTransaction(txHash);
+                firstBlockNumber = tx.blockNumber;
+                firstBlockNumber = firstBlockNumber + 1;
+                lastBlockNumber = firstBlockNumber;
+            } else {
+                firstBlockNumber = await bc.getBlockNumber();
+                firstBlockNumber = firstBlockNumber - 5;
+                lastBlockNumber = firstBlockNumber;
+            }
+            
+        } else {
+            let [txHashFirst, logIndexFirst] = String(txs[txs.length - 1].id).split('-');
+            let txFirst = await bc.getTransaction(txHashFirst);
+            firstBlockNumber = txFirst.blockNumber;
+            firstBlockNumber = firstBlockNumber + 1;
+
+            let [txHashLast, logIndexLast] = String(txs[0].id).split('-');
+            let txLast = await bc.getTransaction(txHashLast);
+            lastBlockNumber = txLast.blockNumber;
+            lastBlockNumber = lastBlockNumber + 1;
+        }
+
+        let balancesFirst = await getUserBalances(nickname, firstBlockNumber, this.url);
+        let balancesLast = await getUserBalances(nickname, lastBlockNumber, this.url);
+
+        setBalancesTable(generalSheet, balancesFirst, 'Balances_Init', 'B9');
+        setBalancesTable(generalSheet, balancesLast, 'Balances_Last', 'E9');
+
+        generalSheet.getCell('B8').value = 'Inicio de mes';
+        generalSheet.getCell('B8').font = {bold: true};
+        generalSheet.getCell('E8').value = 'Final de mes';
+        generalSheet.getCell('E8').font = {bold: true};
+
+        //TRANSFERS
+        if (txs.length > 0) {
+            let txRows = [];
+
+            for (let j = 0; j < txs.length; j++) {
+                let array = [];
+                
+                array.push(new Date(txs[j].timestamp * 1000));
+                array.push(txs[j].currency.tokenSymbol);
+                array.push(txs[j].from.id);
+
+                if (txs[j].from.name == null) {
+                    array.push("");
+                } else {
+                    array.push(txs[j].from.name.id);
+                }
+
+                array.push(txs[j].to.id);
+
+                if (txs[j].to.name == null) {
+                    array.push("");
+                } else {
+                    array.push(txs[j].to.name.id);
+                }
+
+                array.push(parseFloat(weiToEther(txs[j].amount)));
+                let usdAmount = await convertToUsd(
+                    parseFloat(weiToEther(txs[j].amount)), 
+                    txs[j].currency.id,
+                    txs[j].timestamp
+                );
+                array.push(usdAmount);
+                txRows.push(array);
+            }
+
+            if (txRows.length > 0) {
+                txSheet.getCell('B2').value = 'TRANSFERENCIAS';
+                txSheet.getCell('B2').font = {bold: true};
+                let tableName = 'Month_TXs';
+
+                addTable(
+                    txSheet,
+                    tableName,
+                    'B4',
+                    [
+                        {name: 'Fecha', filterButton: true},
+                        {name: 'Divisa'},
+                        {name: 'Origen (wallet)'},
+                        {name: 'Origen (usuario)', filterButton: true},
+                        {name: 'Destino (wallet)'},
+                        {name: 'Destino (usuario)', filterButton: true},
+                        {name: 'Monto'},
+                        {name: 'Monto (USD)'}
+                    ],
+                    txRows
+                );
+            }
+        }  else {
+            txSheet.getCell('B2').value = 'NO HAY TRANSFERENCIAS';
+            txSheet.getCell('B2').font = {bold: true};
+        }
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsUserReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsUserReport.xlsx');
             } catch (err) {
                 console.error(err);
             }
@@ -2932,6 +3247,51 @@ async function setPrimaryPackableDealsSheet(
     sheet.getCell('L2').font = {bold: true};
 }
 
+async function setBalancesTable(
+    sheet: any,
+    balances: any[],
+    tableName: string,
+    tableCell: string
+) {
+    let balanceRows = [];
+    for (let k = 0; k < balances.length; k++) {
+        let array = [];
+
+        if (balances[k].token.tokenKind == 1) {
+            array.push(balances[k].token.tokenSymbol);
+            array.push(parseFloat(weiToEther(balances[k].balance)));
+            balanceRows.push(array);
+        } else if (balances[k].token.tokenKind == 2) {
+            array.push(balances[k].token.tokenSymbol);
+            array.push(parseFloat(weiToEther(balances[k].balance)));
+            balanceRows.push(array);
+        } else if (balances[k].token.tokenKind == 3) {
+            let symbolName = balances[k].token.tokenSymbol;
+            let packables = balances[k].packables[0].balances;
+
+            for (let m = 0; m < packables.length; m++) {
+                let expiry = timeConverter(packables[m].packableId.metadata[0]);
+                let symbol = String(symbolName).concat(" ").concat(expiry);
+                array.push(symbol);
+                array.push(parseInt(weiToEther(packables[m].balance)));
+                balanceRows.push(array);
+                array = [];
+            }
+        }
+    }
+
+    addTable(
+        sheet,
+        tableName,
+        tableCell,
+        [
+            {name: 'Activo'},
+            {name: 'Saldo'}
+        ],
+        balanceRows
+    );
+}
+
 async function try_getTransactions(
     _timeLow: number, 
     _timeHigh: number, 
@@ -3025,7 +3385,7 @@ async function getTransactionsByName(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
+    let query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { id from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
     let queryService = new Query('bank', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3034,7 +3394,7 @@ async function getTransactionsByName(
 
     while(queryTransactions.length >= 1000) {
         skip = transactions.length;
-        query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
+        query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"} orderBy: timestamp, orderDirection: desc) { id from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryTransactions = response.names[0].wallet.transactions;
@@ -3051,7 +3411,7 @@ async function getAllTransactionsByName(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
+    let query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc) { id from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
     let queryService = new Query('bank', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3060,7 +3420,7 @@ async function getAllTransactionsByName(
 
     while(queryTransactions.length >= 1000) {
         skip = transactions.length;
-        query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
+        query = '{ names(where:{id:"' + _name + '"}) { wallet { transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc) { id from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } } } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryTransactions = response.names[0].wallet.transactions;
@@ -3144,6 +3504,110 @@ async function getAllDeals(
     }
 
     return offers;
+}
+
+async function getUserAllDeals(
+    _nickname: string,
+    _timeLow: number, 
+    _timeHigh: number, 
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ users(where:{name:"' + _nickname + '"}) { deals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+    let queryService = new Query('p2p', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryDeals = response.users[0].deals;
+    let deals = queryDeals;
+
+    while(queryDeals.length >= 1000) {
+        skip = deals.length;
+        let query = '{ users(where:{name:"' + _nickname + '"}) { deals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryDeals = response.users[0].deals;
+        deals = deals.concat(queryDeals);
+    }
+
+    return deals;
+}
+
+async function getUserPackableAllDeals(
+    _nickname: string,
+    _timeLow: number, 
+    _timeHigh: number, 
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ users(where:{name:"' + _nickname + '"}) { packableDeals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+    let queryService = new Query('p2p', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryDeals = response.users[0].packableDeals;
+    let deals = queryDeals;
+
+    while(queryDeals.length >= 1000) {
+        skip = deals.length;
+        let query = '{ users(where:{name:"' + _nickname + '"}) { packableDeals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryDeals = response.users[0].packableDeals;
+        deals = deals.concat(queryDeals);
+    }
+
+    return deals;
+}
+
+async function getUserAllDealsPrimary(
+    _nickname: string,
+    _timeLow: number, 
+    _timeHigh: number, 
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ users(where:{name:"' + _nickname + '"}) { deals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+    let queryService = new Query('p2p-primary', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryDeals = response.users[0].deals;
+    let deals = queryDeals;
+
+    while(queryDeals.length >= 1000) {
+        skip = deals.length;
+        let query = '{ users(where:{name:"' + _nickname + '"}) { deals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryDeals = response.users[0].deals;
+        deals = deals.concat(queryDeals);
+    }
+
+    return deals;
+}
+
+async function getUserPackableAllDealsPrimary(
+    _nickname: string,
+    _timeLow: number, 
+    _timeHigh: number, 
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ users(where:{name:"' + _nickname + '"}) { packableDeals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+    let queryService = new Query('p2p-primary', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryDeals = response.users[0].packableDeals;
+    let deals = queryDeals;
+
+    while(queryDeals.length >= 1000) {
+        skip = deals.length;
+        let query = '{ users(where:{name:"' + _nickname + '"}) { packableDeals (where:{timestamp_gte: ' + _timeLow + ', timestamp_lt: ' + _timeHigh + ', isSuccess:true}, orderBy:timestamp, orderDirection:desc, first: 1000, skip: ' + skip + ') { seller { id name } buyer { id name } offer { timestamp sellToken { id tokenSymbol } buyToken { id tokenSymbol } } sellAmount buyAmount timestamp } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryDeals = response.users[0].packableDeals;
+        deals = deals.concat(queryDeals);
+    }
+
+    return deals;
 }
 
 async function try_getRequests(
@@ -3678,6 +4142,36 @@ async function getPackableRequestsPrimary(
     }
 
     return offers;
+}
+
+async function getUserBalances(
+    _nickname: string,
+    _blockNumber: number,
+    _url: string = 'mainnet'
+) {
+    let query = '{ name(id:"' + _nickname + '", block:{number: ' + _blockNumber + '}) { wallet { balances (where:{balance_gt:0}) { token { id tokenSymbol tokenKind } balance packables { id balances (where:{balance_gt:0}) { balance packableId { metadata } } } } } } }';
+    let queryService = new Query('bank', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+
+    if (response == undefined) return [];
+
+    return response.name.wallet.balances;
+}
+
+async function getUserLastTxBeforeTime(
+    _nickname: string,
+    _timestamp: number,
+    _url: string = 'mainnet'
+) {
+    let query = '{ name(id:"' + _nickname + '") { wallet { transactions (where:{timestamp_lt: ' + _timestamp + '} orderBy:timestamp, orderDirection:desc, first:1) { id } } } }';
+    let queryService = new Query('bank', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+
+    if (response == undefined) return null;
+
+    return response.name.wallet.transactions[0].id;
 }
 
 async function getPiPrice(
