@@ -166,6 +166,7 @@ export class Report {
         const workbook = new ExcelJS.Workbook();
     
         for (let i = 0; i < tokensArray.length; i++) {
+            skip = 0;
             let response = await queryTemplates.getTokenHolders(
                 orderBy,
                 orderDirection,
@@ -178,7 +179,7 @@ export class Report {
     
             while(loopresponse.length >= 1000) {
                 skip = response.length;
-                response = await queryTemplates.getTokenHolders(
+                loopresponse = await queryTemplates.getTokenHolders(
                     orderBy,
                     orderDirection,
                     first,

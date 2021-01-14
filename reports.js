@@ -209,6 +209,7 @@ var Report = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         if (!(i < tokensArray.length)) return [3 /*break*/, 13];
+                        skip = 0;
                         return [4 /*yield*/, queryTemplates.getTokenHolders(orderBy, orderDirection, first, skip, tokensArray[i].address)];
                     case 2:
                         response = _a.sent();
@@ -219,7 +220,7 @@ var Report = /** @class */ (function () {
                         skip = response.length;
                         return [4 /*yield*/, queryTemplates.getTokenHolders(orderBy, orderDirection, first, skip, tokensArray[i].address)];
                     case 4:
-                        response = _a.sent();
+                        loopresponse = _a.sent();
                         response = response.concat(loopresponse);
                         return [3 /*break*/, 3];
                     case 5:
