@@ -107,6 +107,9 @@ var Query = /** @class */ (function () {
             else if (subgraph == 'piprice') {
                 this.subgraph = Constants.PIPRICE_SUBGRAPH;
             }
+            else if (subgraph == 'dividend') {
+                this.subgraph = Constants.DIVIDENDS_SUBGRAPH;
+            }
             else {
                 this.subgraph = subgraph;
             }
@@ -130,6 +133,9 @@ var Query = /** @class */ (function () {
             }
             else if (subgraph == 'piprice') {
                 this.subgraph = Constants.PIPRICE_SUBGRAPH_TESTNET;
+            }
+            else if (subgraph == 'dividend') {
+                this.subgraph = Constants.DIVIDENDS_SUBGRAPH_TESTNET;
             }
             else {
                 this.subgraph = subgraph;

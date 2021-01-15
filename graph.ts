@@ -40,7 +40,7 @@ export class Query {
     public skip: number;
     public isClean: boolean;
 
-    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | "piprice" | string, url: string = 'mainnet') {
+    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | "piprice" | "dividend" | string, url: string = 'mainnet') {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
         this.first = 1000;
         this.skip = 0;
@@ -61,6 +61,8 @@ export class Query {
                 this.subgraph = Constants.AUCTION_SUBGRAPH;
             } else if (subgraph == 'piprice') {
                 this.subgraph = Constants.PIPRICE_SUBGRAPH;
+            } else if (subgraph == 'dividend') {
+                this.subgraph = Constants.DIVIDENDS_SUBGRAPH;
             } else {
                 this.subgraph = subgraph;
             }
@@ -79,6 +81,8 @@ export class Query {
                 this.subgraph = Constants.AUCTION_SUBGRAPH_TESTNET;
             } else if (subgraph == 'piprice') {
                 this.subgraph = Constants.PIPRICE_SUBGRAPH_TESTNET;
+            } else if (subgraph == 'dividend') {
+                this.subgraph = Constants.DIVIDENDS_SUBGRAPH_TESTNET;
             } else {
                 this.subgraph = subgraph;
             }
