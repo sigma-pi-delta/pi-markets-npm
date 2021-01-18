@@ -301,7 +301,8 @@ const CMT_TESTNET = {
 
 // OTHER
 const MIN_GAS_PRICE = "1000000000";
-const OVERRIDES = {gasPrice: 1000000000, gasLimit: 4000000};
+const OVERRIDES = {gasPrice: 1000000000};
+const OVERRIDES_FORCE = {gasPrice: 1000000000, gasLimit: 500000};
 const OVERRIDES_BACKEND = {gasPrice: 0};
 
 export { 
@@ -346,6 +347,7 @@ export {
     CONTROLLER_ADDRESS_TESTNET,
     MIN_GAS_PRICE,
     OVERRIDES,
+    OVERRIDES_FORCE,
     OVERRIDES_BACKEND,
     PI,
     GLDS,

@@ -2,9 +2,11 @@ import { ethers } from 'ethers';
 import * as Constants from './constants';
 import { Contracts } from './contracts';
 import { Wallets, WalletPair } from './wallets';
-import { Transactions } from './transactions';
+import { ErrorObj, Transactions } from './transactions';
 import { Query } from './graph';
 import { Blockchain } from './blockchain';
+import { BigNumber } from 'ethers/utils';
+import { weiBNToEtherString } from './utils';
 
 export class SmartID {
     readonly signer: ethers.Wallet;
@@ -41,19 +43,65 @@ export class SmartID {
         );
 
         let response: any;
+        let isEstimateGasError = false;
 
         try {
             response = await identityContract.forward(destination, data, Constants.OVERRIDES);
         } catch (error) {
-            console.error(error);
-            throw new Error(error);
+            isEstimateGasError = true;
+
+            if (error.transaction != undefined) {
+                //probably not enough funds to pay gas
+                let gasLimit = new BigNumber(error.transaction.gasLimit);
+                let gasPrice = new BigNumber(error.transaction.gasPrice);
+                let gasNeeded = gasLimit.mul(gasPrice);
+
+                let bc = new Blockchain(this.network);
+                let fromBalance = await bc.getBalance(error.transaction.from);
+
+                if (gasNeeded.gt(fromBalance)) {
+                    let errorOb = new ErrorObj(
+                        "No dispone de suficientes fondos para la comisión de red. Necesita " + weiBNToEtherString(gasNeeded) + " PI y dispone de " + weiBNToEtherString(fromBalance) + " PI [x]",
+                        "0x",
+                        error
+                    );
+
+                    throw new Error(JSON.stringify(errorOb));
+                }
+            }     
+        }
+
+        if (isEstimateGasError) {
+            try {
+                //force send (without estimate_gas) to get revert msg
+                response = await identityContract.forward(destination, data, Constants.OVERRIDES_FORCE);
+            } catch (errorForce) {
+                if (errorForce.transaction != undefined) {
+                    //probably not enough funds to pay gas
+                    let gasLimit = new BigNumber(errorForce.transaction.gasLimit);
+                    let gasPrice = new BigNumber(errorForce.transaction.gasPrice);
+                    let gasNeeded = gasLimit.mul(gasPrice);
+    
+                    let bc = new Blockchain(this.network);
+                    let fromBalance = await bc.getBalance(errorForce.transaction.from);
+    
+                    if (gasNeeded.gt(fromBalance)) {
+                        let errorOb = new ErrorObj(
+                            "No dispone de suficientes fondos para la comisión de red. Necesita " + weiBNToEtherString(gasNeeded) + " PI y dispone de " + weiBNToEtherString(fromBalance) + " PI [xx]",
+                            "0x",
+                            errorForce
+                        );
+                        
+                        throw new Error(JSON.stringify(errorOb));
+                    }
+                }
+            }
         }
 
         try {
             let receipt = await this.transactionsService.getReceipt(response);
             return receipt;
         } catch (receiptError) {
-            console.error(receiptError);
             throw new Error(receiptError);
         }
     }

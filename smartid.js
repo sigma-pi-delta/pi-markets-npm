@@ -44,6 +44,8 @@ var wallets_1 = require("./wallets");
 var transactions_1 = require("./transactions");
 var graph_1 = require("./graph");
 var blockchain_1 = require("./blockchain");
+var utils_1 = require("ethers/utils");
+var utils_2 = require("./utils");
 var SmartID = /** @class */ (function () {
     function SmartID(signer, identity, wallet, network) {
         if (network === void 0) { network = 'mainnet'; }
@@ -60,33 +62,72 @@ var SmartID = /** @class */ (function () {
     }
     SmartID.prototype.forward = function (destination, data) {
         return __awaiter(this, void 0, void 0, function () {
-            var identityContract, response, error_1, receipt, receiptError_1;
+            var identityContract, response, isEstimateGasError, error_1, gasLimit, gasPrice, gasNeeded, bc, fromBalance, errorOb, errorForce_1, gasLimit, gasPrice, gasNeeded, bc, fromBalance, errorOb, receipt, receiptError_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         identityContract = this.contractsService.getContractSigner(this.identity, Constants.IDENTITY_ABI, this.signer);
+                        isEstimateGasError = false;
                         _a.label = 1;
                     case 1:
-                        _a.trys.push([1, 3, , 4]);
+                        _a.trys.push([1, 3, , 6]);
                         return [4 /*yield*/, identityContract.forward(destination, data, Constants.OVERRIDES)];
                     case 2:
                         response = _a.sent();
-                        return [3 /*break*/, 4];
+                        return [3 /*break*/, 6];
                     case 3:
                         error_1 = _a.sent();
-                        console.error(error_1);
-                        throw new Error(error_1);
+                        isEstimateGasError = true;
+                        if (!(error_1.transaction != undefined)) return [3 /*break*/, 5];
+                        gasLimit = new utils_1.BigNumber(error_1.transaction.gasLimit);
+                        gasPrice = new utils_1.BigNumber(error_1.transaction.gasPrice);
+                        gasNeeded = gasLimit.mul(gasPrice);
+                        bc = new blockchain_1.Blockchain(this.network);
+                        return [4 /*yield*/, bc.getBalance(error_1.transaction.from)];
                     case 4:
-                        _a.trys.push([4, 6, , 7]);
+                        fromBalance = _a.sent();
+                        if (gasNeeded.gt(fromBalance)) {
+                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_2.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_2.weiBNToEtherString(fromBalance) + " PI [x]", "0x", error_1);
+                            throw new Error(JSON.stringify(errorOb));
+                        }
+                        _a.label = 5;
+                    case 5: return [3 /*break*/, 6];
+                    case 6:
+                        if (!isEstimateGasError) return [3 /*break*/, 12];
+                        _a.label = 7;
+                    case 7:
+                        _a.trys.push([7, 9, , 12]);
+                        return [4 /*yield*/, identityContract.forward(destination, data, Constants.OVERRIDES_FORCE)];
+                    case 8:
+                        //force send (without estimate_gas) to get revert msg
+                        response = _a.sent();
+                        return [3 /*break*/, 12];
+                    case 9:
+                        errorForce_1 = _a.sent();
+                        if (!(errorForce_1.transaction != undefined)) return [3 /*break*/, 11];
+                        gasLimit = new utils_1.BigNumber(errorForce_1.transaction.gasLimit);
+                        gasPrice = new utils_1.BigNumber(errorForce_1.transaction.gasPrice);
+                        gasNeeded = gasLimit.mul(gasPrice);
+                        bc = new blockchain_1.Blockchain(this.network);
+                        return [4 /*yield*/, bc.getBalance(errorForce_1.transaction.from)];
+                    case 10:
+                        fromBalance = _a.sent();
+                        if (gasNeeded.gt(fromBalance)) {
+                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_2.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_2.weiBNToEtherString(fromBalance) + " PI [xx]", "0x", errorForce_1);
+                            throw new Error(JSON.stringify(errorOb));
+                        }
+                        _a.label = 11;
+                    case 11: return [3 /*break*/, 12];
+                    case 12:
+                        _a.trys.push([12, 14, , 15]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];
-                    case 5:
+                    case 13:
                         receipt = _a.sent();
                         return [2 /*return*/, receipt];
-                    case 6:
+                    case 14:
                         receiptError_1 = _a.sent();
-                        console.error(receiptError_1);
                         throw new Error(receiptError_1);
-                    case 7: return [2 /*return*/];
+                    case 15: return [2 /*return*/];
                 }
             });
         });
