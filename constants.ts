@@ -248,7 +248,7 @@ const NOVA = {
     category: 3
 };
 const BRENT_LONG = {
-    symbol: "BRENT+",
+    symbol: "BRENT_LONG",
     address: "0x88df5c53dd758c8f4dab878d64338a53d4e3bd27",
     expiry: {
         feb21: ["feb21", "0x38a220dc3e1750f1b7610339e867b34d40e0b9588c63e67276f4c3740deb14cf"]
@@ -256,7 +256,7 @@ const BRENT_LONG = {
     category: 3
 };
 const BRENT_SHORT = {
-    symbol: "BRENT-",
+    symbol: "BRENT_SHORT",
     address: "0x3369457a8cfbc17248dabce82b1adb4f8b55a8f8",
     expiry: {
         feb21: ["feb21", "0xeef97a3b7a4384ef1db6e113fb241333f96fee0b6bed17a9cf0e165c4a7acc53"]
@@ -264,7 +264,7 @@ const BRENT_SHORT = {
     category: 3
 };
 const SP500_LONG = {
-    symbol: "SP500+",
+    symbol: "SP500_LONG",
     address: "0x0bd7e582415fe7a407e1dda3a261f4139a8df64e",
     expiry: {
         feb21: ["feb21", "0x56ae733d9a12c91cb854c999b587ef2180c983b0525db4d791983dd9692582f0"]
@@ -272,7 +272,7 @@ const SP500_LONG = {
     category: 3
 };
 const SP500_SHORT = {
-    symbol: "SP500-",
+    symbol: "SP500_SHORT",
     address: "0x5b3fdc337f2958ba9261f2729bc1c7c6d4e47d11",
     expiry: {
         feb21: ["feb21", "0x749882a743471331b3a3b20a2cfa402700bec79f1559d9644d26c106a1e907bd"]
