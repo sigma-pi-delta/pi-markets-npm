@@ -1115,6 +1115,42 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
+    /******** MARKETS */
+    SmartID.prototype.exchange = function (sellToken, sellAmount, buyToken) {
+        return __awaiter(this, void 0, void 0, function () {
+            var marketContractAddress, marketContract, marketData, walletContract, walletData, error_31;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("18")];
+                    case 1:
+                        marketContractAddress = _a.sent();
+                        marketContract = this.contractsService.getContractSigner(marketContractAddress, Constants.MARKET_ABI, this.signer);
+                        marketData = marketContract.interface.functions.exchange.encode([
+                            sellToken,
+                            sellAmount,
+                            buyToken
+                        ]);
+                        walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
+                        walletData = walletContract.interface.functions.forwardValue.encode([
+                            sellToken,
+                            sellAmount,
+                            marketContractAddress,
+                            marketData
+                        ]);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                    case 3: return [2 /*return*/, _a.sent()];
+                    case 4:
+                        error_31 = _a.sent();
+                        console.error(error_31);
+                        throw new Error(error_31);
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return SmartID;
 }());
 exports.SmartID = SmartID;
@@ -1170,7 +1206,7 @@ var SmartIDLogin = /** @class */ (function () {
     /***** QUERY */
     SmartIDLogin.prototype.walletToNickname = function (address) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_31;
+            var customQuery, query, response, error_32;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1185,31 +1221,6 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.wallet.name.id];
                     case 3:
-                        error_31 = _a.sent();
-                        console.error(error_31);
-                        return [2 /*return*/, ''];
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    SmartIDLogin.prototype.nicknameToWallet = function (nickname) {
-        return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_32;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        customQuery = '{ wallets(where: { name: "' + nickname + '" }){ id } }';
-                        query = new graph_1.Query('bank', this.network);
-                        query.setCustomQuery(customQuery);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, query.request()];
-                    case 2:
-                        response = _a.sent();
-                        return [2 /*return*/, response.wallets[0].id];
-                    case 3:
                         error_32 = _a.sent();
                         console.error(error_32);
                         return [2 /*return*/, ''];
@@ -1218,7 +1229,7 @@ var SmartIDLogin = /** @class */ (function () {
             });
         });
     };
-    SmartIDLogin.prototype.isNameAvailable = function (nickname) {
+    SmartIDLogin.prototype.nicknameToWallet = function (nickname) {
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_33;
             return __generator(this, function (_a) {
@@ -1233,10 +1244,35 @@ var SmartIDLogin = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        return [2 /*return*/, response.wallets.length == 0];
+                        return [2 /*return*/, response.wallets[0].id];
                     case 3:
                         error_33 = _a.sent();
                         console.error(error_33);
+                        return [2 /*return*/, ''];
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    SmartIDLogin.prototype.isNameAvailable = function (nickname) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_34;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ wallets(where: { name: "' + nickname + '" }){ id } }';
+                        query = new graph_1.Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        return [2 /*return*/, response.wallets.length == 0];
+                    case 3:
+                        error_34 = _a.sent();
+                        console.error(error_34);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -1245,7 +1281,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.isDataHashAvailable = function (dataHash) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_34;
+            var customQuery, query, response, error_35;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1260,8 +1296,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.identities.length == 0];
                     case 3:
-                        error_34 = _a.sent();
-                        console.error(error_34);
+                        error_35 = _a.sent();
+                        console.error(error_35);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -1270,7 +1306,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.getIdentityByName = function (nickname) {
         return __awaiter(this, void 0, void 0, function () {
-            var address, response, error_35;
+            var address, response, error_36;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1283,8 +1319,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response];
                     case 3:
-                        error_35 = _a.sent();
-                        console.error(error_35);
+                        error_36 = _a.sent();
+                        console.error(error_36);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -1293,7 +1329,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.getIdentityByWallet = function (address) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_36;
+            var customQuery, query, response, error_37;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1308,8 +1344,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.identities[0].id];
                     case 3:
-                        error_36 = _a.sent();
-                        console.error(error_36);
+                        error_37 = _a.sent();
+                        console.error(error_37);
                         return [2 /*return*/, ''];
                     case 4: return [2 /*return*/];
                 }
@@ -1318,7 +1354,7 @@ var SmartIDLogin = /** @class */ (function () {
     };
     SmartIDLogin.prototype.getIdentityByDataHash = function (dataHash) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_37;
+            var customQuery, query, response, error_38;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1333,8 +1369,8 @@ var SmartIDLogin = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response.identities[0].id];
                     case 3:
-                        error_37 = _a.sent();
-                        console.error(error_37);
+                        error_38 = _a.sent();
+                        console.error(error_38);
                         return [3 /*break*/, 4];
                     case 4: return [2 /*return*/];
                 }
@@ -1373,7 +1409,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.deployIdentity = function (owner, recovery, dataHash, nickname, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var controllerContract, identityFactoryAddress, signer, identityFactory, response, error_38, receipt, event_3, i, topics, data, _log, receiptError_2;
+            var controllerContract, identityFactoryAddress, signer, identityFactory, response, error_39, receipt, event_3, i, topics, data, _log, receiptError_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1391,9 +1427,9 @@ var SmartIDRegistry = /** @class */ (function () {
                         response = _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        error_38 = _a.sent();
-                        console.error(error_38);
-                        throw new Error(error_38);
+                        error_39 = _a.sent();
+                        console.error(error_39);
+                        throw new Error(error_39);
                     case 5:
                         _a.trys.push([5, 11, , 12]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];
@@ -1433,7 +1469,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.setNewIdentityDD = function (identity, dataHashDD, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var controllerContract, registryAddress, signer, registry, response, error_39, receipt, receiptError_3;
+            var controllerContract, registryAddress, signer, registry, response, error_40, receipt, receiptError_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1451,9 +1487,9 @@ var SmartIDRegistry = /** @class */ (function () {
                         response = _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        error_39 = _a.sent();
-                        console.error(error_39);
-                        throw new Error(error_39);
+                        error_40 = _a.sent();
+                        console.error(error_40);
+                        throw new Error(error_40);
                     case 5:
                         _a.trys.push([5, 7, , 8]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];
@@ -1471,7 +1507,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.setNewHashKYC = function (identity, dataHashDD, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var controllerContract, registryAddress, signer, registryKYC, response, error_40, receipt, receiptError_4;
+            var controllerContract, registryAddress, signer, registryKYC, response, error_41, receipt, receiptError_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1489,9 +1525,9 @@ var SmartIDRegistry = /** @class */ (function () {
                         response = _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        error_40 = _a.sent();
-                        console.error(error_40);
-                        throw new Error(error_40);
+                        error_41 = _a.sent();
+                        console.error(error_41);
+                        throw new Error(error_41);
                     case 5:
                         _a.trys.push([5, 7, , 8]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];
@@ -1509,7 +1545,7 @@ var SmartIDRegistry = /** @class */ (function () {
     };
     SmartIDRegistry.prototype.updateReputation = function (user, reputation, signerPrivateKey) {
         return __awaiter(this, void 0, void 0, function () {
-            var p2pAddress, signer, p2pContract, response, error_41, receipt, receiptError_5;
+            var p2pAddress, signer, p2pContract, response, error_42, receipt, receiptError_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("16")];
@@ -1525,9 +1561,9 @@ var SmartIDRegistry = /** @class */ (function () {
                         response = _a.sent();
                         return [3 /*break*/, 5];
                     case 4:
-                        error_41 = _a.sent();
-                        console.error(error_41);
-                        throw new Error(error_41);
+                        error_42 = _a.sent();
+                        console.error(error_42);
+                        throw new Error(error_42);
                     case 5:
                         _a.trys.push([5, 7, , 8]);
                         return [4 /*yield*/, this.transactionsService.getReceipt(response)];

@@ -1042,6 +1042,46 @@ export class SmartID {
             throw new Error(error);
         }
     }
+
+    /******** MARKETS */
+
+    async exchange(
+        sellToken: string,
+        sellAmount: ethers.utils.BigNumber,
+        buyToken: string
+    ) {
+        let marketContractAddress = await this.contractsService.getControllerAddress("18");
+        let marketContract = this.contractsService.getContractSigner(
+            marketContractAddress, 
+            Constants.MARKET_ABI, 
+            this.signer
+        );
+        let marketData = marketContract.interface.functions.exchange.encode([
+            sellToken,
+            sellAmount,
+            buyToken
+        ]);
+        
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            sellToken,
+            sellAmount,
+            marketContractAddress,
+            marketData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 export class SmartIDLogin {
