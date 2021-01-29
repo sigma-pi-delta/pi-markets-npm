@@ -130,6 +130,11 @@ const USDT = {
     address: "0xf4a47b570d8d1c37552229e9acf3678eb9090c99",
     category: 1
 };
+const IMV = {
+    symbol: "IMV",
+    address: "0x7b47E489c2eC1841c09b346CA1ADd03853A5dA85",
+    category: 1
+};
 const DIA = {
     symbol: "DIA",
     address: "0xfb75b3cd83d81937770e5955f3e6565bfecc195f",
@@ -147,14 +152,6 @@ const CMT = {
 const VOTE = {
     symbol: "VOTE",
     address: "0xd2b28cc2de7284a24421aa12f598291ec30c7840",
-    expiry: {
-        id: "",
-    },
-    category: 3
-};
-const IMV = {
-    symbol: "IMV",
-    address: "0x7b47E489c2eC1841c09b346CA1ADd03853A5dA85",
     expiry: {
         id: "",
     },

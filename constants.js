@@ -184,6 +184,12 @@ var USDT = {
     category: 1
 };
 exports.USDT = USDT;
+var IMV = {
+    symbol: "IMV",
+    address: "0x7b47E489c2eC1841c09b346CA1ADd03853A5dA85",
+    category: 1
+};
+exports.IMV = IMV;
 var DIA = {
     symbol: "DIA",
     address: "0xfb75b3cd83d81937770e5955f3e6565bfecc195f",
@@ -209,15 +215,6 @@ var VOTE = {
     category: 3
 };
 exports.VOTE = VOTE;
-var IMV = {
-    symbol: "IMV",
-    address: "0x7b47E489c2eC1841c09b346CA1ADd03853A5dA85",
-    expiry: {
-        id: ""
-    },
-    category: 3
-};
-exports.IMV = IMV;
 var MVZA = {
     symbol: "MVZA",
     address: "0x19fba3dba401388dc658670437df5c5971036a66",
