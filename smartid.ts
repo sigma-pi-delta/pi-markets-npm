@@ -1081,6 +1081,83 @@ export class SmartID {
             throw new Error(error);
         }
     }
+
+    /******** DEX */
+
+    async setOrder(
+        sellToken: string,
+        buyToken: string,
+        sellAmount: ethers.utils.BigNumber,
+        amount: ethers.utils.BigNumber,
+        price: ethers.utils.BigNumber,
+        side: ethers.utils.BigNumber
+    ) {
+        let dexContractAddress = await this.contractsService.getControllerAddress("30");
+        let dexContract = this.contractsService.getContractSigner(
+            dexContractAddress, 
+            Constants.DEX_ABI, 
+            this.signer
+        );
+        let dexData = dexContract.interface.functions.setOrder.encode([
+            sellToken,
+            buyToken,
+            sellAmount,
+            amount,
+            price,
+            side
+        ]);
+        
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            sellToken,
+            sellAmount,
+            dexContractAddress,
+            dexData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async cancelOrder(
+        orderId: string
+    ) {
+        let dexContractAddress = await this.contractsService.getControllerAddress("30");
+        let dexContract = this.contractsService.getContractSigner(
+            dexContractAddress, 
+            Constants.DEX_ABI, 
+            this.signer
+        );
+        
+        let cancelData = dexContract.interface.functions.cancelOrder.encode([orderId]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forward.encode([
+            dexContractAddress,
+            cancelData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
 
 export class SmartIDLogin {
