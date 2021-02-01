@@ -5,7 +5,6 @@ import { Wallets, WalletPair } from './wallets';
 import { ErrorObj, Transactions } from './transactions';
 import { Query } from './graph';
 import { Blockchain } from './blockchain';
-import { BigNumber } from 'ethers/utils';
 import { weiBNToEtherString } from './utils';
 
 export class SmartID {
@@ -52,8 +51,8 @@ export class SmartID {
 
             if (error.transaction != undefined) {
                 //probably not enough funds to pay gas
-                let gasLimit = new BigNumber(error.transaction.gasLimit);
-                let gasPrice = new BigNumber(error.transaction.gasPrice);
+                let gasLimit = new ethers.utils.BigNumber(error.transaction.gasLimit);
+                let gasPrice = new ethers.utils.BigNumber(error.transaction.gasPrice);
                 let gasNeeded = gasLimit.mul(gasPrice);
 
                 let bc = new Blockchain(this.network);
@@ -78,8 +77,8 @@ export class SmartID {
             } catch (errorForce) {
                 if (errorForce.transaction != undefined) {
                     //probably not enough funds to pay gas
-                    let gasLimit = new BigNumber(errorForce.transaction.gasLimit);
-                    let gasPrice = new BigNumber(errorForce.transaction.gasPrice);
+                    let gasLimit = new ethers.utils.BigNumber(errorForce.transaction.gasLimit);
+                    let gasPrice = new ethers.utils.BigNumber(errorForce.transaction.gasPrice);
                     let gasNeeded = gasLimit.mul(gasPrice);
     
                     let bc = new Blockchain(this.network);

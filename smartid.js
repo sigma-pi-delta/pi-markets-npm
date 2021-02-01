@@ -44,8 +44,7 @@ var wallets_1 = require("./wallets");
 var transactions_1 = require("./transactions");
 var graph_1 = require("./graph");
 var blockchain_1 = require("./blockchain");
-var utils_1 = require("ethers/utils");
-var utils_2 = require("./utils");
+var utils_1 = require("./utils");
 var SmartID = /** @class */ (function () {
     function SmartID(signer, identity, wallet, network) {
         if (network === void 0) { network = 'mainnet'; }
@@ -79,15 +78,15 @@ var SmartID = /** @class */ (function () {
                         error_1 = _a.sent();
                         isEstimateGasError = true;
                         if (!(error_1.transaction != undefined)) return [3 /*break*/, 5];
-                        gasLimit = new utils_1.BigNumber(error_1.transaction.gasLimit);
-                        gasPrice = new utils_1.BigNumber(error_1.transaction.gasPrice);
+                        gasLimit = new ethers_1.ethers.utils.BigNumber(error_1.transaction.gasLimit);
+                        gasPrice = new ethers_1.ethers.utils.BigNumber(error_1.transaction.gasPrice);
                         gasNeeded = gasLimit.mul(gasPrice);
                         bc = new blockchain_1.Blockchain(this.network);
                         return [4 /*yield*/, bc.getBalance(error_1.transaction.from)];
                     case 4:
                         fromBalance = _a.sent();
                         if (gasNeeded.gt(fromBalance)) {
-                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_2.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_2.weiBNToEtherString(fromBalance) + " PI [x]", "0x", error_1);
+                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_1.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_1.weiBNToEtherString(fromBalance) + " PI [x]", "0x", error_1);
                             throw new Error(JSON.stringify(errorOb));
                         }
                         _a.label = 5;
@@ -105,15 +104,15 @@ var SmartID = /** @class */ (function () {
                     case 9:
                         errorForce_1 = _a.sent();
                         if (!(errorForce_1.transaction != undefined)) return [3 /*break*/, 11];
-                        gasLimit = new utils_1.BigNumber(errorForce_1.transaction.gasLimit);
-                        gasPrice = new utils_1.BigNumber(errorForce_1.transaction.gasPrice);
+                        gasLimit = new ethers_1.ethers.utils.BigNumber(errorForce_1.transaction.gasLimit);
+                        gasPrice = new ethers_1.ethers.utils.BigNumber(errorForce_1.transaction.gasPrice);
                         gasNeeded = gasLimit.mul(gasPrice);
                         bc = new blockchain_1.Blockchain(this.network);
                         return [4 /*yield*/, bc.getBalance(errorForce_1.transaction.from)];
                     case 10:
                         fromBalance = _a.sent();
                         if (gasNeeded.gt(fromBalance)) {
-                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_2.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_2.weiBNToEtherString(fromBalance) + " PI [xx]", "0x", errorForce_1);
+                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_1.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_1.weiBNToEtherString(fromBalance) + " PI [xx]", "0x", errorForce_1);
                             throw new Error(JSON.stringify(errorOb));
                         }
                         _a.label = 11;
