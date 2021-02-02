@@ -1151,7 +1151,7 @@ var SmartID = /** @class */ (function () {
         });
     };
     /******** DEX */
-    SmartID.prototype.setOrder = function (sellToken, buyToken, sellAmount, amount, price, side) {
+    SmartID.prototype.setOrder = function (sellToken, buyToken, amount, price, side) {
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, dexData, walletContract, walletData, error_32;
             return __generator(this, function (_a) {
@@ -1163,7 +1163,6 @@ var SmartID = /** @class */ (function () {
                         dexData = dexContract.interface.functions.setOrder.encode([
                             sellToken,
                             buyToken,
-                            sellAmount,
                             amount,
                             price,
                             side
@@ -1171,7 +1170,7 @@ var SmartID = /** @class */ (function () {
                         walletContract = this.contractsService.getContractSigner(this.wallet, Constants.WALLET_ABI, this.signer);
                         walletData = walletContract.interface.functions.forwardValue.encode([
                             sellToken,
-                            sellAmount,
+                            amount,
                             dexContractAddress,
                             dexData
                         ]);

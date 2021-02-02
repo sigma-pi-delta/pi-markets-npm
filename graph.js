@@ -110,6 +110,9 @@ var Query = /** @class */ (function () {
             else if (subgraph == 'dividend') {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH;
             }
+            else if (subgraph == 'dex') {
+                this.subgraph = Constants.DEX_SUBGRAPH;
+            }
             else {
                 this.subgraph = subgraph;
             }
@@ -136,6 +139,9 @@ var Query = /** @class */ (function () {
             }
             else if (subgraph == 'dividend') {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH_TESTNET;
+            }
+            else if (subgraph == 'dex') {
+                this.subgraph = Constants.DEX_SUBGRAPH_TESTNET;
             }
             else {
                 this.subgraph = subgraph;
@@ -988,6 +994,101 @@ var QueryTemplates = /** @class */ (function () {
                         console.error(error_27);
                         throw new Error(error_27);
                     case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    /******** DEX */
+    QueryTemplates.prototype.getOrdersByBlocks = function (fromBlock, toBlock) {
+        return __awaiter(this, void 0, void 0, function () {
+            var skip, customQuery, query, response, queryOrders, orders, error_28;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        skip = 0;
+                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+                        query = new Query("dex", this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 7, , 8]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (!(response != undefined)) return [3 /*break*/, 6];
+                        queryOrders = response.orders;
+                        orders = queryOrders;
+                        _a.label = 3;
+                    case 3:
+                        if (!(queryOrders.length >= 1000)) return [3 /*break*/, 5];
+                        skip = orders.length;
+                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+                        query.setCustomQuery(customQuery);
+                        return [4 /*yield*/, query.request()];
+                    case 4:
+                        response = _a.sent();
+                        if (response != undefined) {
+                            queryOrders = response.orders;
+                            orders = orders.concat(queryOrders);
+                        }
+                        else {
+                            queryOrders = [];
+                        }
+                        return [3 /*break*/, 3];
+                    case 5: return [2 /*return*/, orders];
+                    case 6: return [3 /*break*/, 8];
+                    case 7:
+                        error_28 = _a.sent();
+                        console.error(error_28);
+                        throw new Error(error_28);
+                    case 8: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getCancelationsByBlocks = function (fromBlock, toBlock) {
+        return __awaiter(this, void 0, void 0, function () {
+            var skip, customQuery, query, response, queryOrders, orders, error_29;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        skip = 0;
+                        customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+                        query = new Query("dex", this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 7, , 8]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (!(response != undefined)) return [3 /*break*/, 6];
+                        queryOrders = response.cancelations;
+                        orders = queryOrders;
+                        _a.label = 3;
+                    case 3:
+                        if (!(queryOrders.length >= 1000)) return [3 /*break*/, 5];
+                        skip = orders.length;
+                        customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+                        query.setCustomQuery(customQuery);
+                        return [4 /*yield*/, query.request()];
+                    case 4:
+                        response = _a.sent();
+                        if (response != undefined) {
+                            queryOrders = response.cancelations;
+                            orders = orders.concat(queryOrders);
+                        }
+                        else {
+                            queryOrders = [];
+                        }
+                        return [3 /*break*/, 3];
+                    case 5: return [2 /*return*/, orders];
+                    case 6: return [3 /*break*/, 8];
+                    case 7:
+                        error_29 = _a.sent();
+                        console.error(error_29);
+                        throw new Error(error_29);
+                    case 8: return [2 /*return*/];
                 }
             });
         });

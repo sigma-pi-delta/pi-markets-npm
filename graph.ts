@@ -40,7 +40,7 @@ export class Query {
     public skip: number;
     public isClean: boolean;
 
-    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | "piprice" | "dividend" | string, url: string = 'mainnet') {
+    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | "piprice" | "dividend" | "dex" | string, url: string = 'mainnet') {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
         this.first = 1000;
         this.skip = 0;
@@ -63,6 +63,8 @@ export class Query {
                 this.subgraph = Constants.PIPRICE_SUBGRAPH;
             } else if (subgraph == 'dividend') {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH;
+            } else if (subgraph == 'dex') {
+                this.subgraph = Constants.DEX_SUBGRAPH;
             } else {
                 this.subgraph = subgraph;
             }
@@ -83,6 +85,8 @@ export class Query {
                 this.subgraph = Constants.PIPRICE_SUBGRAPH_TESTNET;
             } else if (subgraph == 'dividend') {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH_TESTNET;
+            } else if (subgraph == 'dex') {
+                this.subgraph = Constants.DEX_SUBGRAPH_TESTNET;
             } else {
                 this.subgraph = subgraph;
             }
@@ -733,6 +737,82 @@ export class QueryTemplates {
         try {
             let response = await query.request();
             if (response != undefined) return Utils.weiToEther(response.factories[0].commission);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    /******** DEX */
+
+    async getOrdersByBlocks(
+        fromBlock: number,
+        toBlock: number
+    ) {
+        let skip = 0;
+        let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+        let query = new Query("dex", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+
+            if (response != undefined) {
+                let queryOrders = response.orders;
+                let orders = queryOrders;
+
+                while(queryOrders.length >= 1000) {
+                    skip = orders.length;
+                    customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+                    query.setCustomQuery(customQuery);
+                    response = await query.request();
+                    if (response != undefined) {
+                        queryOrders = response.orders;
+                        orders = orders.concat(queryOrders);
+                    } else {
+                        queryOrders = [];
+                    }
+                }
+
+                return orders;
+            }
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getCancelationsByBlocks(
+        fromBlock: number,
+        toBlock: number
+    ) {
+        let skip = 0;
+        let customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+        let query = new Query("dex", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+
+            if (response != undefined) {
+                let queryOrders = response.cancelations;
+                let orders = queryOrders;
+
+                while(queryOrders.length >= 1000) {
+                    skip = orders.length;
+                    customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+                    query.setCustomQuery(customQuery);
+                    response = await query.request();
+                    if (response != undefined) {
+                        queryOrders = response.cancelations;
+                        orders = orders.concat(queryOrders);
+                    } else {
+                        queryOrders = [];
+                    }
+                }
+
+                return orders;
+            }
         } catch(error) {
             console.error(error);
             throw new Error(error);

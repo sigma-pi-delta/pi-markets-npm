@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.Report = exports.AuctionParams = exports.P2POfferPackable = exports.P2POfferCommodity = exports.P2POffer = exports.TransferNFTRequest = exports.TransferRequest = exports.SmartIDLogin = exports.SmartIDRegistry = exports.SmartID = exports.QueryTemplates = exports.Query = exports.Graph = exports.Utils = exports.Transactions = exports.Contracts = exports.WalletPair = exports.Wallets = exports.Blockchain = exports.Constants = void 0;
+exports.Report = exports.AuctionParams = exports.P2POfferPackable = exports.P2POfferCommodity = exports.P2POffer = exports.TransferNFTRequest = exports.TransferRequest = exports.SmartIDLogin = exports.SmartIDRegistry = exports.SmartID = exports.QueryTemplates = exports.Query = exports.Graph = exports.Utils = exports.Backend = exports.Transactions = exports.Contracts = exports.WalletPair = exports.Wallets = exports.Blockchain = exports.Constants = void 0;
 var Constants = require("./constants");
 exports.Constants = Constants;
 var blockchain_1 = require("./blockchain");
@@ -16,6 +16,8 @@ exports.Transactions = transactions_1.Transactions;
 var wallets_1 = require("./wallets");
 exports.WalletPair = wallets_1.WalletPair;
 exports.Wallets = wallets_1.Wallets;
+var backend_1 = require("./backend");
+exports.Backend = backend_1.Backend;
 var Utils = require("./utils");
 exports.Utils = Utils;
 var smartid_1 = require("./smartid");

@@ -1087,7 +1087,6 @@ export class SmartID {
     async setOrder(
         sellToken: string,
         buyToken: string,
-        sellAmount: ethers.utils.BigNumber,
         amount: ethers.utils.BigNumber,
         price: ethers.utils.BigNumber,
         side: ethers.utils.BigNumber
@@ -1101,7 +1100,6 @@ export class SmartID {
         let dexData = dexContract.interface.functions.setOrder.encode([
             sellToken,
             buyToken,
-            sellAmount,
             amount,
             price,
             side
@@ -1115,7 +1113,7 @@ export class SmartID {
 
         let walletData = walletContract.interface.functions.forwardValue.encode([
             sellToken,
-            sellAmount,
+            amount,
             dexContractAddress,
             dexData
         ]);

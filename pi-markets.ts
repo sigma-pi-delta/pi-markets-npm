@@ -4,6 +4,7 @@ import { Contracts } from './contracts';
 import { Graph, Query, QueryTemplates } from './graph';
 import { Transactions } from './transactions';
 import { WalletPair, Wallets } from './wallets';
+import { Backend } from './backend';
 import * as Utils from './utils';
 import { 
     SmartID, 
@@ -25,6 +26,7 @@ export {
     WalletPair,
     Contracts, 
     Transactions, 
+    Backend,
     Utils, 
     Graph, 
     Query,
