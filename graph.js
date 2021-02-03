@@ -1006,7 +1006,7 @@ var QueryTemplates = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         skip = 0;
-                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
                         query = new Query("dex", this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -1022,7 +1022,7 @@ var QueryTemplates = /** @class */ (function () {
                     case 3:
                         if (!(queryOrders.length >= 1000)) return [3 /*break*/, 5];
                         skip = orders.length;
-                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
                         query.setCustomQuery(customQuery);
                         return [4 /*yield*/, query.request()];
                     case 4:

@@ -1084,6 +1084,8 @@ export class SmartID {
 
     /******** DEX */
 
+    //TOKEN/TOKEN
+
     async setOrder(
         sellToken: string,
         buyToken: string,
@@ -1133,6 +1135,126 @@ export class SmartID {
         let dexContract = this.contractsService.getContractSigner(
             dexContractAddress, 
             Constants.DEX_ABI, 
+            this.signer
+        );
+        
+        let cancelData = dexContract.interface.functions.cancelOrder.encode([orderId]);
+
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forward.encode([
+            dexContractAddress,
+            cancelData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    //PACKABLE/TOKEN
+
+    async setBuyOrderPackableDex(
+        sellToken: string,
+        buyToken: string,
+        packableId: string,
+        amount: ethers.utils.BigNumber,
+        price: ethers.utils.BigNumber,
+        side: ethers.utils.BigNumber
+    ) {
+        let dexContractAddress = await this.contractsService.getControllerAddress("30");
+        let dexContract = this.contractsService.getContractSigner(
+            dexContractAddress, 
+            Constants.DEX_PACKABLE_ABI, 
+            this.signer
+        );
+        let settings = [amount, price, side];
+        let dexData = dexContract.interface.functions.setOrder.encode([
+            sellToken,
+            buyToken,
+            settings,
+            packableId
+        ]);
+        
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValue.encode([
+            sellToken,
+            amount,
+            dexContractAddress,
+            dexData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async setSellOrderPackableDex(
+        sellToken: string,
+        buyToken: string,
+        packableId: string,
+        amount: ethers.utils.BigNumber,
+        price: ethers.utils.BigNumber,
+        side: ethers.utils.BigNumber
+    ) {
+        let dexContractAddress = await this.contractsService.getControllerAddress("31");
+        let dexContract = this.contractsService.getContractSigner(
+            dexContractAddress, 
+            Constants.DEX_PACKABLE_ABI, 
+            this.signer
+        );
+        let settings = [amount, price, side];
+        let dexData = dexContract.interface.functions.setOrder.encode([
+            sellToken,
+            buyToken,
+            settings,
+            packableId
+        ]);
+        
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer
+        );
+
+        let walletData = walletContract.interface.functions.forwardValuePNFT.encode([
+            sellToken,
+            packableId,
+            amount,
+            dexContractAddress,
+            dexData
+        ]);
+
+        try {
+            return await this.forward(this.wallet, walletData);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async cancelOrderPackableDex(
+        orderId: string
+    ) {
+        let dexContractAddress = await this.contractsService.getControllerAddress("31");
+        let dexContract = this.contractsService.getContractSigner(
+            dexContractAddress, 
+            Constants.DEX_PACKABLE_ABI, 
             this.signer
         );
         

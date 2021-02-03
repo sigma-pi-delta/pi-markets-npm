@@ -750,7 +750,7 @@ export class QueryTemplates {
         toBlock: number
     ) {
         let skip = 0;
-        let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+        let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
         let query = new Query("dex", this.network);
         query.setCustomQuery(customQuery);
 
@@ -763,7 +763,7 @@ export class QueryTemplates {
 
                 while(queryOrders.length >= 1000) {
                     skip = orders.length;
-                    customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } amount price side open cancelled dealed timestamp blockNumber } }';
+                    customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
                     query.setCustomQuery(customQuery);
                     response = await query.request();
                     if (response != undefined) {
