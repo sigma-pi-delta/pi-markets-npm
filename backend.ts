@@ -16,17 +16,56 @@ export class Backend {
         this.walletsService = new Wallets(this.network);
     }
 
-    async dealOrder(
+    async dealOrderTokenDex(
         orderA: string,
         orderB: string,
         side: number,
         nonce: number
     ) {
+        try {
+            return await this.dealOrder(
+                orderA,
+                orderB,
+                side,
+                nonce,
+                "30"
+            )
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    async dealOrderPackableDex(
+        orderA: string,
+        orderB: string,
+        side: number,
+        nonce: number
+    ) {
+        try {
+            return await this.dealOrder(
+                orderA,
+                orderB,
+                side,
+                nonce,
+                "31"
+            )
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    async dealOrder(
+        orderA: string,
+        orderB: string,
+        side: number,
+        nonce: number,
+        contractIndex: string
+    ) {
         const controllerContract = this.contractsService.getContractCaller(
             Constants.CONTROLLER_ADDRESS,
             Constants.CONTROLLER_ABI
         );
-        const dexAddress = await controllerContract.addresses("30");
+        const dexAddress = await controllerContract.addresses(contractIndex);
         
         const dex = this.contractsService.getContractSigner(
             dexAddress,

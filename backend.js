@@ -48,14 +48,48 @@ var Backend = /** @class */ (function () {
         this.contractsService = new contracts_1.Contracts(this.network);
         this.walletsService = new wallets_1.Wallets(this.network);
     }
-    Backend.prototype.dealOrder = function (orderA, orderB, side, nonce) {
+    Backend.prototype.dealOrderTokenDex = function (orderA, orderB, side, nonce) {
         return __awaiter(this, void 0, void 0, function () {
-            var controllerContract, dexAddress, dex, response, error_1;
+            var error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.dealOrder(orderA, orderB, side, nonce, "30")];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        error_1 = _a.sent();
+                        throw new Error(error_1);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Backend.prototype.dealOrderPackableDex = function (orderA, orderB, side, nonce) {
+        return __awaiter(this, void 0, void 0, function () {
+            var error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        _a.trys.push([0, 2, , 3]);
+                        return [4 /*yield*/, this.dealOrder(orderA, orderB, side, nonce, "31")];
+                    case 1: return [2 /*return*/, _a.sent()];
+                    case 2:
+                        error_2 = _a.sent();
+                        throw new Error(error_2);
+                    case 3: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Backend.prototype.dealOrder = function (orderA, orderB, side, nonce, contractIndex) {
+        return __awaiter(this, void 0, void 0, function () {
+            var controllerContract, dexAddress, dex, response, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         controllerContract = this.contractsService.getContractCaller(Constants.CONTROLLER_ADDRESS, Constants.CONTROLLER_ABI);
-                        return [4 /*yield*/, controllerContract.addresses("30")];
+                        return [4 /*yield*/, controllerContract.addresses(contractIndex)];
                     case 1:
                         dexAddress = _a.sent();
                         dex = this.contractsService.getContractSigner(dexAddress, Constants.DEX_ABI, this.signer);
@@ -67,9 +101,9 @@ var Backend = /** @class */ (function () {
                         response = _a.sent();
                         return [2 /*return*/, response];
                     case 4:
-                        error_1 = _a.sent();
-                        console.error(error_1);
-                        throw new Error(error_1);
+                        error_3 = _a.sent();
+                        console.error(error_3);
+                        throw new Error(error_3);
                     case 5: return [2 /*return*/];
                 }
             });
