@@ -1224,7 +1224,7 @@ var SmartID = /** @class */ (function () {
             var dexContractAddress, dexContract, settings, dexData, walletContract, walletData, error_34;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("30")];
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("31")];
                     case 1:
                         dexContractAddress = _a.sent();
                         dexContract = this.contractsService.getContractSigner(dexContractAddress, Constants.DEX_PACKABLE_ABI, this.signer);

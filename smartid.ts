@@ -1169,7 +1169,7 @@ export class SmartID {
         price: ethers.utils.BigNumber,
         side: ethers.utils.BigNumber
     ) {
-        let dexContractAddress = await this.contractsService.getControllerAddress("30");
+        let dexContractAddress = await this.contractsService.getControllerAddress("31");
         let dexContract = this.contractsService.getContractSigner(
             dexContractAddress, 
             Constants.DEX_PACKABLE_ABI, 
