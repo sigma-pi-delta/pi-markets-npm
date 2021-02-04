@@ -337,7 +337,7 @@ var QueryTemplates = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ name(id:"' + name + '") { wallet { id identity { id } } } }';
+                        customQuery = '{ name(id:"' + name + '") { wallet { id identity { id owner } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -347,7 +347,7 @@ var QueryTemplates = /** @class */ (function () {
                     case 2:
                         response = _a.sent();
                         if (response != undefined)
-                            return [2 /*return*/, [response.name.wallet.id, response.name.wallet.identity.id]];
+                            return [2 /*return*/, [response.name.wallet.id, response.name.wallet.identity.id, response.name.wallet.identity.owner]];
                         return [3 /*break*/, 4];
                     case 3:
                         error_4 = _a.sent();
