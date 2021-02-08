@@ -565,6 +565,153 @@ export class Transactions {
             case '143':
                 errorMessage = "[143] Llamada no realizada desde el controllerOwner";
                 break;
+            case '144':
+                errorMessage = "[144] Sólo SmartID completos pueden desplegar subastas";
+                break;
+            case '145':
+                errorMessage = "[145] El token indicado para el pago de su subasta no es oficial";
+                break;
+            case '146':
+                errorMessage = "[146] Llamada no realizada desde el auctionFactoryOwner";
+                break;
+            case '147':
+                errorMessage = "[147] Llamada no realizada desde el auctionFactoryOwner";
+                break;
+            case '148':
+                errorMessage = "[148] Llamada no realizada desde el auctionFactoryOwner";
+                break;
+            case '149':
+                errorMessage = "[149] La subasta no está abierta";
+                break;
+            case '150':
+                errorMessage = "[150] La subasta aún está abierta";
+                break;
+            case '151':
+                errorMessage = "[151] Llamada no realizada desde el controllerOwner";
+                break;
+            case '152':
+                errorMessage = "[152] El envío de PI sólo está permitido desde el auctionFactory";
+                break;
+            case '153':
+                errorMessage = "[153] Llamada no realizada desde un SmartID completo";
+                break;
+            case '154':
+                errorMessage = "[154] La nueva puja debe superar a la máxima actual";
+                break;
+            case '155':
+                errorMessage = "[155] Debe disponer de una puja y depósito previo";
+                break;
+            case '156':
+                errorMessage = "[156] La nueva puja debe superar a la máxima actual";
+                break;
+            case '157':
+                errorMessage = "[157] No puede cancelar la puja cuando va ganando la subasta";
+                break;
+            case '158':
+                errorMessage = "[158] No dispone de una puja previa que cancelar";
+                break;
+            case '159':
+                errorMessage = "[159] Solamente el ganador de la subasta la puede liberar";
+                break;
+            case '160':
+                errorMessage = "[160] Solamente el auditor puede cancelar un pacto de subasta";
+                break;
+            case '161':
+                errorMessage = "[161] Solamente el dueño/auditor de la subasta la puede cancelar";
+                break;
+            case '162':
+                errorMessage = "[162] No se pude cancelar la subasta una vez comienzan las pujas";
+                break;
+            case '163':
+                errorMessage = "[163] No se pude cancelar la subasta una vez comienzan las pujas";
+                break;
+            case '164':
+                errorMessage = "[164] La subasta no es destruible";
+                break;
+            case '165':
+                errorMessage = "[165] La subasta no se puede destruir mientras tiene saldo";
+                break;
+            case '166':
+                errorMessage = "[166] La subasta debe estar cerrada para fondearse";
+                break;
+            case '167':
+                errorMessage = "[167] La subasta se debe fondear desde el auctionFactory";
+                break;
+            case '168':
+                errorMessage = "[168] La subasta se debe fondear con el token subastado";
+                break;
+            case '169':
+                errorMessage = "[169] La subasta sólo puede recibir el token correspondiente a las pujas";
+                break;
+            case '170':
+                errorMessage = "[170] La fecha de finalización de la subasta debe ser futura";
+                break;
+            case '171':
+                errorMessage = "[171] No puede pujar varias veces en una misma subasta";
+                break;
+            case '172':
+                errorMessage = "[172] No se puede cargar un pago de un token no oficial";
+                break;
+            case '173':
+                errorMessage = "[173] La tasa de cambio para el activo no está fijada";
+                break;
+            case '174':
+                errorMessage = "[174] La tasa de cambio para el activo no está fijada";
+                break;
+            case '175':
+                errorMessage = "[175] La tasa de cambio para el activo 1 no está fijada";
+                break;
+            case '176':
+                errorMessage = "[176] La tasa de cambio para el activo 2 no está fijada";
+                break;
+            case '177':
+                errorMessage = "[177] La tasa de cambio para el activo no está actualizada";
+                break;
+            case '178':
+                errorMessage = "[178] El token ERC223 del par indicado no es oficial";
+                break;
+            case '179':
+                errorMessage = "[179] Llamada no realizada desde el backend";
+                break;
+            case '180':
+                errorMessage = "[180] No puede cancelar una orden si no es su propietario";
+                break;
+            case '181':
+                errorMessage = "[181] La orden no está abierta y/o ya fue cancelada";
+                break;
+            case '182':
+                errorMessage = "[182] Podrá cancelar su orden cuando pasen 12 bloques desde que se realizó";
+                break;
+            case '183':
+                errorMessage = "[183] Alguna de las órdenes a pactar no está abierta";
+                break;
+            case '184':
+                errorMessage = "[184] Alguna de las órdenes a pactar está cerrada";
+                break;
+            case '185':
+                errorMessage = "[185] Los pares de las órdenes a pactar no coinciden";
+                break;
+            case '186':
+                errorMessage = "[186] Los pares de las órdenes a pactar no coinciden";
+                break;
+            case '187':
+                errorMessage = "[187] El precio de la orden A no es menor o igual al de la orden B";
+                break;
+            case '188':
+                errorMessage = "[188] El precio de la orden A no es mayor o igual al de la orden B";
+                break;
+            case '189':
+                errorMessage = "[189] Los vencimientos de las órdenes no coinciden";
+                break;
+            case '190':
+                errorMessage = "[190] La orden ya existía anteriormente";
+                break;
+            case '191':
+                errorMessage = "[191] No se puede transferir un token no oficial";
+                break;
+            case '192':
+                errorMessage = "[192] No se puede realizar un cargo de un token packable no oficial";
+                break;
             default:
                 errorMessage = error;
         }

@@ -1026,14 +1026,13 @@ var QueryTemplates = /** @class */ (function () {
         });
     };
     /******** DEX */
-    QueryTemplates.prototype.getOrdersByBlocks = function (fromBlock, toBlock) {
+    QueryTemplates.prototype.getOrdersSkip = function (skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var skip, customQuery, query, response, queryOrders, orders, error_29;
+            var customQuery, query, response, queryOrders, orders, _skip, error_29;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        skip = 0;
-                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
+                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
                         query = new Query("dex", this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -1045,11 +1044,12 @@ var QueryTemplates = /** @class */ (function () {
                         if (!(response != undefined)) return [3 /*break*/, 6];
                         queryOrders = response.orders;
                         orders = queryOrders;
+                        _skip = skip;
                         _a.label = 3;
                     case 3:
                         if (!(queryOrders.length >= 1000)) return [3 /*break*/, 5];
-                        skip = orders.length;
-                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
+                        skip = orders.length + _skip;
+                        customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
                         query.setCustomQuery(customQuery);
                         return [4 /*yield*/, query.request()];
                     case 4:
@@ -1073,14 +1073,13 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getCancelationsByBlocks = function (fromBlock, toBlock) {
+    QueryTemplates.prototype.getCancelationsSkip = function (skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var skip, customQuery, query, response, queryOrders, orders, error_30;
+            var customQuery, query, response, queryOrders, orders, _skip, error_30;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        skip = 0;
-                        customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+                        customQuery = '{ cancelations(first:1000, skip:' + skip + ', orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
                         query = new Query("dex", this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -1092,11 +1091,12 @@ var QueryTemplates = /** @class */ (function () {
                         if (!(response != undefined)) return [3 /*break*/, 6];
                         queryOrders = response.cancelations;
                         orders = queryOrders;
+                        _skip = skip;
                         _a.label = 3;
                     case 3:
                         if (!(queryOrders.length >= 1000)) return [3 /*break*/, 5];
-                        skip = orders.length;
-                        customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+                        skip = orders.length + _skip;
+                        customQuery = '{ cancelations(first:1000, skip:' + skip + ', orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
                         query.setCustomQuery(customQuery);
                         return [4 /*yield*/, query.request()];
                     case 4:

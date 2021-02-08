@@ -759,12 +759,10 @@ export class QueryTemplates {
 
     /******** DEX */
 
-    async getOrdersByBlocks(
-        fromBlock: number,
-        toBlock: number
+    async getOrdersSkip(
+        skip: number
     ) {
-        let skip = 0;
-        let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
+        let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
         let query = new Query("dex", this.network);
         query.setCustomQuery(customQuery);
 
@@ -775,9 +773,10 @@ export class QueryTemplates {
                 let queryOrders = response.orders;
                 let orders = queryOrders;
 
+                let _skip = skip;
                 while(queryOrders.length >= 1000) {
-                    skip = orders.length;
-                    customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
+                    skip = orders.length + _skip;
+                    customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
                     query.setCustomQuery(customQuery);
                     response = await query.request();
                     if (response != undefined) {
@@ -796,12 +795,10 @@ export class QueryTemplates {
         }
     }
 
-    async getCancelationsByBlocks(
-        fromBlock: number,
-        toBlock: number
+    async getCancelationsSkip(
+        skip: number
     ) {
-        let skip = 0;
-        let customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+        let customQuery = '{ cancelations(first:1000, skip:' + skip + ', orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
         let query = new Query("dex", this.network);
         query.setCustomQuery(customQuery);
 
@@ -812,9 +809,10 @@ export class QueryTemplates {
                 let queryOrders = response.cancelations;
                 let orders = queryOrders;
 
+                let _skip = skip;
                 while(queryOrders.length >= 1000) {
-                    skip = orders.length;
-                    customQuery = '{ cancelations(first:1000, skip:' + skip + ', where:{blockNumber_gte:' + fromBlock + ', blockNumber_lt:' + toBlock + '}, orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
+                    skip = orders.length + _skip;
+                    customQuery = '{ cancelations(first:1000, skip:' + skip + ', orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
                     query.setCustomQuery(customQuery);
                     response = await query.request();
                     if (response != undefined) {
