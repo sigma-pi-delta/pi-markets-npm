@@ -47,6 +47,12 @@ var Backend = /** @class */ (function () {
         this.network = _network;
         this.contractsService = new contracts_1.Contracts(this.network);
         this.walletsService = new wallets_1.Wallets(this.network);
+        if (this.network == 'mainnet') {
+            this.controllerAddress = Constants.CONTROLLER_ADDRESS;
+        }
+        else if (this.network == 'testnet') {
+            this.controllerAddress = Constants.CONTROLLER_ADDRESS_TESTNET;
+        }
     }
     Backend.prototype.dealOrderTokenDex = function (orderA, orderB, side, nonce) {
         return __awaiter(this, void 0, void 0, function () {
@@ -88,7 +94,7 @@ var Backend = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        controllerContract = this.contractsService.getContractCaller(Constants.CONTROLLER_ADDRESS, Constants.CONTROLLER_ABI);
+                        controllerContract = this.contractsService.getContractCaller(this.controllerAddress, Constants.CONTROLLER_ABI);
                         return [4 /*yield*/, controllerContract.addresses(contractIndex)];
                     case 1:
                         dexAddress = _a.sent();

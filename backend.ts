@@ -8,12 +8,19 @@ export class Backend {
     readonly network: string;
     readonly walletsService: any;
     readonly contractsService: any;
+    readonly controllerAddress: string;
 
     constructor(_signer: ethers.Wallet, _network: string = 'mainnet') {
         this.signer = _signer;
         this.network = _network;
         this.contractsService = new Contracts(this.network);
         this.walletsService = new Wallets(this.network);
+
+        if (this.network == 'mainnet') {
+            this.controllerAddress = Constants.CONTROLLER_ADDRESS;
+        } else if (this.network == 'testnet') {
+            this.controllerAddress = Constants.CONTROLLER_ADDRESS_TESTNET;
+        }
     }
 
     async dealOrderTokenDex(
@@ -62,7 +69,7 @@ export class Backend {
         contractIndex: string
     ) {
         const controllerContract = this.contractsService.getContractCaller(
-            Constants.CONTROLLER_ADDRESS,
+            this.controllerAddress,
             Constants.CONTROLLER_ABI
         );
         const dexAddress = await controllerContract.addresses(contractIndex);
