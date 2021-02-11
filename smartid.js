@@ -59,7 +59,7 @@ var SmartID = /** @class */ (function () {
             this.signer = this.signer.connect(bc.getProvider());
         }
     }
-    SmartID.prototype.forward = function (destination, data) {
+    SmartID.prototype.forward = function (destination, data, nonce) {
         return __awaiter(this, void 0, void 0, function () {
             var identityContract, response, isEstimateGasError, error_1, gasLimit, gasPrice, gasNeeded, bc, fromBalance, errorOb, errorForce_1, gasLimit, gasPrice, gasNeeded, bc, fromBalance, errorOb, receipt, receiptError_1;
             return __generator(this, function (_a) {
@@ -67,6 +67,9 @@ var SmartID = /** @class */ (function () {
                     case 0:
                         identityContract = this.contractsService.getContractSigner(this.identity, Constants.IDENTITY_ABI, this.signer);
                         isEstimateGasError = false;
+                        if (nonce != undefined) {
+                            Constants.OVERRIDES["nonce"] = nonce;
+                        }
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 6]);
@@ -93,6 +96,9 @@ var SmartID = /** @class */ (function () {
                     case 5: return [3 /*break*/, 6];
                     case 6:
                         if (!isEstimateGasError) return [3 /*break*/, 12];
+                        if (nonce != undefined) {
+                            Constants.OVERRIDES_FORCE["nonce"] = nonce;
+                        }
                         _a.label = 7;
                     case 7:
                         _a.trys.push([7, 9, , 12]);
@@ -1152,7 +1158,7 @@ var SmartID = /** @class */ (function () {
     };
     /******** DEX */
     //TOKEN/TOKEN
-    SmartID.prototype.setOrder = function (sellToken, buyToken, amount, price, side) {
+    SmartID.prototype.setOrder = function (sellToken, buyToken, amount, price, side, nonce) {
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, dexData, walletContract, walletData, error_32;
             return __generator(this, function (_a) {
@@ -1178,7 +1184,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_32 = _a.sent();
@@ -1219,7 +1225,7 @@ var SmartID = /** @class */ (function () {
         });
     };
     //PACKABLE/TOKEN
-    SmartID.prototype.setBuyOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side) {
+    SmartID.prototype.setBuyOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side, nonce) {
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, settings, dexData, walletContract, walletData, error_34;
             return __generator(this, function (_a) {
@@ -1245,7 +1251,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_34 = _a.sent();
@@ -1256,7 +1262,7 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
-    SmartID.prototype.setSellOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side) {
+    SmartID.prototype.setSellOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side, nonce) {
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, settings, dexData, walletContract, walletData, error_35;
             return __generator(this, function (_a) {
@@ -1283,7 +1289,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_35 = _a.sent();

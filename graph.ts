@@ -40,7 +40,7 @@ export class Query {
     public skip: number;
     public isClean: boolean;
 
-    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | "piprice" | "dividend" | "dex" | string, url: string = 'mainnet') {
+    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | "piprice" | "dividend" | "dex" | "registry" | string, url: string = 'mainnet') {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
         this.first = 1000;
         this.skip = 0;
@@ -65,6 +65,8 @@ export class Query {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH;
             } else if (subgraph == 'dex') {
                 this.subgraph = Constants.DEX_SUBGRAPH;
+            } else if (subgraph == 'registry') {
+                this.subgraph = Constants.REGISTRY_SUBGRAPH;
             } else {
                 this.subgraph = subgraph;
             }
@@ -87,6 +89,8 @@ export class Query {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH_TESTNET;
             } else if (subgraph == 'dex') {
                 this.subgraph = Constants.DEX_SUBGRAPH_TESTNET;
+            } else if (subgraph == 'registry') {
+                this.subgraph = Constants.REGISTRY_SUBGRAPH_TESTNET;
             } else {
                 this.subgraph = subgraph;
             }
@@ -298,6 +302,20 @@ export class QueryTemplates {
         try {
             let response = await query.request();
             if (response != undefined) return response.name.wallet.identity.owner;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getSmartIDs() {
+        let customQuery = '{ identities { identity hashDD } }';
+        let query = new Query('registry', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.identities;
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -777,6 +795,44 @@ export class QueryTemplates {
                 while(queryOrders.length >= 1000) {
                     skip = orders.length + _skip;
                     customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
+                    query.setCustomQuery(customQuery);
+                    response = await query.request();
+                    if (response != undefined) {
+                        queryOrders = response.orders;
+                        orders = orders.concat(queryOrders);
+                    } else {
+                        queryOrders = [];
+                    }
+                }
+
+                return orders;
+            }
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getOpenOrdersNotInArray(
+        ordersArray: string[]
+    ) {
+        let skip = 0;
+        let stringArray = ordersArray.join('", "');
+        let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true, id_not_in:["' + stringArray + '"]}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
+        let query = new Query("dex", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+
+            if (response != undefined) {
+                let queryOrders = response.orders;
+                let orders = queryOrders;
+
+                let _skip = skip;
+                while(queryOrders.length >= 1000) {
+                    skip = orders.length + _skip;
+                    customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true, id_not_in:["' + stringArray + '"]}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
                     query.setCustomQuery(customQuery);
                     response = await query.request();
                     if (response != undefined) {

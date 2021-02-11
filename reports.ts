@@ -1339,6 +1339,70 @@ export class Report {
         }
     }
 
+    async getUsersReport(
+        monthIndex: number,
+        year: number
+    ) {
+        const workbook = new ExcelJS.Workbook();
+
+        let sheet = workbook.addWorksheet('SmartID_Report');
+
+        let toYear = year;
+        let toMonthIndex = monthIndex + 1;
+
+        if (monthIndex == 12) {
+            toYear = year + 1;
+            toMonthIndex = 1;
+        }
+
+        let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+        let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+
+        let queryTemplates = new QueryTemplates(this.url);
+        let identities = await queryTemplates.getSmartIDs();
+
+        let promises: any = [];
+
+        for(let i = 0; i < identities.length; i++) {
+            promises.push(getUserMonthStatsByIdentityByTime(
+                identities[i].identity,
+                timeLow,
+                timeHigh,
+                this.url
+            ));
+        }
+
+        await Promise.all(promises);
+
+        addTable(
+            sheet,
+            'SmartIDReportTable',
+            'B2',
+            [
+                {name: 'Nombre', filterButton: true},
+                {name: 'Entradas (USD)'},
+                {name: 'Salidas (USD)'},
+                {name: 'Total (USD)'},
+                {name: 'Max (USD)'},
+                {name: 'Declarado (USD)'},
+                {name: 'Alerta'}
+            ],
+            promises
+        );
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsSmartIDReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsSmartIDReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
     async getTransactionsData(
         timeLow: number,
         timeHigh: number,
@@ -1542,6 +1606,92 @@ export class Report {
 
         return new HoldersReportData(token.address, token.symbol, holders, offers, expiry);
     }
+}
+
+async function getUserMonthStatsByIdentityByTime(
+    _identity: string,
+    _timeLow: number,
+    _timeHigh: number,
+    _url: string = 'mainnet'
+) {
+    let _stats = await getUserTxStatsByNameByTime(_identity, _timeLow, _timeHigh, _url);
+    let _kycMax = 0;
+    let _flag = 0;
+
+    _stats.push(_kycMax);
+    _stats.push(_flag);
+
+    console.log("-------------" + _stats[0])
+
+    return _stats;
+}
+
+async function getUserTxStatsByNameByTime(
+    _nickname: string,
+    _timeLow: number,
+    _timeHigh: number,
+    _url: string = 'mainnet'
+) {
+    let txsAndName = await try_getAllTransactionsByIdentity(
+        _timeLow,
+        _timeHigh,
+        _nickname,
+        _url
+    );
+
+    let txs = txsAndName[0];
+
+    let _inputs = 0;
+    let _outputs = 0;
+    let _inputsAmount = 0;
+    let _outputsAmount = 0;
+    let _max = 0;
+    let _maxSide = true;
+
+    for (let i = 0; i < txs.length; i++) {
+        let tx = txs[i];
+        let txAmount = await convertToUsd(
+            parseFloat(weiToEther(tx.amount)),
+            tx.currency.id,
+            tx.timestamp
+        );
+
+        if (tx.from.name != null) {
+            if (tx.from.name.id == _nickname) {
+                //OUTPUT
+                _outputs++;
+                _outputsAmount += txAmount;
+            }
+        }
+
+        if (tx.to.name != null) {
+            if (tx.to.name.id == _nickname) {
+                //INPUT
+                _inputs++;
+                _inputsAmount += txAmount;
+            }
+        }
+
+        if (txAmount > _max) {
+            _max = txAmount;
+
+            if (tx.from.name != null) {
+                if (tx.from.name.id == _nickname) {
+                    _maxSide = false;
+                }
+            }
+
+            if (tx.to.name != null) {
+                if (tx.to.name.id == _nickname) {
+                    _maxSide = true;
+                }
+            }
+        }
+    }
+
+    if (!_maxSide) _max *= -1;
+
+    return [txsAndName[1], _inputs, _inputsAmount, _outputs, _outputsAmount, (_inputsAmount - _outputsAmount), _max];
 }
 
 async function setTransactionSheet(
@@ -3429,6 +3579,58 @@ async function getAllTransactionsByName(
     }
 
     return transactions;
+}
+
+async function try_getAllTransactionsByIdentity(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _identity: string,
+    _url: string,
+    retries: number = 0
+) {
+    let txsAndName: any;
+    try {
+        txsAndName = await getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url);
+        return txsAndName;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            txsAndName = await try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return txsAndName;
+        } else {
+            console.log("------------ SUPERAMOS REINTENTOS")
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+}
+
+async function getAllTransactionsByIdentity(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _identity: string,
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ identitys(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
+    let queryService = new Query('bank', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryTransactions = response.identity.wallet.transactions;
+    let transactions = queryTransactions;
+
+    while(queryTransactions.length >= 1000) {
+        skip = transactions.length;
+        query = '{ identity(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryTransactions = response.identity.wallet.transactions;
+        transactions = transactions.concat(queryTransactions);
+    }
+
+    return [transactions, response.identity.wallet.name.id];
 }
 
 async function try_getOffers(

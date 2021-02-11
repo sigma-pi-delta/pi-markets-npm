@@ -1315,6 +1315,71 @@ var Report = /** @class */ (function () {
             });
         });
     };
+    Report.prototype.getUsersReport = function (monthIndex, year) {
+        return __awaiter(this, void 0, void 0, function () {
+            var workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, identities, promises, i, error_12, buffer, err_12;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        workbook = new ExcelJS.Workbook();
+                        sheet = workbook.addWorksheet('SmartID_Report');
+                        toYear = year;
+                        toMonthIndex = monthIndex + 1;
+                        if (monthIndex == 12) {
+                            toYear = year + 1;
+                            toMonthIndex = 1;
+                        }
+                        timeLow = getUtcTimeFromDate(year, monthIndex, 1);
+                        timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+                        queryTemplates = new graph_1.QueryTemplates(this.url);
+                        return [4 /*yield*/, queryTemplates.getSmartIDs()];
+                    case 1:
+                        identities = _a.sent();
+                        promises = [];
+                        for (i = 0; i < identities.length; i++) {
+                            promises.push(getUserMonthStatsByIdentityByTime(identities[i].identity, timeLow, timeHigh, this.url));
+                        }
+                        return [4 /*yield*/, Promise.all(promises)];
+                    case 2:
+                        _a.sent();
+                        addTable(sheet, 'SmartIDReportTable', 'B2', [
+                            { name: 'Nombre', filterButton: true },
+                            { name: 'Entradas (USD)' },
+                            { name: 'Salidas (USD)' },
+                            { name: 'Total (USD)' },
+                            { name: 'Max (USD)' },
+                            { name: 'Declarado (USD)' },
+                            { name: 'Alerta' }
+                        ], promises);
+                        _a.label = 3;
+                    case 3:
+                        _a.trys.push([3, 5, , 11]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsSmartIDReport.xlsx')];
+                    case 4:
+                        _a.sent();
+                        return [3 /*break*/, 11];
+                    case 5:
+                        error_12 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 6:
+                        buffer = _a.sent();
+                        _a.label = 7;
+                    case 7:
+                        _a.trys.push([7, 9, , 10]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsSmartIDReport.xlsx')];
+                    case 8:
+                        _a.sent();
+                        return [3 /*break*/, 10];
+                    case 9:
+                        err_12 = _a.sent();
+                        console.error(err_12);
+                        return [3 /*break*/, 10];
+                    case 10: return [3 /*break*/, 11];
+                    case 11: return [2 /*return*/];
+                }
+            });
+        });
+    };
     Report.prototype.getTransactionsData = function (timeLow, timeHigh, token) {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -1506,6 +1571,88 @@ var Report = /** @class */ (function () {
     return Report;
 }());
 exports.Report = Report;
+function getUserMonthStatsByIdentityByTime(_identity, _timeLow, _timeHigh, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var _stats, _kycMax, _flag;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, getUserTxStatsByNameByTime(_identity, _timeLow, _timeHigh, _url)];
+                case 1:
+                    _stats = _a.sent();
+                    _kycMax = 0;
+                    _flag = 0;
+                    _stats.push(_kycMax);
+                    _stats.push(_flag);
+                    console.log("-------------" + _stats[0]);
+                    return [2 /*return*/, _stats];
+            }
+        });
+    });
+}
+function getUserTxStatsByNameByTime(_nickname, _timeLow, _timeHigh, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var txsAndName, txs, _inputs, _outputs, _inputsAmount, _outputsAmount, _max, _maxSide, i, tx, txAmount;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _nickname, _url)];
+                case 1:
+                    txsAndName = _a.sent();
+                    txs = txsAndName[0];
+                    _inputs = 0;
+                    _outputs = 0;
+                    _inputsAmount = 0;
+                    _outputsAmount = 0;
+                    _max = 0;
+                    _maxSide = true;
+                    i = 0;
+                    _a.label = 2;
+                case 2:
+                    if (!(i < txs.length)) return [3 /*break*/, 5];
+                    tx = txs[i];
+                    return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, tx.timestamp)];
+                case 3:
+                    txAmount = _a.sent();
+                    if (tx.from.name != null) {
+                        if (tx.from.name.id == _nickname) {
+                            //OUTPUT
+                            _outputs++;
+                            _outputsAmount += txAmount;
+                        }
+                    }
+                    if (tx.to.name != null) {
+                        if (tx.to.name.id == _nickname) {
+                            //INPUT
+                            _inputs++;
+                            _inputsAmount += txAmount;
+                        }
+                    }
+                    if (txAmount > _max) {
+                        _max = txAmount;
+                        if (tx.from.name != null) {
+                            if (tx.from.name.id == _nickname) {
+                                _maxSide = false;
+                            }
+                        }
+                        if (tx.to.name != null) {
+                            if (tx.to.name.id == _nickname) {
+                                _maxSide = true;
+                            }
+                        }
+                    }
+                    _a.label = 4;
+                case 4:
+                    i++;
+                    return [3 /*break*/, 2];
+                case 5:
+                    if (!_maxSide)
+                        _max *= -1;
+                    return [2 /*return*/, [txsAndName[1], _inputs, _inputsAmount, _outputs, _outputsAmount, (_inputsAmount - _outputsAmount), _max]];
+            }
+        });
+    });
+}
 function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token, name) {
     return __awaiter(this, void 0, void 0, function () {
         var day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, txRows, rates, transactions, nextTx, nextTimestamp, txDayRow, amount, weekRow_1, dayRow, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName;
@@ -2906,7 +3053,7 @@ function setBalancesTable(sheet, balances, tableName, tableCell) {
 function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var transactions, error_12;
+        var transactions, error_13;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -2925,7 +3072,7 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
                     _a.label = 5;
                 case 5: return [2 /*return*/, transactions];
                 case 6:
-                    error_12 = _a.sent();
+                    error_13 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 8];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -2935,8 +3082,8 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, transactions];
                 case 8:
-                    console.error(error_12);
-                    throw new Error(error_12);
+                    console.error(error_13);
+                    throw new Error(error_13);
                 case 9: return [3 /*break*/, 10];
                 case 10: return [2 /*return*/];
             }
@@ -3075,10 +3222,75 @@ function getAllTransactionsByName(_timeLow, _timeHigh, _name, _url) {
         });
     });
 }
+function try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, retries) {
+    if (retries === void 0) { retries = 0; }
+    return __awaiter(this, void 0, void 0, function () {
+        var txsAndName, error_14;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 6]);
+                    return [4 /*yield*/, getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url)];
+                case 1:
+                    txsAndName = _a.sent();
+                    return [2 /*return*/, txsAndName];
+                case 2:
+                    error_14 = _a.sent();
+                    if (!(retries < 10)) return [3 /*break*/, 4];
+                    retries++;
+                    console.log("-- REINTENTO DE QUERY: " + retries);
+                    return [4 /*yield*/, try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, retries + 1)];
+                case 3:
+                    txsAndName = _a.sent();
+                    console.log("-- REINTENTO EXITOSO --");
+                    return [2 /*return*/, txsAndName];
+                case 4:
+                    console.log("------------ SUPERAMOS REINTENTOS");
+                    console.error(error_14);
+                    throw new Error(error_14);
+                case 5: return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
+function getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryTransactions, transactions;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ identitys(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
+                    queryService = new graph_1.Query('bank', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryTransactions = response.identity.wallet.transactions;
+                    transactions = queryTransactions;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
+                    skip = transactions.length;
+                    query = '{ identity(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryTransactions = response.identity.wallet.transactions;
+                    transactions = transactions.concat(queryTransactions);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, [transactions, response.identity.wallet.name.id]];
+            }
+        });
+    });
+}
 function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_13;
+        var offers, error_15;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3088,7 +3300,7 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_13 = _a.sent();
+                    error_15 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3098,8 +3310,8 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_13);
-                    throw new Error(error_13);
+                    console.error(error_15);
+                    throw new Error(error_15);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3307,7 +3519,7 @@ function getUserPackableAllDealsPrimary(_nickname, _timeLow, _timeHigh, _url) {
 function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_14;
+        var offers, error_16;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3317,7 +3529,7 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_14 = _a.sent();
+                    error_16 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3327,8 +3539,8 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_14);
-                    throw new Error(error_14);
+                    console.error(error_16);
+                    throw new Error(error_16);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3371,7 +3583,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_15;
+        var offers, error_17;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3381,7 +3593,7 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_15 = _a.sent();
+                    error_17 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3391,8 +3603,8 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_15);
-                    throw new Error(error_15);
+                    console.error(error_17);
+                    throw new Error(error_17);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3468,7 +3680,7 @@ function getAllDealsPrimary(_timeLow, _timeHigh, _url) {
 function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_16;
+        var offers, error_18;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3478,7 +3690,7 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_16 = _a.sent();
+                    error_18 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3488,8 +3700,8 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_16);
-                    throw new Error(error_16);
+                    console.error(error_18);
+                    throw new Error(error_18);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3532,7 +3744,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_17;
+        var offers, error_19;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3542,7 +3754,7 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_17 = _a.sent();
+                    error_19 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3552,8 +3764,8 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_17);
-                    throw new Error(error_17);
+                    console.error(error_19);
+                    throw new Error(error_19);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3596,7 +3808,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_18;
+        var offers, error_20;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3606,7 +3818,7 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_18 = _a.sent();
+                    error_20 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3616,8 +3828,8 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_18);
-                    throw new Error(error_18);
+                    console.error(error_20);
+                    throw new Error(error_20);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3660,7 +3872,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
 function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_19;
+        var offers, error_21;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3670,7 +3882,7 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_19 = _a.sent();
+                    error_21 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3680,8 +3892,8 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_19);
-                    throw new Error(error_19);
+                    console.error(error_21);
+                    throw new Error(error_21);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3757,7 +3969,7 @@ function getAllPackableDeals(_timeLow, _timeHigh, _url) {
 function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_20;
+        var offers, error_22;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3767,7 +3979,7 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_20 = _a.sent();
+                    error_22 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3777,8 +3989,8 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_20);
-                    throw new Error(error_20);
+                    console.error(error_22);
+                    throw new Error(error_22);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3821,7 +4033,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_21;
+        var offers, error_23;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3831,7 +4043,7 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_21 = _a.sent();
+                    error_23 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3841,8 +4053,8 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_21);
-                    throw new Error(error_21);
+                    console.error(error_23);
+                    throw new Error(error_23);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3918,7 +4130,7 @@ function getAllPackableDealPrimary(_timeLow, _timeHigh, _url) {
 function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_22;
+        var offers, error_24;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3928,7 +4140,7 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_22 = _a.sent();
+                    error_24 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3938,8 +4150,8 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_22);
-                    throw new Error(error_22);
+                    console.error(error_24);
+                    throw new Error(error_24);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4144,7 +4356,7 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_23, dates, rates, responseData, i, len, j, rates2, rates3, j, error_24;
+        var from, to, responseData, rates, factor, i, len, j, error_25, dates, rates, responseData, i, len, j, rates2, rates3, j, error_26;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4195,9 +4407,9 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     }
                     return [2 /*return*/, rates];
                 case 4:
-                    error_23 = _a.sent();
-                    console.error(error_23);
-                    throw new Error(error_23);
+                    error_25 = _a.sent();
+                    console.error(error_25);
+                    throw new Error(error_25);
                 case 5: return [3 /*break*/, 14];
                 case 6:
                     if (!((token == Constants.USD.address) ||
@@ -4232,9 +4444,9 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     }
                     return [2 /*return*/, rates3];
                 case 11:
-                    error_24 = _a.sent();
-                    console.error(error_24);
-                    throw new Error(error_24);
+                    error_26 = _a.sent();
+                    console.error(error_26);
+                    throw new Error(error_26);
                 case 12: return [3 /*break*/, 14];
                 case 13: return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
                 case 14: return [2 /*return*/];
@@ -4329,7 +4541,7 @@ function convertToUsd(amount, token, timestamp) {
 }
 function requestRateEndPoint(from, to, token) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPoint, body, response, responseData, error_25;
+        var endPoint, body, response, responseData, error_27;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4356,9 +4568,9 @@ function requestRateEndPoint(from, to, token) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_25 = _a.sent();
-                    console.error(error_25);
-                    throw new Error(error_25);
+                    error_27 = _a.sent();
+                    console.error(error_27);
+                    throw new Error(error_27);
                 case 6: return [2 /*return*/];
             }
         });

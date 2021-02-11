@@ -22,6 +22,8 @@ const DIVIDENDS_SUBGRAPH = "/subgraphs/name/gperezalba/dividends-subgraph-mainne
 const DIVIDENDS_SUBGRAPH_TESTNET = "/subgraphs/name/gperezalba/dividends-subgraph-testnet";
 const DEX_SUBGRAPH = "/subgraphs/name/gperezalba/dex-subgraph-mainnet";
 const DEX_SUBGRAPH_TESTNET = "/subgraphs/name/gperezalba/dex-subgraph-testnet";
+const REGISTRY_SUBGRAPH = "/subgraphs/name/gperezalba/registry-subgraph-mainnet";
+const REGISTRY_SUBGRAPH_TESTNET = "/subgraphs/name/gperezalba/registry-subgraph-testnet";
 
 // ABIS
 const CONTROLLER_ABI = [{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"kinds","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"isFactory","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_new","type":"address"}],"name":"setOwner","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"isToken","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"isNFToken","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newDiamondOwner","type":"address"}],"name":"setDiamondOwner","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_token1","type":"address"},{"name":"_token2","type":"address"},{"name":"_market","type":"address"}],"name":"setNewMarket","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"stopCuts","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_tokenAddress","type":"address"}],"name":"setNewToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"on","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"},{"name":"","type":"bytes4"}],"name":"facets","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_addresses","type":"address[]"}],"name":"diamondCut","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"markets","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newCommission","type":"uint256"}],"name":"setTxCommission","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"switcher","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"toggleSwitch","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"stopUpgrades","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"cuttable","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_tokenAddress","type":"address"},{"name":"_category","type":"uint256"}],"name":"setNewNFToken","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"commission","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"diamondOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newSwitcher","type":"address"}],"name":"setSwitcher","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"addresses","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_kind","type":"uint256"},{"name":"_address","type":"address"},{"name":"_isFactory","type":"bool"}],"name":"setNewAddress","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"upgradable","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_owner","type":"address"},{"name":"_switcher","type":"address"},{"name":"_facets","type":"address[]"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"old","type":"address"},{"indexed":false,"name":"current","type":"address"}],"name":"NewOwner","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"old","type":"address"},{"indexed":false,"name":"current","type":"address"}],"name":"NewSwitcher","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"kind","type":"uint256"},{"indexed":false,"name":"contractAddress","type":"address"},{"indexed":false,"name":"isFactory","type":"bool"}],"name":"NewAddress","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newToken","type":"address"}],"name":"NewToken","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newToken","type":"address"},{"indexed":false,"name":"category","type":"uint256"}],"name":"NewNFToken","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"tokenA","type":"address"},{"indexed":false,"name":"tokenB","type":"address"},{"indexed":false,"name":"market","type":"address"}],"name":"NewMarket","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newCommission","type":"uint256"}],"name":"NewCommission","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"selector","type":"bytes4"},{"indexed":true,"name":"oldFacet","type":"address"},{"indexed":true,"name":"newFacet","type":"address"}],"name":"DiamondCut","type":"event"}];
@@ -282,6 +284,14 @@ const SP500_SHORT = {
     },
     category: 3
 };
+const AGRO = {
+    symbol: "AGRO",
+    address: "0x21678b6bd9b321abc54540cc8cd06af9f67ecf81",
+    expiry: {
+        never: ["never", "0x5f1570c8ac91d7e7d0f049284e50886dd435c98c35a0e5563a7248041b1cfe1a"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -367,6 +377,8 @@ export {
     DIVIDENDS_SUBGRAPH_TESTNET,
     DEX_SUBGRAPH,
     DEX_SUBGRAPH_TESTNET,
+    REGISTRY_SUBGRAPH,
+    REGISTRY_SUBGRAPH_TESTNET,
     CONTROLLER_ABI,
     REGISTRY_ABI,
     IDENTITY_FACTORY_ABI,
@@ -428,6 +440,7 @@ export {
     BRENT_SHORT,
     SP500_LONG,
     SP500_SHORT,
+    AGRO,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,
