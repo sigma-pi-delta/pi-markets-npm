@@ -329,6 +329,11 @@ const USDT_TESTNET = {
     address: "0xcf45b718dcf1d44dc6bd61c3fcc687327fa5225b",
     category: 1
 };
+const PEL_TESTNET = {
+    symbol: "PEL_TESTNET",
+    address: "0x2d76e7802ed20c46f6703ea9564358b0ed1d698c",
+    category: 1
+};
 const GLD_TESTNET = {
     symbol: "GLD_TESTNET",
     address: "0xa722eeb4972ad557e2094834ba29d68a62ffc264",
@@ -345,6 +350,32 @@ const CMT_TESTNET = {
     expiry: {
         nov20: "",
         nov21: "0x2290139cf07fc7d4a1b773f5eba277831c21149bfdbd74a1a49c7d765bfc07bf"
+    },
+    category: 3
+};
+const AGRO_TESTNET = {
+    symbol: "AGRO_TESTNET",
+    address: "0x2b0d9f4a4299860f011275f018fdb1d2f3cf7053",
+    expiry: {
+        never: ["never", "0x5f1570c8ac91d7e7d0f049284e50886dd435c98c35a0e5563a7248041b1cfe1a"]
+    },
+    category: 3
+};
+const PGR_TESTNET = {
+    symbol: "PGR_TESTNET",
+    address: "0x556198aff8d563598a93c9b9f148ba7d88afb348",
+    expiry: {
+        nov21: ["nov21", "0x2d5dea468459751f1cde905674453fe1cce1e58999fc88291bc996aaed37e400"],
+        feb22: ["feb22", "0x14f29dfcd17779771a63b3c4ef4c92856cdffedb93487ad34ba49b94fb5c1ee7"]
+    },
+    category: 3
+};
+const RST_TESTNET = {
+    symbol: "RST_TESTNET",
+    address: "0xdd38a97be5a55b4eb4b0cda64c9661cbe1c3fcfb",
+    expiry: {
+        nov21: ["nov21", "0xb0402b82a618701408716faaec65ae5058dde918812cece7eeaa076523969797"],
+        feb22: ["feb22", "0x4d9b5b6bce1118eac334eff851f5820ae54afa7d5c91c2063da4d64c89707439"]
     },
     category: 3
 };
@@ -448,7 +479,11 @@ export {
     EUR_TESTNET,
     USD_TESTNET,
     USDT_TESTNET,
+    PEL_TESTNET,
     GLD_TESTNET,
     CMT_TESTNET,
+    RST_TESTNET,
+    PGR_TESTNET,
+    AGRO_TESTNET,
     DIA_TESTNET
 };

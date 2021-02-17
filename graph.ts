@@ -308,9 +308,24 @@ export class QueryTemplates {
         }
     }
 
-    async getSmartIDs() {
-        let customQuery = '{ identities { identity hashDD } }';
+    async getSmartIDs(skip: number) {
+        let customQuery = '{ identities (first:100, skip: ' + skip + ', orderBy:timestamp, orderDirection:asc) { identity hashDD } }';
         let query = new Query('registry', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.identities;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getNamesByIdentityArray(identitiesArray: string[], skip: number) {
+        let stringArray = identitiesArray.join('", "');
+        let customQuery = '{ identities(first: 1000, skip: ' + skip + ' where:{id_in:["' + stringArray + '"]}) {id wallet { name { id } } } }';
+        let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
         try {

@@ -1137,7 +1137,8 @@ export class SmartID {
     }
 
     async cancelOrder(
-        orderId: string
+        orderId: string,
+        nonce?: any
     ) {
         let dexContractAddress = await this.contractsService.getControllerAddress("30");
         let dexContract = this.contractsService.getContractSigner(
@@ -1160,7 +1161,7 @@ export class SmartID {
         ]);
 
         try {
-            return await this.forward(this.wallet, walletData);
+            return await this.forward(this.wallet, walletData, nonce);
         } catch(error) {
             console.error(error);
             throw new Error(error);

@@ -391,13 +391,13 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getSmartIDs = function () {
+    QueryTemplates.prototype.getSmartIDs = function (skip) {
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ identities { identity hashDD } }';
+                        customQuery = '{ identities (first:100, skip: ' + skip + ', orderBy:timestamp, orderDirection:asc) { identity hashDD } }';
                         query = new Query('registry', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -418,13 +418,14 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getTransactionsByName = function (name, orderBy, orderDirection, first, skip) {
+    QueryTemplates.prototype.getNamesByIdentityArray = function (identitiesArray, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_7;
+            var stringArray, customQuery, query, response, error_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ name(id:"' + name + '") { wallet { transactions (orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        stringArray = identitiesArray.join('", "');
+                        customQuery = '{ identities(first: 1000, skip: ' + skip + ' where:{id_in:["' + stringArray + '"]}) {id wallet { name { id } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -434,7 +435,7 @@ var QueryTemplates = /** @class */ (function () {
                     case 2:
                         response = _a.sent();
                         if (response != undefined)
-                            return [2 /*return*/, response.name.wallet.transactions];
+                            return [2 /*return*/, response.identities];
                         return [3 /*break*/, 4];
                     case 3:
                         error_7 = _a.sent();
@@ -445,13 +446,13 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getTransactionsByNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
+    QueryTemplates.prototype.getTransactionsByName = function (name, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions (orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -472,44 +473,42 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
+    QueryTemplates.prototype.getTransactionsByNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_9;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.transactions];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_9 = _a.sent();
+                        console.error(error_9);
+                        throw new Error(error_9);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     QueryTemplates.prototype.getTransactionsFromNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
         return __awaiter(this, void 0, void 0, function () {
-            var from, customQuery, query, response, error_9;
+            var from, customQuery, query, response, error_10;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getWalletByName(name)];
                     case 1:
                         from = _a.sent();
                         customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{from: ' + from + ', currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
-                        query = new Query('bank', this.network);
-                        query.setCustomQuery(customQuery);
-                        _a.label = 2;
-                    case 2:
-                        _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, query.request()];
-                    case 3:
-                        response = _a.sent();
-                        if (response != undefined)
-                            return [2 /*return*/, response.name.wallet.transactions];
-                        return [3 /*break*/, 5];
-                    case 4:
-                        error_9 = _a.sent();
-                        console.error(error_9);
-                        throw new Error(error_9);
-                    case 5: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    QueryTemplates.prototype.getTransactionsToNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var to, customQuery, query, response, error_10;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.getWalletByName(name)];
-                    case 1:
-                        to = _a.sent();
-                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{to: ' + to + ', currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 2;
@@ -530,9 +529,38 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
+    QueryTemplates.prototype.getTransactionsToNameByTokens = function (name, orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var to, customQuery, query, response, error_11;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.getWalletByName(name)];
+                    case 1:
+                        to = _a.sent();
+                        customQuery = '{ name(id:"' + name + '") { wallet { transactions ( where:{to: ' + to + ', currency: ' + token + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id from { id name { id } } to { id name { id } } currency { id tokenSymbol tokenKind } amount timestamp bankTransaction { concept } packableId pnftDescription { metadata } nftDescription { reference tokenId metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, query.request()];
+                    case 3:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.transactions];
+                        return [3 /*break*/, 5];
+                    case 4:
+                        error_11 = _a.sent();
+                        console.error(error_11);
+                        throw new Error(error_11);
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     QueryTemplates.prototype.getTransactionsFromNameToNameByTokens = function (nameFrom, nameTo, orderBy, orderDirection, first, skip, token) {
         return __awaiter(this, void 0, void 0, function () {
-            var from, to, customQuery, query, response, error_11;
+            var from, to, customQuery, query, response, error_12;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.getWalletByName(nameFrom)];
@@ -554,9 +582,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.name.wallet.transactions];
                         return [3 /*break*/, 6];
                     case 5:
-                        error_11 = _a.sent();
-                        console.error(error_11);
-                        throw new Error(error_11);
+                        error_12 = _a.sent();
+                        console.error(error_12);
+                        throw new Error(error_12);
                     case 6: return [2 /*return*/];
                 }
             });
@@ -564,38 +592,11 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getBalancesByName = function (name) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_12;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        customQuery = '{ name(id:"' + name + '") { wallet { balances { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
-                        query = new Query('bank', this.network);
-                        query.setCustomQuery(customQuery);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, query.request()];
-                    case 2:
-                        response = _a.sent();
-                        if (response != undefined)
-                            return [2 /*return*/, response.name.wallet.balances];
-                        return [3 /*break*/, 4];
-                    case 3:
-                        error_12 = _a.sent();
-                        console.error(error_12);
-                        throw new Error(error_12);
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    QueryTemplates.prototype.getBalancesByNameByTokens = function (name, tokensArray) {
-        return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_13;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ name(id:"' + name + '") { wallet { balances (where:{token_in:' + tokensArray + '}) { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
+                        customQuery = '{ name(id:"' + name + '") { wallet { balances { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -616,9 +617,36 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getTokens = function (tokensArray) {
+    QueryTemplates.prototype.getBalancesByNameByTokens = function (name, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_14;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ name(id:"' + name + '") { wallet { balances (where:{token_in:' + tokensArray + '}) { token { id tokenSymbol tokenKind } balance packables { balances { balance packableId { id } } } commodities { tokenId reference metadata } } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.name.wallet.balances];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_14 = _a.sent();
+                        console.error(error_14);
+                        throw new Error(error_14);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getTokens = function (tokensArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_15;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -635,9 +663,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.tokens];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_14 = _a.sent();
-                        console.error(error_14);
-                        throw new Error(error_14);
+                        error_15 = _a.sent();
+                        console.error(error_15);
+                        throw new Error(error_15);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -645,7 +673,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getTransactionsByTokens = function (orderBy, orderDirection, first, skip, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_15;
+            var customQuery, query, response, error_16;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -662,33 +690,6 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.transactions];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_15 = _a.sent();
-                        console.error(error_15);
-                        throw new Error(error_15);
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    QueryTemplates.prototype.getTokenHolders = function (orderBy, orderDirection, first, skip, token) {
-        return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_16;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
-                        query = new Query('bank', this.network);
-                        query.setCustomQuery(customQuery);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, query.request()];
-                    case 2:
-                        response = _a.sent();
-                        if (response != undefined)
-                            return [2 /*return*/, response.tokenBalances];
-                        return [3 /*break*/, 4];
-                    case 3:
                         error_16 = _a.sent();
                         console.error(error_16);
                         throw new Error(error_16);
@@ -697,13 +698,13 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getNFTHolders = function (orderBy, orderDirection, first, skip, token) {
+    QueryTemplates.prototype.getTokenHolders = function (orderBy, orderDirection, first, skip, token) {
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_17;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -724,9 +725,36 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
+    QueryTemplates.prototype.getNFTHolders = function (orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_18;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.tokenBalances];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_18 = _a.sent();
+                        console.error(error_18);
+                        throw new Error(error_18);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     QueryTemplates.prototype.getPackableHolders = function (tokenAddress, packableId, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var tokenPackableId, customQuery, query, response, error_18;
+            var tokenPackableId, customQuery, query, response, error_19;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -744,9 +772,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.packableBalances];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_18 = _a.sent();
-                        console.error(error_18);
-                        throw new Error(error_18);
+                        error_19 = _a.sent();
+                        console.error(error_19);
+                        throw new Error(error_19);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -756,7 +784,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getOffers = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_19;
+            var customQuery, query, response, error_20;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -773,9 +801,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.offers];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_19 = _a.sent();
-                        console.error(error_19);
-                        throw new Error(error_19);
+                        error_20 = _a.sent();
+                        console.error(error_20);
+                        throw new Error(error_20);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -784,7 +812,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getPackableOffers = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_20;
+            var customQuery, query, response, error_21;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -801,9 +829,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.offerPackables];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_20 = _a.sent();
-                        console.error(error_20);
-                        throw new Error(error_20);
+                        error_21 = _a.sent();
+                        console.error(error_21);
+                        throw new Error(error_21);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -812,7 +840,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getNFTOffers = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_21;
+            var customQuery, query, response, error_22;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -829,9 +857,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.offerCommodities];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_21 = _a.sent();
-                        console.error(error_21);
-                        throw new Error(error_21);
+                        error_22 = _a.sent();
+                        console.error(error_22);
+                        throw new Error(error_22);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -840,7 +868,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getDeals = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_22;
+            var customQuery, query, response, error_23;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -857,34 +885,6 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.deals];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_22 = _a.sent();
-                        console.error(error_22);
-                        throw new Error(error_22);
-                    case 4: return [2 /*return*/];
-                }
-            });
-        });
-    };
-    QueryTemplates.prototype.getPackableDeals = function (filter, orderBy, orderDirection, first, skip, market) {
-        if (market === void 0) { market = "p2p"; }
-        return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_23;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        customQuery = '{ dealPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
-                        query = new Query(market, this.network);
-                        query.setCustomQuery(customQuery);
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, query.request()];
-                    case 2:
-                        response = _a.sent();
-                        if (response != undefined)
-                            return [2 /*return*/, response.dealPackables];
-                        return [3 /*break*/, 4];
-                    case 3:
                         error_23 = _a.sent();
                         console.error(error_23);
                         throw new Error(error_23);
@@ -893,14 +893,14 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getNFTDeals = function (filter, orderBy, orderDirection, first, skip, market) {
+    QueryTemplates.prototype.getPackableDeals = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, error_24;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ dealCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata reference } } seller { id name offchainReputation } buyer { id offchainReputation } buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
+                        customQuery = '{ dealPackables(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata } } seller { id name offchainReputation } buyer { id offchainReputation } sellAmount buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
                         query = new Query(market, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -921,10 +921,38 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
+    QueryTemplates.prototype.getNFTDeals = function (filter, orderBy, orderDirection, first, skip, market) {
+        if (market === void 0) { market = "p2p"; }
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_25;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ dealCommodities(where:{' + filter + '}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { id offer { id sellToken { id tokenSymbol } buyToken { id tokenSymbol } sellId { tokenId metadata reference } } seller { id name offchainReputation } buyer { id offchainReputation } buyAmount sellerVote buyerVote auditorVote isPending isSuccess executor timestamp } }';
+                        query = new Query(market, this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.dealPackables];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_25 = _a.sent();
+                        console.error(error_25);
+                        throw new Error(error_25);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     /******** MARKET */
     QueryTemplates.prototype.getTransfersCommission = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_25;
+            var customQuery, query, response, error_26;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -941,9 +969,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.controllers[0].commission];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_25 = _a.sent();
-                        console.error(error_25);
-                        throw new Error(error_25);
+                        error_26 = _a.sent();
+                        console.error(error_26);
+                        throw new Error(error_26);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -952,7 +980,7 @@ var QueryTemplates = /** @class */ (function () {
     /******** AUCTIONS */
     QueryTemplates.prototype.getAuctions = function (filter, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_26;
+            var customQuery, query, response, error_27;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -969,9 +997,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.auctions];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_26 = _a.sent();
-                        console.error(error_26);
-                        throw new Error(error_26);
+                        error_27 = _a.sent();
+                        console.error(error_27);
+                        throw new Error(error_27);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -979,7 +1007,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getBids = function (filter, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_27;
+            var customQuery, query, response, error_28;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -996,9 +1024,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.bids];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_27 = _a.sent();
-                        console.error(error_27);
-                        throw new Error(error_27);
+                        error_28 = _a.sent();
+                        console.error(error_28);
+                        throw new Error(error_28);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1006,7 +1034,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getAuctionsUserStats = function (filter, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_28;
+            var customQuery, query, response, error_29;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1023,9 +1051,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.users];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_28 = _a.sent();
-                        console.error(error_28);
-                        throw new Error(error_28);
+                        error_29 = _a.sent();
+                        console.error(error_29);
+                        throw new Error(error_29);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1033,7 +1061,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getAuctionsCommission = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_29;
+            var customQuery, query, response, error_30;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1050,9 +1078,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, Utils.weiToEther(response.factories[0].commission)];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_29 = _a.sent();
-                        console.error(error_29);
-                        throw new Error(error_29);
+                        error_30 = _a.sent();
+                        console.error(error_30);
+                        throw new Error(error_30);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1061,7 +1089,7 @@ var QueryTemplates = /** @class */ (function () {
     /******** DEX */
     QueryTemplates.prototype.getOrdersSkip = function (skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, queryOrders, orders, _skip, error_30;
+            var customQuery, query, response, queryOrders, orders, _skip, error_31;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1098,9 +1126,9 @@ var QueryTemplates = /** @class */ (function () {
                     case 5: return [2 /*return*/, orders];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        error_30 = _a.sent();
-                        console.error(error_30);
-                        throw new Error(error_30);
+                        error_31 = _a.sent();
+                        console.error(error_31);
+                        throw new Error(error_31);
                     case 8: return [2 /*return*/];
                 }
             });
@@ -1108,7 +1136,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getOpenOrdersNotInArray = function (ordersArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var skip, stringArray, customQuery, query, response, queryOrders, orders, _skip, error_31;
+            var skip, stringArray, customQuery, query, response, queryOrders, orders, _skip, error_32;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1147,9 +1175,9 @@ var QueryTemplates = /** @class */ (function () {
                     case 5: return [2 /*return*/, orders];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        error_31 = _a.sent();
-                        console.error(error_31);
-                        throw new Error(error_31);
+                        error_32 = _a.sent();
+                        console.error(error_32);
+                        throw new Error(error_32);
                     case 8: return [2 /*return*/];
                 }
             });
@@ -1157,7 +1185,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getCancelationsSkip = function (skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, queryOrders, orders, _skip, error_32;
+            var customQuery, query, response, queryOrders, orders, _skip, error_33;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1194,9 +1222,9 @@ var QueryTemplates = /** @class */ (function () {
                     case 5: return [2 /*return*/, orders];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        error_32 = _a.sent();
-                        console.error(error_32);
-                        throw new Error(error_32);
+                        error_33 = _a.sent();
+                        console.error(error_33);
+                        throw new Error(error_33);
                     case 8: return [2 /*return*/];
                 }
             });

@@ -1359,20 +1359,105 @@ export class Report {
         let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
 
         let queryTemplates = new QueryTemplates(this.url);
-        let identities = await queryTemplates.getSmartIDs();
+        let response = await queryTemplates.getSmartIDs(0);
+        let identities = response;
 
-        let promises: any = [];
-
-        for(let i = 0; i < identities.length; i++) {
-            promises.push(getUserMonthStatsByIdentityByTime(
-                identities[i].identity,
-                timeLow,
-                timeHigh,
-                this.url
-            ));
+        while(response.length >= 1000) {
+            response = await queryTemplates.getSmartIDs(identities.length);
+            identities = identities.concat(response);
         }
 
-        await Promise.all(promises);
+        /*********** */
+
+        let inputsObj = {}
+        let inputsAmountObj = {}
+        let outputsObj = {}
+        let outputsAmountObj = {}
+        let totalObj = {}
+        let maxObj = {}
+        let kycAmountsObj = {}
+        let flagsObj = {}
+        let identitiesArray = [];
+        for (let k = 0; k < identities.length; k++) {
+            let identity = String(identities[k].identity).toLowerCase();
+            inputsObj[identity] = 0;
+            inputsAmountObj[identity] = 0;
+            outputsObj[identity] = 0;
+            outputsAmountObj[identity] = 0;
+            totalObj[identity] = 0;
+            maxObj[identity] = 0;
+            kycAmountsObj[identity] = 0;
+            flagsObj[identity] = 0;
+            identitiesArray.push(identity);
+        }
+
+        let txs = await getAllTransactions(timeLow, timeHigh, this.url);
+        txs.length = 10;
+
+        for (let m = 0; m < txs.length; m++) {
+            let tx = txs[m];
+            let txAmount = await convertToUsd(
+                parseFloat(weiToEther(tx.amount)),
+                tx.currency.id,
+                tx.timestamp
+            );
+            console.log(txAmount)
+
+            if (tx.from.identity != null) {
+                let from = String(tx.from.identity.id).toLowerCase();
+                if (identitiesArray.includes(from)) {
+                    outputsObj[from]++;
+                    outputsAmountObj[from] = outputsAmountObj[from] + txAmount;
+
+                    if (txAmount > maxObj[from]) {
+                        maxObj[from] = txAmount * (-1);
+                    }
+                }
+            }
+
+            if (tx.to.identity != null) {
+                let to = String(tx.to.identity.id).toLowerCase();
+                if (identitiesArray.includes(to)) {
+                    inputsObj[to]++;
+                    inputsAmountObj[to] = inputsAmountObj[to] + txAmount;
+
+                    if (txAmount > maxObj[to]) {
+                        maxObj[to] = txAmount;
+                    }
+                }
+            }
+        }
+
+        let names = [];
+        let namesQuery = await queryTemplates.getNamesByIdentityArray(identitiesArray, names.length);
+
+        while(namesQuery.length > 1000) {
+            namesQuery = await queryTemplates.getNamesByIdentityArray(identitiesArray, names.length);
+            names = names.concat(namesQuery);
+        }
+
+        let tableArray = [];
+
+        for(let n = 0; n < names.length; n++) {
+            let array = [];
+            let id = names[n];
+            let pibid = String(id.id).toLowerCase();
+
+            let total = inputsAmountObj[pibid] - outputsAmountObj[pibid];
+            let kycAmount = 0;
+            let flag = 0;
+
+            array.push(id.wallet.name.id);
+            array.push(inputsObj[pibid]);
+            array.push(inputsAmountObj[pibid]);
+            array.push(outputsObj[pibid]);
+            array.push(outputsAmountObj[pibid]);
+            array.push(total);
+            array.push(maxObj[pibid]);
+            array.push(kycAmount);
+            array.push(flag);
+            tableArray.push(array);
+        }
 
         addTable(
             sheet,
@@ -1380,14 +1465,16 @@ export class Report {
             'B2',
             [
                 {name: 'Nombre', filterButton: true},
+                {name: 'N Entradas'},
                 {name: 'Entradas (USD)'},
+                {name: 'N Salidas'},
                 {name: 'Salidas (USD)'},
                 {name: 'Total (USD)'},
                 {name: 'Max (USD)'},
                 {name: 'Declarado (USD)'},
                 {name: 'Alerta'}
             ],
-            promises
+            tableArray
         );
 
         try {
@@ -1627,7 +1714,7 @@ async function getUserMonthStatsByIdentityByTime(
 }
 
 async function getUserTxStatsByNameByTime(
-    _nickname: string,
+    _identity: string,
     _timeLow: number,
     _timeHigh: number,
     _url: string = 'mainnet'
@@ -1635,11 +1722,12 @@ async function getUserTxStatsByNameByTime(
     let txsAndName = await try_getAllTransactionsByIdentity(
         _timeLow,
         _timeHigh,
-        _nickname,
+        _identity,
         _url
     );
 
     let txs = txsAndName[0];
+    let _nickname = txsAndName[1];
 
     let _inputs = 0;
     let _outputs = 0;
@@ -3505,7 +3593,6 @@ async function getTransactions(
 async function getAllTransactions(
     _timeLow: number, 
     _timeHigh: number, 
-    _tokenAddress: string,
     _url: string = 'mainnet'
 ) {
     let skip = 0;
@@ -3594,7 +3681,6 @@ async function try_getAllTransactionsByIdentity(
         return txsAndName;
     } catch (error) {
         if (retries < 10) {
-            retries++;
             console.log("-- REINTENTO DE QUERY: " + retries);  
             txsAndName = await try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, retries + 1);
             console.log("-- REINTENTO EXITOSO --");
@@ -3614,7 +3700,7 @@ async function getAllTransactionsByIdentity(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ identitys(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
+    let query = '{ identity(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
     let queryService = new Query('bank', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -4725,6 +4811,25 @@ async function convertToUsd(
 }
 
 async function requestRateEndPoint(
+    from: string,
+    to: string,
+    token: string,
+    retries: number = 0
+) {
+    try {
+        return await try_requestRateEndPoint(from, to, token);
+    } catch (e) {
+        if (retries < 5) {
+            console.log("-----REINTENTO: " + retries)
+            return await requestRateEndPoint(from, to, token, retries + 1);
+        } else {
+            console.error(e);
+            throw new Error(e);
+        }
+    }
+}
+
+async function try_requestRateEndPoint(
     from: string,
     to: string,
     token: string

@@ -1195,7 +1195,7 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
-    SmartID.prototype.cancelOrder = function (orderId) {
+    SmartID.prototype.cancelOrder = function (orderId, nonce) {
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, cancelData, walletContract, walletData, error_33;
             return __generator(this, function (_a) {
@@ -1213,7 +1213,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_33 = _a.sent();

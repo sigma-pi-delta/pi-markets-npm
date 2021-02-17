@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.DIA_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.AGRO = exports.SP500_SHORT = exports.SP500_LONG = exports.BRENT_SHORT = exports.BRENT_LONG = exports.NOVA = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDS = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES_FORCE = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.DEX_PACKABLE_ABI = exports.DEX_ABI = exports.MARKET_ABI = exports.DIVIDENDS_ABI = exports.REGISTRY_KYC_ABI = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.REGISTRY_SUBGRAPH_TESTNET = exports.REGISTRY_SUBGRAPH = exports.DEX_SUBGRAPH_TESTNET = exports.DEX_SUBGRAPH = exports.DIVIDENDS_SUBGRAPH_TESTNET = exports.DIVIDENDS_SUBGRAPH = exports.PIPRICE_SUBGRAPH_TESTNET = exports.PIPRICE_SUBGRAPH = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
+exports.DIA_TESTNET = exports.AGRO_TESTNET = exports.PGR_TESTNET = exports.RST_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.PEL_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.AGRO = exports.SP500_SHORT = exports.SP500_LONG = exports.BRENT_SHORT = exports.BRENT_LONG = exports.NOVA = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDS = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES_FORCE = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.DEX_PACKABLE_ABI = exports.DEX_ABI = exports.MARKET_ABI = exports.DIVIDENDS_ABI = exports.REGISTRY_KYC_ABI = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.REGISTRY_SUBGRAPH_TESTNET = exports.REGISTRY_SUBGRAPH = exports.DEX_SUBGRAPH_TESTNET = exports.DEX_SUBGRAPH = exports.DIVIDENDS_SUBGRAPH_TESTNET = exports.DIVIDENDS_SUBGRAPH = exports.PIPRICE_SUBGRAPH_TESTNET = exports.PIPRICE_SUBGRAPH = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
 // URL
 var RPC_URL = "https://connect.pichain.io";
 exports.RPC_URL = RPC_URL;
@@ -414,6 +414,12 @@ var USDT_TESTNET = {
     category: 1
 };
 exports.USDT_TESTNET = USDT_TESTNET;
+var PEL_TESTNET = {
+    symbol: "PEL_TESTNET",
+    address: "0x2d76e7802ed20c46f6703ea9564358b0ed1d698c",
+    category: 1
+};
+exports.PEL_TESTNET = PEL_TESTNET;
 var GLD_TESTNET = {
     symbol: "GLD_TESTNET",
     address: "0xa722eeb4972ad557e2094834ba29d68a62ffc264",
@@ -436,6 +442,35 @@ var CMT_TESTNET = {
     category: 3
 };
 exports.CMT_TESTNET = CMT_TESTNET;
+var AGRO_TESTNET = {
+    symbol: "AGRO_TESTNET",
+    address: "0x2b0d9f4a4299860f011275f018fdb1d2f3cf7053",
+    expiry: {
+        never: ["never", "0x5f1570c8ac91d7e7d0f049284e50886dd435c98c35a0e5563a7248041b1cfe1a"]
+    },
+    category: 3
+};
+exports.AGRO_TESTNET = AGRO_TESTNET;
+var PGR_TESTNET = {
+    symbol: "PGR_TESTNET",
+    address: "0x556198aff8d563598a93c9b9f148ba7d88afb348",
+    expiry: {
+        nov21: ["nov21", "0x2d5dea468459751f1cde905674453fe1cce1e58999fc88291bc996aaed37e400"],
+        feb22: ["feb22", "0x14f29dfcd17779771a63b3c4ef4c92856cdffedb93487ad34ba49b94fb5c1ee7"]
+    },
+    category: 3
+};
+exports.PGR_TESTNET = PGR_TESTNET;
+var RST_TESTNET = {
+    symbol: "RST_TESTNET",
+    address: "0xdd38a97be5a55b4eb4b0cda64c9661cbe1c3fcfb",
+    expiry: {
+        nov21: ["nov21", "0xb0402b82a618701408716faaec65ae5058dde918812cece7eeaa076523969797"],
+        feb22: ["feb22", "0x4d9b5b6bce1118eac334eff851f5820ae54afa7d5c91c2063da4d64c89707439"]
+    },
+    category: 3
+};
+exports.RST_TESTNET = RST_TESTNET;
 // OTHER
 var MIN_GAS_PRICE = "1000000000";
 exports.MIN_GAS_PRICE = MIN_GAS_PRICE;

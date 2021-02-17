@@ -1317,7 +1317,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getUsersReport = function (monthIndex, year) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, identities, promises, i, error_12, buffer, err_12;
+            var workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, response, identities, inputsObj, inputsAmountObj, outputsObj, outputsAmountObj, totalObj, maxObj, kycAmountsObj, flagsObj, identitiesArray, k, identity, txs, m, tx, txAmount, from, to, names, namesQuery, tableArray, n, array, id, pibid, total, kycAmount, flag, error_12, buffer, err_12;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1332,50 +1332,146 @@ var Report = /** @class */ (function () {
                         timeLow = getUtcTimeFromDate(year, monthIndex, 1);
                         timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
                         queryTemplates = new graph_1.QueryTemplates(this.url);
-                        return [4 /*yield*/, queryTemplates.getSmartIDs()];
+                        return [4 /*yield*/, queryTemplates.getSmartIDs(0)];
                     case 1:
-                        identities = _a.sent();
-                        promises = [];
-                        for (i = 0; i < identities.length; i++) {
-                            promises.push(getUserMonthStatsByIdentityByTime(identities[i].identity, timeLow, timeHigh, this.url));
-                        }
-                        return [4 /*yield*/, Promise.all(promises)];
+                        response = _a.sent();
+                        identities = response;
+                        _a.label = 2;
                     case 2:
-                        _a.sent();
+                        if (!(response.length >= 1000)) return [3 /*break*/, 4];
+                        return [4 /*yield*/, queryTemplates.getSmartIDs(identities.length)];
+                    case 3:
+                        response = _a.sent();
+                        identities = identities.concat(response);
+                        return [3 /*break*/, 2];
+                    case 4:
+                        inputsObj = {};
+                        inputsAmountObj = {};
+                        outputsObj = {};
+                        outputsAmountObj = {};
+                        totalObj = {};
+                        maxObj = {};
+                        kycAmountsObj = {};
+                        flagsObj = {};
+                        identitiesArray = [];
+                        for (k = 0; k < identities.length; k++) {
+                            identity = String(identities[k].identity).toLowerCase();
+                            inputsObj[identity] = 0;
+                            inputsAmountObj[identity] = 0;
+                            outputsObj[identity] = 0;
+                            outputsAmountObj[identity] = 0;
+                            totalObj[identity] = 0;
+                            maxObj[identity] = 0;
+                            kycAmountsObj[identity] = 0;
+                            flagsObj[identity] = 0;
+                            identitiesArray.push(identity);
+                        }
+                        return [4 /*yield*/, getAllTransactions(timeLow, timeHigh, this.url)];
+                    case 5:
+                        txs = _a.sent();
+                        txs.length = 10;
+                        m = 0;
+                        _a.label = 6;
+                    case 6:
+                        if (!(m < txs.length)) return [3 /*break*/, 9];
+                        tx = txs[m];
+                        return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, tx.timestamp)];
+                    case 7:
+                        txAmount = _a.sent();
+                        console.log(txAmount);
+                        if (tx.from.identity != null) {
+                            from = String(tx.from.identity.id).toLowerCase();
+                            if (identitiesArray.includes(from)) {
+                                outputsObj[from]++;
+                                outputsAmountObj[from] = outputsAmountObj[from] + txAmount;
+                                if (txAmount > maxObj[from]) {
+                                    maxObj[from] = txAmount * (-1);
+                                }
+                            }
+                        }
+                        if (tx.to.identity != null) {
+                            to = String(tx.to.identity.id).toLowerCase();
+                            if (identitiesArray.includes(to)) {
+                                inputsObj[to]++;
+                                inputsAmountObj[to] = inputsAmountObj[to] + txAmount;
+                                if (txAmount > maxObj[to]) {
+                                    maxObj[to] = txAmount;
+                                }
+                            }
+                        }
+                        _a.label = 8;
+                    case 8:
+                        m++;
+                        return [3 /*break*/, 6];
+                    case 9:
+                        names = [];
+                        return [4 /*yield*/, queryTemplates.getNamesByIdentityArray(identitiesArray, names.length)];
+                    case 10:
+                        namesQuery = _a.sent();
+                        _a.label = 11;
+                    case 11:
+                        if (!(namesQuery.length > 1000)) return [3 /*break*/, 13];
+                        return [4 /*yield*/, queryTemplates.getNamesByIdentityArray(identitiesArray, names.length)];
+                    case 12:
+                        namesQuery = _a.sent();
+                        names = names.concat(namesQuery);
+                        return [3 /*break*/, 11];
+                    case 13:
+                        tableArray = [];
+                        for (n = 0; n < names.length; n++) {
+                            array = [];
+                            id = names[n];
+                            pibid = String(id.id).toLowerCase();
+                            total = inputsAmountObj[pibid] - outputsAmountObj[pibid];
+                            kycAmount = 0;
+                            flag = 0;
+                            array.push(id.wallet.name.id);
+                            array.push(inputsObj[pibid]);
+                            array.push(inputsAmountObj[pibid]);
+                            array.push(outputsObj[pibid]);
+                            array.push(outputsAmountObj[pibid]);
+                            array.push(total);
+                            array.push(maxObj[pibid]);
+                            array.push(kycAmount);
+                            array.push(flag);
+                            tableArray.push(array);
+                        }
                         addTable(sheet, 'SmartIDReportTable', 'B2', [
                             { name: 'Nombre', filterButton: true },
+                            { name: 'N Entradas' },
                             { name: 'Entradas (USD)' },
+                            { name: 'N Salidas' },
                             { name: 'Salidas (USD)' },
                             { name: 'Total (USD)' },
                             { name: 'Max (USD)' },
                             { name: 'Declarado (USD)' },
                             { name: 'Alerta' }
-                        ], promises);
-                        _a.label = 3;
-                    case 3:
-                        _a.trys.push([3, 5, , 11]);
+                        ], tableArray);
+                        _a.label = 14;
+                    case 14:
+                        _a.trys.push([14, 16, , 22]);
                         return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsSmartIDReport.xlsx')];
-                    case 4:
+                    case 15:
                         _a.sent();
-                        return [3 /*break*/, 11];
-                    case 5:
+                        return [3 /*break*/, 22];
+                    case 16:
                         error_12 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 6:
+                    case 17:
                         buffer = _a.sent();
-                        _a.label = 7;
-                    case 7:
-                        _a.trys.push([7, 9, , 10]);
+                        _a.label = 18;
+                    case 18:
+                        _a.trys.push([18, 20, , 21]);
                         return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsSmartIDReport.xlsx')];
-                    case 8:
+                    case 19:
                         _a.sent();
-                        return [3 /*break*/, 10];
-                    case 9:
+                        return [3 /*break*/, 21];
+                    case 20:
                         err_12 = _a.sent();
                         console.error(err_12);
-                        return [3 /*break*/, 10];
-                    case 10: return [3 /*break*/, 11];
-                    case 11: return [2 /*return*/];
+                        return [3 /*break*/, 21];
+                    case 21: return [3 /*break*/, 22];
+                    case 22: return [2 /*return*/];
                 }
             });
         });
@@ -1590,16 +1686,17 @@ function getUserMonthStatsByIdentityByTime(_identity, _timeLow, _timeHigh, _url)
         });
     });
 }
-function getUserTxStatsByNameByTime(_nickname, _timeLow, _timeHigh, _url) {
+function getUserTxStatsByNameByTime(_identity, _timeLow, _timeHigh, _url) {
     if (_url === void 0) { _url = 'mainnet'; }
     return __awaiter(this, void 0, void 0, function () {
-        var txsAndName, txs, _inputs, _outputs, _inputsAmount, _outputsAmount, _max, _maxSide, i, tx, txAmount;
+        var txsAndName, txs, _nickname, _inputs, _outputs, _inputsAmount, _outputsAmount, _max, _maxSide, i, tx, txAmount;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _nickname, _url)];
+                case 0: return [4 /*yield*/, try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url)];
                 case 1:
                     txsAndName = _a.sent();
                     txs = txsAndName[0];
+                    _nickname = txsAndName[1];
                     _inputs = 0;
                     _outputs = 0;
                     _inputsAmount = 0;
@@ -3123,7 +3220,7 @@ function getTransactions(_timeLow, _timeHigh, _tokenAddress, _url) {
         });
     });
 }
-function getAllTransactions(_timeLow, _timeHigh, _tokenAddress, _url) {
+function getAllTransactions(_timeLow, _timeHigh, _url) {
     if (_url === void 0) { _url = 'mainnet'; }
     return __awaiter(this, void 0, void 0, function () {
         var skip, query, queryService, response, queryTransactions, transactions;
@@ -3237,7 +3334,6 @@ function try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, 
                 case 2:
                     error_14 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
-                    retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
                     return [4 /*yield*/, try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, retries + 1)];
                 case 3:
@@ -3262,7 +3358,7 @@ function getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ identitys(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
+                    query = '{ identity(id:"' + _identity + '") { wallet { name { id } transactions (first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '} orderBy: timestamp, orderDirection: desc){ id from { id name { id } } to { id name { id } } currency { id tokenSymbol } amount timestamp } } } }';
                     queryService = new graph_1.Query('bank', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -4539,7 +4635,32 @@ function convertToUsd(amount, token, timestamp) {
         });
     });
 }
-function requestRateEndPoint(from, to, token) {
+function requestRateEndPoint(from, to, token, retries) {
+    if (retries === void 0) { retries = 0; }
+    return __awaiter(this, void 0, void 0, function () {
+        var e_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 6]);
+                    return [4 /*yield*/, try_requestRateEndPoint(from, to, token)];
+                case 1: return [2 /*return*/, _a.sent()];
+                case 2:
+                    e_1 = _a.sent();
+                    if (!(retries < 5)) return [3 /*break*/, 4];
+                    console.log("-----REINTENTO: " + retries);
+                    return [4 /*yield*/, requestRateEndPoint(from, to, token, retries + 1)];
+                case 3: return [2 /*return*/, _a.sent()];
+                case 4:
+                    console.error(e_1);
+                    throw new Error(e_1);
+                case 5: return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
+function try_requestRateEndPoint(from, to, token) {
     return __awaiter(this, void 0, void 0, function () {
         var endPoint, body, response, responseData, error_27;
         return __generator(this, function (_a) {
