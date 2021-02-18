@@ -1890,7 +1890,6 @@ async function setTransactionSheet(
             //TXs Table
             txDayRow.push(new Date(nextTx.timestamp * 1000));
             txDayRow.push(nextTx.currency.tokenSymbol);
-            txDayRow.push(nextTx.from.id);
             
             if (!hideNames) {
                 if (nextTx.from.name == null) {
@@ -1898,9 +1897,9 @@ async function setTransactionSheet(
                 } else {
                     txDayRow.push(nextTx.from.name.id);
                 }
+            } else {
+                txDayRow.push(nextTx.from.id);
             }
-
-            txDayRow.push(nextTx.to.id);
 
             if (!hideNames) {
                 if (nextTx.to.name == null) {
@@ -1908,6 +1907,8 @@ async function setTransactionSheet(
                 } else {
                     txDayRow.push(nextTx.to.name.id);
                 }
+            } else {
+                txDayRow.push(nextTx.to.id);
             }
 
             txDayRow.push(parseFloat(weiToEther(nextTx.amount)));
@@ -2058,37 +2059,19 @@ async function setTransactionSheet(
         txRows = getEmptyTransaction();
     }
 
-    if (hideNames) {
-        addTable(
-            sheet,
-            tableName,
-            'B36',
-            [
-                {name: 'Fecha', filterButton: true},
-                {name: 'Divisa'},
-                {name: 'Origen (wallet)', filterButton: true},
-                {name: 'Destino (wallet)', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'}
-            ],
-            txRows
-        );
-    } else {
-        addTable(
-            sheet,
-            tableName,
-            'B36',
-            [
-                {name: 'Fecha', filterButton: true},
-                {name: 'Divisa'},
-                {name: 'Origen (wallet)'},
-                {name: 'Origen (usuario)', filterButton: true},
-                {name: 'Destino (wallet)'},
-                {name: 'Destino (usuario)', filterButton: true},
-                {name: 'Monto', totalsRowFunction: 'sum'}
-            ],
-            txRows
-        );
-    }
+    addTable(
+        sheet,
+        tableName,
+        'B36',
+        [
+            {name: 'Fecha', filterButton: true},
+            {name: 'Divisa'},
+            {name: 'Origen (wallet)', filterButton: true},
+            {name: 'Destino (wallet)', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'}
+        ],
+        txRows
+    );
 
     //CELL LABELS
     sheet.getCell('B35').value = 'TRANSFERENCIAS';
@@ -4670,8 +4653,6 @@ function getEmptyTransaction() {
     let array: any[] = [];
 
     array.push(new Date());
-    array.push("");
-    array.push("");
     array.push("");
     array.push("");
     array.push("");

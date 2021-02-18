@@ -1825,7 +1825,6 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                             //TXs Table
                             txDayRow.push(new Date(nextTx.timestamp * 1000));
                             txDayRow.push(nextTx.currency.tokenSymbol);
-                            txDayRow.push(nextTx.from.id);
                             if (!hideNames) {
                                 if (nextTx.from.name == null) {
                                     txDayRow.push("");
@@ -1834,7 +1833,9 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                                     txDayRow.push(nextTx.from.name.id);
                                 }
                             }
-                            txDayRow.push(nextTx.to.id);
+                            else {
+                                txDayRow.push(nextTx.from.id);
+                            }
                             if (!hideNames) {
                                 if (nextTx.to.name == null) {
                                     txDayRow.push("");
@@ -1842,6 +1843,9 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                                 else {
                                     txDayRow.push(nextTx.to.name.id);
                                 }
+                            }
+                            else {
+                                txDayRow.push(nextTx.to.id);
                             }
                             txDayRow.push(parseFloat(utils_1.weiToEther(nextTx.amount)));
                             txRows.push(txDayRow);
@@ -1947,26 +1951,13 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                     if (txRows.length == 0) {
                         txRows = getEmptyTransaction();
                     }
-                    if (hideNames) {
-                        addTable(sheet, tableName, 'B36', [
-                            { name: 'Fecha', filterButton: true },
-                            { name: 'Divisa' },
-                            { name: 'Origen (wallet)', filterButton: true },
-                            { name: 'Destino (wallet)', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' }
-                        ], txRows);
-                    }
-                    else {
-                        addTable(sheet, tableName, 'B36', [
-                            { name: 'Fecha', filterButton: true },
-                            { name: 'Divisa' },
-                            { name: 'Origen (wallet)' },
-                            { name: 'Origen (usuario)', filterButton: true },
-                            { name: 'Destino (wallet)' },
-                            { name: 'Destino (usuario)', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' }
-                        ], txRows);
-                    }
+                    addTable(sheet, tableName, 'B36', [
+                        { name: 'Fecha', filterButton: true },
+                        { name: 'Divisa' },
+                        { name: 'Origen (wallet)', filterButton: true },
+                        { name: 'Destino (wallet)', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' }
+                    ], txRows);
                     //CELL LABELS
                     sheet.getCell('B35').value = 'TRANSFERENCIAS';
                     sheet.getCell('B35').font = { bold: true };
@@ -4515,8 +4506,6 @@ function getEmptyTransaction() {
     var rows = [];
     var array = [];
     array.push(new Date());
-    array.push("");
-    array.push("");
     array.push("");
     array.push("");
     array.push("");
