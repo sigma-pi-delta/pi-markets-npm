@@ -51,7 +51,8 @@ var Report = /** @class */ (function () {
         if (url === void 0) { url = 'mainnet'; }
         this.url = url;
     }
-    Report.prototype.getTransactionReportV2 = function (monthIndex, year, tokensArray, name) {
+    Report.prototype.getTransactionReportV2 = function (monthIndex, year, tokensArray, hideNames, name) {
+        if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
             var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, error_1, buffer, err_1;
             return __generator(this, function (_a) {
@@ -69,7 +70,7 @@ var Report = /** @class */ (function () {
                         promises = [];
                         for (i = 0; i < tokensArray.length; i++) {
                             sheet = workbook.addWorksheet(tokensArray[i].symbol);
-                            promises.push(setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i], name));
+                            promises.push(setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i], hideNames, name));
                         }
                         return [4 /*yield*/, Promise.all(promises)];
                     case 1:
@@ -195,7 +196,8 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getTokenHoldersReport = function (orderBy, orderDirection, tokensArray) {
+    Report.prototype.getTokenHoldersReport = function (orderBy, orderDirection, tokensArray, hideNames) {
+        if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
             var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_3, buffer, err_3;
             return __generator(this, function (_a) {
@@ -208,7 +210,7 @@ var Report = /** @class */ (function () {
                         i = 0;
                         _a.label = 1;
                     case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 13];
+                        if (!(i < tokensArray.length)) return [3 /*break*/, 16];
                         skip = 0;
                         return [4 /*yield*/, queryTemplates.getTokenHolders(orderBy, orderDirection, first, skip, tokensArray[i].address)];
                     case 2:
@@ -236,40 +238,52 @@ var Report = /** @class */ (function () {
                         rows = [];
                         for (j = 0; j < response.length; j++) {
                             array = [];
-                            if (response[j].wallet.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(response[j].wallet.name.id);
+                            if (!hideNames) {
+                                if (response[j].wallet.name == null) {
+                                    array.push("");
+                                }
+                                else {
+                                    array.push(response[j].wallet.name.id);
+                                }
                             }
                             array.push(response[j].wallet.id);
                             array.push(parseFloat(utils_1.weiToEther(response[j].balance)));
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol;
+                        if (!hideNames) return [3 /*break*/, 7];
                         return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
-                                { name: 'Nombre', filterButton: true },
-                                { name: 'Wallet' },
+                                { name: 'Wallet', filterButton: true },
                                 { name: 'Saldo', totalsRowFunction: 'sum' }
                             ], rows)];
                     case 6:
                         _a.sent();
+                        return [3 /*break*/, 9];
+                    case 7: return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
+                            { name: 'Nombre', filterButton: true },
+                            { name: 'Wallet' },
+                            { name: 'Saldo', totalsRowFunction: 'sum' }
+                        ], rows)];
+                    case 8:
+                        _a.sent();
+                        _a.label = 9;
+                    case 9:
                         skipOffers = 0;
                         return [4 /*yield*/, queryTemplates.getOffers('sellToken: "' + tokensArray[i].address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
-                    case 7:
+                    case 10:
                         offers = _a.sent();
                         loopOffers = offers;
-                        _a.label = 8;
-                    case 8:
-                        if (!(loopOffers.length >= 1000)) return [3 /*break*/, 10];
+                        _a.label = 11;
+                    case 11:
+                        if (!(loopOffers.length >= 1000)) return [3 /*break*/, 13];
                         skipOffers = offers.length;
                         return [4 /*yield*/, queryTemplates.getOffers('sellToken: "' + tokensArray[i].address + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
-                    case 9:
+                    case 12:
                         offers = _a.sent();
                         offers = offers.concat(loopOffers);
-                        return [3 /*break*/, 8];
-                    case 10:
-                        if (!(offers.length > 0)) return [3 /*break*/, 12];
+                        return [3 /*break*/, 11];
+                    case 13:
+                        if (!(offers.length > 0)) return [3 /*break*/, 15];
                         sheet.getCell('G6').value = 'OFERTAS P2P';
                         sheet.getCell('G6').font = { bold: true };
                         rows2 = [];
@@ -286,41 +300,42 @@ var Report = /** @class */ (function () {
                                 { name: 'Wallet' },
                                 { name: 'Cantidad ofertada', totalsRowFunction: 'sum' }
                             ], rows2)];
-                    case 11:
-                        _a.sent();
-                        _a.label = 12;
-                    case 12:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 13:
-                        _a.trys.push([13, 15, , 21]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenHoldersReport.xlsx')];
                     case 14:
                         _a.sent();
-                        return [3 /*break*/, 21];
+                        _a.label = 15;
                     case 15:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 16:
+                        _a.trys.push([16, 18, , 24]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTokenHoldersReport.xlsx')];
+                    case 17:
+                        _a.sent();
+                        return [3 /*break*/, 24];
+                    case 18:
                         error_3 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 16:
-                        buffer = _a.sent();
-                        _a.label = 17;
-                    case 17:
-                        _a.trys.push([17, 19, , 20]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenHoldersReport.xlsx')];
-                    case 18:
-                        _a.sent();
-                        return [3 /*break*/, 20];
                     case 19:
+                        buffer = _a.sent();
+                        _a.label = 20;
+                    case 20:
+                        _a.trys.push([20, 22, , 23]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenHoldersReport.xlsx')];
+                    case 21:
+                        _a.sent();
+                        return [3 /*break*/, 23];
+                    case 22:
                         err_3 = _a.sent();
                         console.error(err_3);
-                        return [3 /*break*/, 20];
-                    case 20: return [3 /*break*/, 21];
-                    case 21: return [2 /*return*/];
+                        return [3 /*break*/, 23];
+                    case 23: return [3 /*break*/, 24];
+                    case 24: return [2 /*return*/];
                 }
             });
         });
     };
-    Report.prototype.getPackableHoldersReport = function (orderBy, orderDirection, tokensArray, expiries) {
+    Report.prototype.getPackableHoldersReport = function (orderBy, orderDirection, tokensArray, expiries, hideNames) {
+        if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
             var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
             return __generator(this, function (_a) {
@@ -333,7 +348,7 @@ var Report = /** @class */ (function () {
                         i = 0;
                         _a.label = 1;
                     case 1:
-                        if (!(i < tokensArray.length)) return [3 /*break*/, 13];
+                        if (!(i < tokensArray.length)) return [3 /*break*/, 16];
                         return [4 /*yield*/, queryTemplates.getPackableHolders(tokensArray[i].address, expiries[i][1], orderBy, orderDirection, first, skip)];
                     case 2:
                         response = _a.sent();
@@ -363,40 +378,52 @@ var Report = /** @class */ (function () {
                         rows = [];
                         for (j = 0; j < response.length; j++) {
                             array = [];
-                            if (response[j].wallet.name == null) {
-                                array.push("");
-                            }
-                            else {
-                                array.push(response[j].wallet.name.id);
+                            if (!hideNames) {
+                                if (response[j].wallet.name == null) {
+                                    array.push("");
+                                }
+                                else {
+                                    array.push(response[j].wallet.name.id);
+                                }
                             }
                             array.push(response[j].wallet.id);
                             array.push(parseInt(utils_1.weiToEther(response[j].balance)));
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
+                        if (!hideNames) return [3 /*break*/, 7];
                         return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
-                                { name: 'Nombre', filterButton: true },
-                                { name: 'Wallet' },
+                                { name: 'Wallet', filterButton: true },
                                 { name: 'Saldo', totalsRowFunction: 'sum' }
                             ], rows)];
                     case 6:
                         _a.sent();
+                        return [3 /*break*/, 9];
+                    case 7: return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
+                            { name: 'Nombre', filterButton: true },
+                            { name: 'Wallet' },
+                            { name: 'Saldo', totalsRowFunction: 'sum' }
+                        ], rows)];
+                    case 8:
+                        _a.sent();
+                        _a.label = 9;
+                    case 9:
                         skipOffers = 0;
                         return [4 /*yield*/, queryTemplates.getPackableOffers('sellToken: "' + tokensArray[i].address + '", sellId: "' + expiries[i][1] + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
-                    case 7:
+                    case 10:
                         offers = _a.sent();
                         loopOffers = offers;
-                        _a.label = 8;
-                    case 8:
-                        if (!(loopOffers.length >= 1000)) return [3 /*break*/, 10];
+                        _a.label = 11;
+                    case 11:
+                        if (!(loopOffers.length >= 1000)) return [3 /*break*/, 13];
                         skipOffers = offers.length;
                         return [4 /*yield*/, queryTemplates.getPackableOffers('sellToken: "' + tokensArray[i].address + '", sellId: "' + expiries[i][1] + '", isOpen: true', 'sellAmount', 'desc', 1000, skipOffers)];
-                    case 9:
+                    case 12:
                         offers = _a.sent();
                         offers = offers.concat(loopOffers);
-                        return [3 /*break*/, 8];
-                    case 10:
-                        if (!(offers.length > 0)) return [3 /*break*/, 12];
+                        return [3 /*break*/, 11];
+                    case 13:
+                        if (!(offers.length > 0)) return [3 /*break*/, 15];
                         sheet.getCell('F6').value = 'NOTA: Si no coincide el saldo de Mercado P2P con el total ofertado hay que ver pactos pendientes';
                         sheet.getCell('F6').font = { color: { argb: "ff0000" } };
                         sheet.getCell('G5').value = 'OFERTAS P2P';
@@ -415,36 +442,36 @@ var Report = /** @class */ (function () {
                                 { name: 'Wallet' },
                                 { name: 'Cantidad ofertada', totalsRowFunction: 'sum' }
                             ], rows2)];
-                    case 11:
-                        _a.sent();
-                        _a.label = 12;
-                    case 12:
-                        i++;
-                        return [3 /*break*/, 1];
-                    case 13:
-                        _a.trys.push([13, 15, , 21]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableHoldersReport.xlsx')];
                     case 14:
                         _a.sent();
-                        return [3 /*break*/, 21];
+                        _a.label = 15;
                     case 15:
+                        i++;
+                        return [3 /*break*/, 1];
+                    case 16:
+                        _a.trys.push([16, 18, , 24]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsPackableHoldersReport.xlsx')];
+                    case 17:
+                        _a.sent();
+                        return [3 /*break*/, 24];
+                    case 18:
                         error_4 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 16:
-                        buffer = _a.sent();
-                        _a.label = 17;
-                    case 17:
-                        _a.trys.push([17, 19, , 20]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableHoldersReport.xlsx')];
-                    case 18:
-                        _a.sent();
-                        return [3 /*break*/, 20];
                     case 19:
+                        buffer = _a.sent();
+                        _a.label = 20;
+                    case 20:
+                        _a.trys.push([20, 22, , 23]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableHoldersReport.xlsx')];
+                    case 21:
+                        _a.sent();
+                        return [3 /*break*/, 23];
+                    case 22:
                         err_4 = _a.sent();
                         console.error(err_4);
-                        return [3 /*break*/, 20];
-                    case 20: return [3 /*break*/, 21];
-                    case 21: return [2 /*return*/];
+                        return [3 /*break*/, 23];
+                    case 23: return [3 /*break*/, 24];
+                    case 24: return [2 /*return*/];
                 }
             });
         });
@@ -573,7 +600,8 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getTokenDealsReportV2 = function (monthIndex, year, tokensArray) {
+    Report.prototype.getTokenDealsReportV2 = function (monthIndex, year, tokensArray, hideNames) {
+        if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
             var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_6, buffer, err_6;
             return __generator(this, function (_a) {
@@ -592,8 +620,8 @@ var Report = /** @class */ (function () {
                         for (i = 0; i < tokensArray.length; i++) {
                             sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
                             sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                            promises.push(setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i]));
-                            promises.push(setPrimaryTokenDealsSheet(sheet2, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i]));
+                            promises.push(setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i], hideNames));
+                            promises.push(setPrimaryTokenDealsSheet(sheet2, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, this.url, tokensArray[i], hideNames));
                         }
                         return [4 /*yield*/, Promise.all(promises)];
                     case 1:
@@ -866,7 +894,8 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray) {
+    Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray, hideNames) {
+        if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
             var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_9, buffer, err_9;
             return __generator(this, function (_a) {
@@ -885,8 +914,8 @@ var Report = /** @class */ (function () {
                         for (i = 0; i < tokensArray.length; i++) {
                             sheet = workbook.addWorksheet(tokensArray[i].symbol + '2°');
                             sheet2 = workbook.addWorksheet(tokensArray[i].symbol + '1°');
-                            promises.push(setPackableDealsSheet(sheet, timeLow, timeHigh, this.url, tokensArray[i]));
-                            promises.push(setPrimaryPackableDealsSheet(sheet2, timeLow, timeHigh, this.url, tokensArray[i]));
+                            promises.push(setPackableDealsSheet(sheet, timeLow, timeHigh, this.url, tokensArray[i], hideNames));
+                            promises.push(setPrimaryPackableDealsSheet(sheet2, timeLow, timeHigh, this.url, tokensArray[i], hideNames));
                         }
                         return [4 /*yield*/, Promise.all(promises)];
                     case 1:
@@ -1750,7 +1779,8 @@ function getUserTxStatsByNameByTime(_identity, _timeLow, _timeHigh, _url) {
         });
     });
 }
-function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token, name) {
+function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token, hideNames, name) {
+    if (hideNames === void 0) { hideNames = true; }
     return __awaiter(this, void 0, void 0, function () {
         var day, week, month, dayCounter, weekCounter, weekRates, monthCounter, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, txRows, rates, transactions, nextTx, nextTimestamp, txDayRow, amount, weekRow_1, dayRow, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName;
         return __generator(this, function (_a) {
@@ -1796,18 +1826,22 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                             txDayRow.push(new Date(nextTx.timestamp * 1000));
                             txDayRow.push(nextTx.currency.tokenSymbol);
                             txDayRow.push(nextTx.from.id);
-                            if (nextTx.from.name == null) {
-                                txDayRow.push("");
-                            }
-                            else {
-                                txDayRow.push(nextTx.from.name.id);
+                            if (!hideNames) {
+                                if (nextTx.from.name == null) {
+                                    txDayRow.push("");
+                                }
+                                else {
+                                    txDayRow.push(nextTx.from.name.id);
+                                }
                             }
                             txDayRow.push(nextTx.to.id);
-                            if (nextTx.to.name == null) {
-                                txDayRow.push("");
-                            }
-                            else {
-                                txDayRow.push(nextTx.to.name.id);
+                            if (!hideNames) {
+                                if (nextTx.to.name == null) {
+                                    txDayRow.push("");
+                                }
+                                else {
+                                    txDayRow.push(nextTx.to.name.id);
+                                }
                             }
                             txDayRow.push(parseFloat(utils_1.weiToEther(nextTx.amount)));
                             txRows.push(txDayRow);
@@ -1913,15 +1947,26 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                     if (txRows.length == 0) {
                         txRows = getEmptyTransaction();
                     }
-                    addTable(sheet, tableName, 'B36', [
-                        { name: 'Fecha', filterButton: true },
-                        { name: 'Divisa' },
-                        { name: 'Origen (wallet)' },
-                        { name: 'Origen (usuario)', filterButton: true },
-                        { name: 'Destino (wallet)' },
-                        { name: 'Destino (usuario)', filterButton: true },
-                        { name: 'Monto', totalsRowFunction: 'sum' }
-                    ], txRows);
+                    if (hideNames) {
+                        addTable(sheet, tableName, 'B36', [
+                            { name: 'Fecha', filterButton: true },
+                            { name: 'Divisa' },
+                            { name: 'Origen (wallet)', filterButton: true },
+                            { name: 'Destino (wallet)', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' }
+                        ], txRows);
+                    }
+                    else {
+                        addTable(sheet, tableName, 'B36', [
+                            { name: 'Fecha', filterButton: true },
+                            { name: 'Divisa' },
+                            { name: 'Origen (wallet)' },
+                            { name: 'Origen (usuario)', filterButton: true },
+                            { name: 'Destino (wallet)' },
+                            { name: 'Destino (usuario)', filterButton: true },
+                            { name: 'Monto', totalsRowFunction: 'sum' }
+                        ], txRows);
+                    }
                     //CELL LABELS
                     sheet.getCell('B35').value = 'TRANSFERENCIAS';
                     sheet.getCell('B35').font = { bold: true };
@@ -1936,7 +1981,8 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
         });
     });
 }
-function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token) {
+function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token, hideNames) {
+    if (hideNames === void 0) { hideNames = true; }
     return __awaiter(this, void 0, void 0, function () {
         var day, week, month, dayCounter, weekCounter, monthCounter, weekRates, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, rates, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, array, deals, q, amount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_2, dayRow, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName, tableName2;
         return __generator(this, function (_a) {
@@ -2011,17 +2057,23 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                                         array.push(timeConverter(deals[q].offer.timestamp));
                                         array.push(timeConverter(deals[q].timestamp));
                                         array.push(deals[q].offer.buyToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
+                                        if (!hideNames) {
+                                            if (deals[q].seller.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].seller.name);
+                                            }
+                                            if (deals[q].buyer.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].buyer.name);
+                                            }
                                         }
                                         else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
+                                            array.push(deals[q].seller.id);
+                                            array.push(deals[q].buyer.id);
                                         }
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
@@ -2041,17 +2093,23 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                                         array.push(timeConverter(deals[q].offer.timestamp));
                                         array.push(timeConverter(deals[q].timestamp));
                                         array.push(deals[q].offer.sellToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
+                                        if (!hideNames) {
+                                            if (deals[q].seller.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].seller.name);
+                                            }
+                                            if (deals[q].buyer.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].buyer.name);
+                                            }
                                         }
                                         else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
+                                            array.push(deals[q].seller.id);
+                                            array.push(deals[q].buyer.id);
                                         }
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
@@ -2185,8 +2243,8 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], offersRows);
@@ -2201,8 +2259,8 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], requestsRows);
@@ -2219,7 +2277,8 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
         });
     });
 }
-function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token) {
+function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthIndex, toYear, url, token, hideNames) {
+    if (hideNames === void 0) { hideNames = true; }
     return __awaiter(this, void 0, void 0, function () {
         var day, week, month, dayCounter, weekCounter, monthCounter, weekRates, monthRates, weekZeros, monthZeros, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, rates, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, array, deals, q, amount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_3, dayRow, weekRow, monthRow, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName3, tableName4;
         return __generator(this, function (_a) {
@@ -2294,17 +2353,23 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                                         array.push(timeConverter(deals[q].offer.timestamp));
                                         array.push(timeConverter(deals[q].timestamp));
                                         array.push(deals[q].offer.buyToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
+                                        if (!hideNames) {
+                                            if (deals[q].seller.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].seller.name);
+                                            }
+                                            if (deals[q].buyer.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].buyer.name);
+                                            }
                                         }
                                         else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
+                                            array.push(deals[q].seller.id);
+                                            array.push(deals[q].buyer.id);
                                         }
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
@@ -2324,17 +2389,23 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                                         array.push(timeConverter(deals[q].offer.timestamp));
                                         array.push(timeConverter(deals[q].timestamp));
                                         array.push(deals[q].offer.sellToken.tokenSymbol);
-                                        if (deals[q].seller.name == null) {
-                                            array.push("");
+                                        if (!hideNames) {
+                                            if (deals[q].seller.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].seller.name);
+                                            }
+                                            if (deals[q].buyer.name == null) {
+                                                array.push("");
+                                            }
+                                            else {
+                                                array.push(deals[q].buyer.name);
+                                            }
                                         }
                                         else {
-                                            array.push(deals[q].seller.name);
-                                        }
-                                        if (deals[q].buyer.name == null) {
-                                            array.push("");
-                                        }
-                                        else {
-                                            array.push(deals[q].buyer.name);
+                                            array.push(deals[q].seller.id);
+                                            array.push(deals[q].buyer.id);
                                         }
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
                                         array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
@@ -2468,8 +2539,8 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], offersRows);
@@ -2484,8 +2555,8 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], requestsRows);
@@ -2502,7 +2573,8 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
         });
     });
 }
-function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
+function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hideNames) {
+    if (hideNames === void 0) { hideNames = true; }
     return __awaiter(this, void 0, void 0, function () {
         var day, week, month, dayCounter, weekCounter, monthCounter, dayCounterUsd, weekCounterUsd, monthCounterUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, buyAmount, usdAmount, array, deals, q, amount, sellAmount, usdAmount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_4, dayRow, weekRow, monthRow, tableDay, tableWeek, tableMonth, tableName, tableName2;
         return __generator(this, function (_a) {
@@ -2594,17 +2666,23 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                     array.push(timeConverter(deals[q].offer.timestamp));
                     array.push(timeConverter(deals[q].timestamp));
                     array.push(deals[q].offer.buyToken.tokenSymbol);
-                    if (deals[q].seller.name == null) {
-                        array.push("");
+                    if (!hideNames) {
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].seller.name);
+                        }
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].buyer.name);
+                        }
                     }
                     else {
-                        array.push(deals[q].seller.name);
-                    }
-                    if (deals[q].buyer.name == null) {
-                        array.push("");
-                    }
-                    else {
-                        array.push(deals[q].buyer.name);
+                        array.push(deals[q].seller.id);
+                        array.push(deals[q].buyer.id);
                     }
                     array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
                     array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
@@ -2644,17 +2722,23 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                     array.push(timeConverter(deals[q].offer.timestamp));
                     array.push(timeConverter(deals[q].timestamp));
                     array.push(deals[q].offer.sellToken.tokenSymbol);
-                    if (deals[q].seller.name == null) {
-                        array.push("");
+                    if (!hideNames) {
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].seller.name);
+                        }
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].buyer.name);
+                        }
                     }
                     else {
-                        array.push(deals[q].seller.name);
-                    }
-                    if (deals[q].buyer.name == null) {
-                        array.push("");
-                    }
-                    else {
-                        array.push(deals[q].buyer.name);
+                        array.push(deals[q].seller.id);
+                        array.push(deals[q].buyer.id);
                     }
                     array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
                     array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
@@ -2772,8 +2856,8 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], offersRows);
@@ -2788,8 +2872,8 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], requestsRows);
@@ -2806,7 +2890,8 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
         });
     });
 }
-function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
+function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hideNames) {
+    if (hideNames === void 0) { hideNames = true; }
     return __awaiter(this, void 0, void 0, function () {
         var day, week, month, dayCounter, weekCounter, monthCounter, dayCounterUsd, weekCounterUsd, monthCounterUsd, _timeLow, _timeHigh, dayRows, weekRows, monthRows, offersRows, requestsRows, dayOffers, dayRequests, nextOffer, nextTimestamp, nextIsOffer, nextOfferTimestamp, nextRequestTimestamp, deals, q, amount, buyAmount, usdAmount, array, deals, q, amount, sellAmount, usdAmount, array, nextOfferTimestamp, nextRequestTimestamp, weekRow_5, dayRow, weekRow, monthRow, tableDayPrimary, tableWeekPrimary, tableMonthPrimary, tableName3, tableName4;
         return __generator(this, function (_a) {
@@ -2898,17 +2983,23 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                     array.push(timeConverter(deals[q].offer.timestamp));
                     array.push(timeConverter(deals[q].timestamp));
                     array.push(deals[q].offer.buyToken.tokenSymbol);
-                    if (deals[q].seller.name == null) {
-                        array.push("");
+                    if (!hideNames) {
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].seller.name);
+                        }
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].buyer.name);
+                        }
                     }
                     else {
-                        array.push(deals[q].seller.name);
-                    }
-                    if (deals[q].buyer.name == null) {
-                        array.push("");
-                    }
-                    else {
-                        array.push(deals[q].buyer.name);
+                        array.push(deals[q].seller.id);
+                        array.push(deals[q].buyer.id);
                     }
                     array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
                     array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
@@ -2948,17 +3039,23 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                     array.push(timeConverter(deals[q].offer.timestamp));
                     array.push(timeConverter(deals[q].timestamp));
                     array.push(deals[q].offer.sellToken.tokenSymbol);
-                    if (deals[q].seller.name == null) {
-                        array.push("");
+                    if (!hideNames) {
+                        if (deals[q].seller.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].seller.name);
+                        }
+                        if (deals[q].buyer.name == null) {
+                            array.push("");
+                        }
+                        else {
+                            array.push(deals[q].buyer.name);
+                        }
                     }
                     else {
-                        array.push(deals[q].seller.name);
-                    }
-                    if (deals[q].buyer.name == null) {
-                        array.push("");
-                    }
-                    else {
-                        array.push(deals[q].buyer.name);
+                        array.push(deals[q].seller.id);
+                        array.push(deals[q].buyer.id);
                     }
                     array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
                     array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
@@ -3075,8 +3172,8 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], offersRows);
@@ -3091,8 +3188,8 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token) {
                         { name: 'Hora (oferta)' },
                         { name: 'Hora (pacto)' },
                         { name: 'Contrapartida', filterButton: true },
-                        { name: 'Vendedor (usuario)', filterButton: true },
-                        { name: 'Comprador (usuario)', filterButton: true },
+                        { name: 'Vendedor', filterButton: true },
+                        { name: 'Comprador', filterButton: true },
                         { name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum' },
                         { name: 'Monto contrapartida', totalsRowFunction: 'sum' }
                     ], requestsRows);

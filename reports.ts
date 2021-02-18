@@ -23,6 +23,7 @@ export class Report {
         monthIndex: number,
         year: number,
         tokensArray: any[],
+        hideNames: boolean = true,
         name?: string
     ) {
         const workbook = new ExcelJS.Workbook();
@@ -53,6 +54,7 @@ export class Report {
                 toYear,
                 this.url,
                 tokensArray[i],
+                hideNames,
                 name
             ));
         }
@@ -158,7 +160,8 @@ export class Report {
     async getTokenHoldersReport(
         orderBy: string,
         orderDirection: "desc" | "asc",
-        tokensArray: any[]
+        tokensArray: any[],
+        hideNames: boolean = true,
     ) {
         const first = 1000;
         let skip = 0;
@@ -204,10 +207,12 @@ export class Report {
             for (let j = 0; j < response.length; j++) {
                 let array = [];
                 
-                if (response[j].wallet.name == null) {
-                    array.push("");
-                } else {
-                    array.push(response[j].wallet.name.id);
+                if (!hideNames) {
+                    if (response[j].wallet.name == null) {
+                        array.push("");
+                    } else {
+                        array.push(response[j].wallet.name.id);
+                    }
                 }
                 
                 array.push(response[j].wallet.id);
@@ -217,17 +222,30 @@ export class Report {
     
             let tableName = 'Tabla' + tokensArray[i].symbol;
     
-            await addTable(
-                sheet,
-                tableName,
-                'B7',
-                [
-                    {name: 'Nombre', filterButton: true},
-                    {name: 'Wallet'},
-                    {name: 'Saldo', totalsRowFunction: 'sum'}
-                ],
-                rows
-            );
+            if (hideNames) {
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Wallet', filterButton: true},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
+                );
+            } else {
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Nombre', filterButton: true},
+                        {name: 'Wallet'},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
+                );
+            }
     
             let skipOffers = 0;
     
@@ -300,6 +318,7 @@ export class Report {
         orderDirection: "desc" | "asc",
         tokensArray: any[],
         expiries: any[],
+        hideNames: boolean = true,
     ) {
         const first = 1000;
         let skip = 0;
@@ -348,11 +367,15 @@ export class Report {
     
             for (let j = 0; j < response.length; j++) {
                 let array = [];
-                if (response[j].wallet.name == null) {
-                    array.push("");
-                } else {
-                    array.push(response[j].wallet.name.id);
+
+                if (!hideNames) {
+                    if (response[j].wallet.name == null) {
+                        array.push("");
+                    } else {
+                        array.push(response[j].wallet.name.id);
+                    }
                 }
+                
                 array.push(response[j].wallet.id);
                 array.push(parseInt(weiToEther(response[j].balance)));
                 rows.push(array);
@@ -360,17 +383,30 @@ export class Report {
     
             let tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
     
-            await addTable(
-                sheet,
-                tableName,
-                'B7',
-                [
-                    {name: 'Nombre', filterButton: true},
-                    {name: 'Wallet'},
-                    {name: 'Saldo', totalsRowFunction: 'sum'}
-                ],
-                rows
-            );
+            if (hideNames) {
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Wallet', filterButton: true},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
+                );
+            } else {
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Nombre', filterButton: true},
+                        {name: 'Wallet'},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
+                );
+            }
     
             let skipOffers = 0;
     
@@ -582,7 +618,8 @@ export class Report {
     async getTokenDealsReportV2(
         monthIndex: number,
         year: number,
-        tokensArray: any[]
+        tokensArray: any[],
+        hideNames: boolean = true,
     ) {
         const workbook = new ExcelJS.Workbook();
 
@@ -613,7 +650,8 @@ export class Report {
                 toMonthIndex,
                 toYear,
                 this.url,
-                tokensArray[i]
+                tokensArray[i],
+                hideNames
             ));
 
             promises.push(setPrimaryTokenDealsSheet(
@@ -625,7 +663,8 @@ export class Report {
                 toMonthIndex,
                 toYear,
                 this.url,
-                tokensArray[i]
+                tokensArray[i],
+                hideNames
             ));
         }
 
@@ -876,7 +915,8 @@ export class Report {
     async getPackableDealsReportV2(
         monthIndex: number,
         year: number,
-        tokensArray: any[]
+        tokensArray: any[],
+        hideNames: boolean = true,
     ) {
         const workbook = new ExcelJS.Workbook();
 
@@ -903,7 +943,8 @@ export class Report {
                 timeLow, 
                 timeHigh, 
                 this.url,
-                tokensArray[i]
+                tokensArray[i],
+                hideNames
             ));
 
             promises.push(setPrimaryPackableDealsSheet(
@@ -911,7 +952,8 @@ export class Report {
                 timeLow, 
                 timeHigh, 
                 this.url,
-                tokensArray[i]
+                tokensArray[i],
+                hideNames
             ));
         }
 
@@ -1792,6 +1834,7 @@ async function setTransactionSheet(
     toYear: number,
     url: string,
     token: any,
+    hideNames: boolean = true,
     name?: string
 ) {
     //define vars
@@ -1848,19 +1891,23 @@ async function setTransactionSheet(
             txDayRow.push(new Date(nextTx.timestamp * 1000));
             txDayRow.push(nextTx.currency.tokenSymbol);
             txDayRow.push(nextTx.from.id);
-
-            if (nextTx.from.name == null) {
-                txDayRow.push("");
-            } else {
-                txDayRow.push(nextTx.from.name.id);
+            
+            if (!hideNames) {
+                if (nextTx.from.name == null) {
+                    txDayRow.push("");
+                } else {
+                    txDayRow.push(nextTx.from.name.id);
+                }
             }
 
             txDayRow.push(nextTx.to.id);
 
-            if (nextTx.to.name == null) {
-                txDayRow.push("");
-            } else {
-                txDayRow.push(nextTx.to.name.id);
+            if (!hideNames) {
+                if (nextTx.to.name == null) {
+                    txDayRow.push("");
+                } else {
+                    txDayRow.push(nextTx.to.name.id);
+                }
             }
 
             txDayRow.push(parseFloat(weiToEther(nextTx.amount)));
@@ -2011,21 +2058,37 @@ async function setTransactionSheet(
         txRows = getEmptyTransaction();
     }
 
-    addTable(
-        sheet,
-        tableName,
-        'B36',
-        [
-            {name: 'Fecha', filterButton: true},
-            {name: 'Divisa'},
-            {name: 'Origen (wallet)'},
-            {name: 'Origen (usuario)', filterButton: true},
-            {name: 'Destino (wallet)'},
-            {name: 'Destino (usuario)', filterButton: true},
-            {name: 'Monto', totalsRowFunction: 'sum'}
-        ],
-        txRows
-    );
+    if (hideNames) {
+        addTable(
+            sheet,
+            tableName,
+            'B36',
+            [
+                {name: 'Fecha', filterButton: true},
+                {name: 'Divisa'},
+                {name: 'Origen (wallet)', filterButton: true},
+                {name: 'Destino (wallet)', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'}
+            ],
+            txRows
+        );
+    } else {
+        addTable(
+            sheet,
+            tableName,
+            'B36',
+            [
+                {name: 'Fecha', filterButton: true},
+                {name: 'Divisa'},
+                {name: 'Origen (wallet)'},
+                {name: 'Origen (usuario)', filterButton: true},
+                {name: 'Destino (wallet)'},
+                {name: 'Destino (usuario)', filterButton: true},
+                {name: 'Monto', totalsRowFunction: 'sum'}
+            ],
+            txRows
+        );
+    }
 
     //CELL LABELS
     sheet.getCell('B35').value = 'TRANSFERENCIAS';
@@ -2050,7 +2113,8 @@ async function setTokenDealsSheet(
     toMonthIndex: number,
     toYear: number,
     url: string,
-    token: any
+    token: any,
+    hideNames: boolean = true,
 ) {
     //define vars
     let day = 1;
@@ -2136,16 +2200,21 @@ async function setTokenDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.buyToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].sellAmount)));
@@ -2169,16 +2238,21 @@ async function setTokenDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.sellToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].buyAmount)));
@@ -2356,8 +2430,8 @@ async function setTokenDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
@@ -2381,8 +2455,8 @@ async function setTokenDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
@@ -2411,7 +2485,8 @@ async function setPrimaryTokenDealsSheet(
     toMonthIndex: number,
     toYear: number,
     url: string,
-    token: any
+    token: any,
+    hideNames: boolean = true,
 ) {
     //define vars
     let day = 1;
@@ -2497,16 +2572,21 @@ async function setPrimaryTokenDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.buyToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].sellAmount)));
@@ -2530,16 +2610,21 @@ async function setPrimaryTokenDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.sellToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].buyAmount)));
@@ -2717,8 +2802,8 @@ async function setPrimaryTokenDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
@@ -2742,8 +2827,8 @@ async function setPrimaryTokenDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
@@ -2768,7 +2853,8 @@ async function setPackableDealsSheet(
     timeLow: number,
     timeHigh: number,
     url: string,
-    token: any
+    token: any,
+    hideNames: boolean = true,
 ) {
     //define vars
     let day = 1;
@@ -2864,16 +2950,21 @@ async function setPackableDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.buyToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].sellAmount)));
@@ -2918,16 +3009,21 @@ async function setPackableDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.sellToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].buyAmount)));
@@ -3079,8 +3175,8 @@ async function setPackableDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
@@ -3104,8 +3200,8 @@ async function setPackableDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
@@ -3130,7 +3226,8 @@ async function setPrimaryPackableDealsSheet(
     timeLow: number,
     timeHigh: number,
     url: string,
-    token: any
+    token: any,
+    hideNames: boolean = true,
 ) {
     //define vars
     let day = 1;
@@ -3226,16 +3323,21 @@ async function setPrimaryPackableDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.buyToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].sellAmount)));
@@ -3280,16 +3382,21 @@ async function setPrimaryPackableDealsSheet(
                         array.push(timeConverter(deals[q].timestamp));
                         array.push(deals[q].offer.sellToken.tokenSymbol);
 
-                        if (deals[q].seller.name == null) {
-                            array.push("");
+                        if (!hideNames) {
+                            if (deals[q].seller.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].seller.name);
+                            }
+    
+                            if (deals[q].buyer.name == null) {
+                                array.push("");
+                            } else {
+                                array.push(deals[q].buyer.name);
+                            }
                         } else {
-                            array.push(deals[q].seller.name);
-                        }
-
-                        if (deals[q].buyer.name == null) {
-                            array.push("");
-                        } else {
-                            array.push(deals[q].buyer.name);
+                            array.push(deals[q].seller.id);
+                            array.push(deals[q].buyer.id);
                         }
 
                         array.push(parseFloat(weiToEther(deals[q].buyAmount)));
@@ -3440,8 +3547,8 @@ async function setPrimaryPackableDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
@@ -3465,8 +3572,8 @@ async function setPrimaryPackableDealsSheet(
             {name: 'Hora (oferta)'},
             {name: 'Hora (pacto)'},
             {name: 'Contrapartida', filterButton: true},
-            {name: 'Vendedor (usuario)', filterButton: true},
-            {name: 'Comprador (usuario)', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
             {name: 'Monto pactado (primario) (' + token.symbol + ')', totalsRowFunction: 'sum'},
             {name: 'Monto contrapartida', totalsRowFunction: 'sum'}
         ],
