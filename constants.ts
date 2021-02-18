@@ -380,6 +380,100 @@ const RST_TESTNET = {
     category: 3
 };
 
+const ALL_TOKENS = [
+    PI,
+    BTC,
+    USC,
+    ETH,
+    EUR,
+    PEN,
+    ARS,
+    USD,
+    VES,
+    PEL,
+    GLDX,
+    CLP,
+    USDT,
+    RST,
+    BNC,
+    PGR,
+    ENV,
+    TDVD,
+    BPV,
+    FVIA,
+    CRMA,
+    NOVA,
+    BRENT_LONG,
+    BRENT_SHORT,
+    SP500_LONG,
+    SP500_SHORT,
+    AGRO
+]
+
+const ALL_ERC223 = [
+    PI,
+    BTC,
+    USC,
+    ETH,
+    EUR,
+    PEN,
+    ARS,
+    USD,
+    VES,
+    PEL,
+    GLDX,
+    CLP,
+    USDT,
+]
+
+const ALL_ERC223_NO_FIAT = [
+    PI,
+    BTC,
+    USC,
+    ETH,
+    GLDX,
+    USDT,
+]
+
+const ALL_PACKABLES = [
+    RST,
+    BNC,
+    PGR,
+    ENV,
+    TDVD,
+    BPV,
+    FVIA,
+    CRMA,
+    NOVA,
+    BRENT_LONG,
+    BRENT_SHORT,
+    SP500_LONG,
+    SP500_SHORT,
+    AGRO
+]
+
+const ALL_PACKABLE_EXP = [
+    RST.expiry.nov21,
+    BNC.expiry.nov21,
+    PGR.expiry.nov21,
+    ENV.expiry.nov21,
+    TDVD.expiry.nov21,
+    BPV.expiry.nov21,
+    FVIA.expiry.nov21,
+    CRMA.expiry.nov21,
+    NOVA.expiry.mar21,
+    BRENT_LONG.expiry.feb21,
+    BRENT_SHORT.expiry.feb21,
+    SP500_LONG.expiry.feb21,
+    SP500_SHORT.expiry.feb21,
+    AGRO.expiry.never
+]
+
+const ALL_COLLECTABLES = [
+    DIA,
+    GLDS
+]
+
 // OTHER
 const MIN_GAS_PRICE = "1000000000";
 const OVERRIDES = {gasPrice: 1000000000};
@@ -485,5 +579,11 @@ export {
     RST_TESTNET,
     PGR_TESTNET,
     AGRO_TESTNET,
-    DIA_TESTNET
+    DIA_TESTNET,
+    ALL_TOKENS,
+    ALL_ERC223,
+    ALL_ERC223_NO_FIAT,
+    ALL_PACKABLES,
+    ALL_PACKABLE_EXP,
+    ALL_COLLECTABLES
 };

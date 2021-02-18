@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.DIA_TESTNET = exports.AGRO_TESTNET = exports.PGR_TESTNET = exports.RST_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.PEL_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.AGRO = exports.SP500_SHORT = exports.SP500_LONG = exports.BRENT_SHORT = exports.BRENT_LONG = exports.NOVA = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDS = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES_FORCE = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.DEX_PACKABLE_ABI = exports.DEX_ABI = exports.MARKET_ABI = exports.DIVIDENDS_ABI = exports.REGISTRY_KYC_ABI = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.REGISTRY_SUBGRAPH_TESTNET = exports.REGISTRY_SUBGRAPH = exports.DEX_SUBGRAPH_TESTNET = exports.DEX_SUBGRAPH = exports.DIVIDENDS_SUBGRAPH_TESTNET = exports.DIVIDENDS_SUBGRAPH = exports.PIPRICE_SUBGRAPH_TESTNET = exports.PIPRICE_SUBGRAPH = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
+exports.ALL_COLLECTABLES = exports.ALL_PACKABLE_EXP = exports.ALL_PACKABLES = exports.ALL_ERC223_NO_FIAT = exports.ALL_ERC223 = exports.ALL_TOKENS = exports.DIA_TESTNET = exports.AGRO_TESTNET = exports.PGR_TESTNET = exports.RST_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.PEL_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.AGRO = exports.SP500_SHORT = exports.SP500_LONG = exports.BRENT_SHORT = exports.BRENT_LONG = exports.NOVA = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDS = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES_FORCE = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.DEX_PACKABLE_ABI = exports.DEX_ABI = exports.MARKET_ABI = exports.DIVIDENDS_ABI = exports.REGISTRY_KYC_ABI = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.REGISTRY_SUBGRAPH_TESTNET = exports.REGISTRY_SUBGRAPH = exports.DEX_SUBGRAPH_TESTNET = exports.DEX_SUBGRAPH = exports.DIVIDENDS_SUBGRAPH_TESTNET = exports.DIVIDENDS_SUBGRAPH = exports.PIPRICE_SUBGRAPH_TESTNET = exports.PIPRICE_SUBGRAPH = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
 // URL
 var RPC_URL = "https://connect.pichain.io";
 exports.RPC_URL = RPC_URL;
@@ -471,6 +471,100 @@ var RST_TESTNET = {
     category: 3
 };
 exports.RST_TESTNET = RST_TESTNET;
+var ALL_TOKENS = [
+    PI,
+    BTC,
+    USC,
+    ETH,
+    EUR,
+    PEN,
+    ARS,
+    USD,
+    VES,
+    PEL,
+    GLDX,
+    CLP,
+    USDT,
+    RST,
+    BNC,
+    PGR,
+    ENV,
+    TDVD,
+    BPV,
+    FVIA,
+    CRMA,
+    NOVA,
+    BRENT_LONG,
+    BRENT_SHORT,
+    SP500_LONG,
+    SP500_SHORT,
+    AGRO
+];
+exports.ALL_TOKENS = ALL_TOKENS;
+var ALL_ERC223 = [
+    PI,
+    BTC,
+    USC,
+    ETH,
+    EUR,
+    PEN,
+    ARS,
+    USD,
+    VES,
+    PEL,
+    GLDX,
+    CLP,
+    USDT,
+];
+exports.ALL_ERC223 = ALL_ERC223;
+var ALL_ERC223_NO_FIAT = [
+    PI,
+    BTC,
+    USC,
+    ETH,
+    GLDX,
+    USDT,
+];
+exports.ALL_ERC223_NO_FIAT = ALL_ERC223_NO_FIAT;
+var ALL_PACKABLES = [
+    RST,
+    BNC,
+    PGR,
+    ENV,
+    TDVD,
+    BPV,
+    FVIA,
+    CRMA,
+    NOVA,
+    BRENT_LONG,
+    BRENT_SHORT,
+    SP500_LONG,
+    SP500_SHORT,
+    AGRO
+];
+exports.ALL_PACKABLES = ALL_PACKABLES;
+var ALL_PACKABLE_EXP = [
+    RST.expiry.nov21,
+    BNC.expiry.nov21,
+    PGR.expiry.nov21,
+    ENV.expiry.nov21,
+    TDVD.expiry.nov21,
+    BPV.expiry.nov21,
+    FVIA.expiry.nov21,
+    CRMA.expiry.nov21,
+    NOVA.expiry.mar21,
+    BRENT_LONG.expiry.feb21,
+    BRENT_SHORT.expiry.feb21,
+    SP500_LONG.expiry.feb21,
+    SP500_SHORT.expiry.feb21,
+    AGRO.expiry.never
+];
+exports.ALL_PACKABLE_EXP = ALL_PACKABLE_EXP;
+var ALL_COLLECTABLES = [
+    DIA,
+    GLDS
+];
+exports.ALL_COLLECTABLES = ALL_COLLECTABLES;
 // OTHER
 var MIN_GAS_PRICE = "1000000000";
 exports.MIN_GAS_PRICE = MIN_GAS_PRICE;
