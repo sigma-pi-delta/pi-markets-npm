@@ -289,15 +289,13 @@ var Report = /** @class */ (function () {
                         rows2 = [];
                         for (k = 0; k < offers.length; k++) {
                             array2 = [];
-                            array2.push(offers[k].owner.name);
                             array2.push(offers[k].owner.id);
                             array2.push(parseFloat(utils_1.weiToEther(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
                         tableName2 = 'P2P' + tokensArray[i].symbol;
                         return [4 /*yield*/, addTable(sheet, tableName2, 'F7', [
-                                { name: 'Dueño de la oferta', filterButton: true },
-                                { name: 'Wallet' },
+                                { name: 'Wallet', filterButton: true },
                                 { name: 'Cantidad ofertada', totalsRowFunction: 'sum' }
                             ], rows2)];
                     case 14:
@@ -431,15 +429,13 @@ var Report = /** @class */ (function () {
                         rows2 = [];
                         for (k = 0; k < offers.length; k++) {
                             array2 = [];
-                            array2.push(offers[k].owner.name);
                             array2.push(offers[k].owner.id);
                             array2.push(parseInt(utils_1.weiToEther(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
                         tableName2 = 'P2P' + tokensArray[i].symbol;
                         return [4 /*yield*/, addTable(sheet, tableName2, 'F7', [
-                                { name: 'Dueño de la oferta', filterButton: true },
-                                { name: 'Wallet' },
+                                { name: 'Wallet', filterButton: true },
                                 { name: 'Cantidad ofertada', totalsRowFunction: 'sum' }
                             ], rows2)];
                     case 14:

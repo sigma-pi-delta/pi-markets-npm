@@ -278,7 +278,6 @@ export class Report {
     
                 for (let k = 0; k < offers.length; k++) {
                     let array2 = [];
-                    array2.push(offers[k].owner.name);
                     array2.push(offers[k].owner.id);
                     array2.push(parseFloat(weiToEther(offers[k].sellAmount)));
                     rows2.push(array2);
@@ -291,8 +290,7 @@ export class Report {
                     tableName2,
                     'F7',
                     [
-                        {name: 'Dueño de la oferta', filterButton: true},
-                        {name: 'Wallet'},
+                        {name: 'Wallet', filterButton: true},
                         {name: 'Cantidad ofertada', totalsRowFunction: 'sum'}
                     ],
                     rows2
@@ -441,7 +439,6 @@ export class Report {
     
                 for (let k = 0; k < offers.length; k++) {
                     let array2 = [];
-                    array2.push(offers[k].owner.name);
                     array2.push(offers[k].owner.id);
                     array2.push(parseInt(weiToEther(offers[k].sellAmount)));
                     rows2.push(array2);
@@ -454,8 +451,7 @@ export class Report {
                     tableName2,
                     'F7',
                     [
-                        {name: 'Dueño de la oferta', filterButton: true},
-                        {name: 'Wallet'},
+                        {name: 'Wallet', filterButton: true},
                         {name: 'Cantidad ofertada', totalsRowFunction: 'sum'}
                     ],
                     rows2
