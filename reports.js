@@ -1346,10 +1346,11 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getUsersReport = function (monthIndex, year) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, response, identities, inputsObj, inputsAmountObj, outputsObj, outputsAmountObj, totalObj, maxObj, kycAmountsObj, flagsObj, identitiesArray, k, identity, txs, m, tx, txAmount, from, to, names, namesQuery, tableArray, n, array, id, pibid, total, kycAmount, flag, error_12, buffer, err_12;
+            var ratesObj, workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, response, identities, inputsObj, inputsAmountObj, outputsObj, outputsAmountObj, totalObj, maxObj, kycAmountsObj, flagsObj, identitiesArray, k, identity, txs, m, tx, txAmount, from, to, names, namesQuery, tableArray, n, array, id, pibid, total, kycAmount, flag, error_12, buffer, err_12;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
+                        ratesObj = {};
                         workbook = new ExcelJS.Workbook();
                         sheet = workbook.addWorksheet('SmartID_Report');
                         toYear = year;
@@ -1404,10 +1405,9 @@ var Report = /** @class */ (function () {
                     case 6:
                         if (!(m < txs.length)) return [3 /*break*/, 9];
                         tx = txs[m];
-                        return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, tx.timestamp)];
+                        return [4 /*yield*/, convertToUsdFromObj(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, tx.timestamp, ratesObj)];
                     case 7:
                         txAmount = _a.sent();
-                        console.log(txAmount);
                         if (tx.from.identity != null) {
                             from = String(tx.from.identity.id).toLowerCase();
                             if (identitiesArray.includes(from)) {
@@ -4718,6 +4718,21 @@ function convertToUsd(amount, token, timestamp) {
                     _a.label = 8;
                 case 8: return [2 /*return*/];
             }
+        });
+    });
+}
+function convertToUsdFromObj(amount, token, timestamp, ratesObj) {
+    return __awaiter(this, void 0, void 0, function () {
+        var day, rate;
+        return __generator(this, function (_a) {
+            day = new Date(timestamp * 1000).getDay();
+            if (ratesObj[token] == undefined) {
+                //ToDo: query to data lake
+            }
+            rate = ratesObj[token][day];
+            if ((rate == undefined) || (rate == 0))
+                return [2 /*return*/, 0];
+            return [2 /*return*/, amount / rate];
         });
     });
 }

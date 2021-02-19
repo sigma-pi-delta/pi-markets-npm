@@ -1385,6 +1385,7 @@ export class Report {
         monthIndex: number,
         year: number
     ) {
+        const ratesObj = {};
         const workbook = new ExcelJS.Workbook();
 
         let sheet = workbook.addWorksheet('SmartID_Report');
@@ -1408,8 +1409,6 @@ export class Report {
             response = await queryTemplates.getSmartIDs(identities.length);
             identities = identities.concat(response);
         }
-
-        /*********** */
 
         let inputsObj = {}
         let inputsAmountObj = {}
@@ -1438,12 +1437,13 @@ export class Report {
 
         for (let m = 0; m < txs.length; m++) {
             let tx = txs[m];
-            let txAmount = await convertToUsd(
+            
+            let txAmount = await convertToUsdFromObj(
                 parseFloat(weiToEther(tx.amount)),
                 tx.currency.id,
-                tx.timestamp
+                tx.timestamp,
+                ratesObj
             );
-            console.log(txAmount)
 
             if (tx.from.identity != null) {
                 let from = String(tx.from.identity.id).toLowerCase();
@@ -4896,6 +4896,24 @@ async function convertToUsd(
             return amount/(rate * factor);
         }
     }
+}
+
+async function convertToUsdFromObj(
+    amount: number,
+    token: string,
+    timestamp: number,
+    ratesObj: any
+) {
+    let day = new Date(timestamp * 1000).getDay();
+    
+    if (ratesObj[token] == undefined) {
+        //ToDo: query to data lake
+    }
+
+    let rate = ratesObj[token][day];
+    if ((rate == undefined) || (rate == 0)) return 0;
+
+    return amount/rate;
 }
 
 async function requestRateEndPoint(
