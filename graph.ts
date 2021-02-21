@@ -280,6 +280,20 @@ export class QueryTemplates {
         }
     }
 
+    async getNameByWallet(name: string) {
+        let customQuery = '{ wallet(id:"' + name.toLowerCase() + '") { name { id } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.wallet.name.id;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
     async getAddressesByName(name: string) {
         let customQuery = '{ name(id:"' + name + '") { wallet { id identity { id owner } } } }';
         let query = new Query('bank', this.network);

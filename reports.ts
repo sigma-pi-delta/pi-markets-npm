@@ -1064,7 +1064,7 @@ export class Report {
     }
 
     async getUserDealsReport(
-        nickname: string,
+        wallet: string,
         monthIndex: number,
         year: number
     ) {
@@ -1086,6 +1086,8 @@ export class Report {
         let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
         let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
 
+        let queryTemplates = new QueryTemplates(this.url);
+        let nickname = await queryTemplates.getNameByWallet(wallet);
         let deals = await getUserAllDeals(nickname, timeLow, timeHigh, this.url);
         let dealsPack = await getUserPackableAllDeals(nickname, timeLow, timeHigh, this.url);
         let dealsPrimary = await getUserAllDealsPrimary(nickname, timeLow, timeHigh, this.url);
