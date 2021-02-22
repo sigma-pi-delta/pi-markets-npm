@@ -1,6 +1,6 @@
 {
   "name": "pi-markets",
-  "version": "1.0.82",
+  "version": "1.0.83",
   "description": "Package to work with PiMarkets",
   "main": "index.js",
   "scripts": {
