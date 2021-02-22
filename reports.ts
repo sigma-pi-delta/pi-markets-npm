@@ -223,6 +223,7 @@ export class Report {
             let tableName = 'Tabla' + tokensArray[i].symbol;
     
             if (hideNames) {
+                if (rows.length == 0) rows.push(["", 0]);
                 await addTable(
                     sheet,
                     tableName,
@@ -234,6 +235,7 @@ export class Report {
                     rows
                 );
             } else {
+                if (rows.length == 0) rows.push(["", "", 0]);
                 await addTable(
                     sheet,
                     tableName,
@@ -382,6 +384,7 @@ export class Report {
             let tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
     
             if (hideNames) {
+                if (rows.length == 0) rows.push(["", 0]);
                 await addTable(
                     sheet,
                     tableName,
@@ -393,6 +396,7 @@ export class Report {
                     rows
                 );
             } else {
+                if (rows.length == 0) rows.push(["", "", 0]);
                 await addTable(
                     sheet,
                     tableName,

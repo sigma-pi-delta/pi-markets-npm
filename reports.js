@@ -252,6 +252,8 @@ var Report = /** @class */ (function () {
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol;
                         if (!hideNames) return [3 /*break*/, 7];
+                        if (rows.length == 0)
+                            rows.push(["", 0]);
                         return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
                                 { name: 'Wallet', filterButton: true },
                                 { name: 'Saldo', totalsRowFunction: 'sum' }
@@ -259,11 +261,14 @@ var Report = /** @class */ (function () {
                     case 6:
                         _a.sent();
                         return [3 /*break*/, 9];
-                    case 7: return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
-                            { name: 'Nombre', filterButton: true },
-                            { name: 'Wallet' },
-                            { name: 'Saldo', totalsRowFunction: 'sum' }
-                        ], rows)];
+                    case 7:
+                        if (rows.length == 0)
+                            rows.push(["", "", 0]);
+                        return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
+                                { name: 'Nombre', filterButton: true },
+                                { name: 'Wallet' },
+                                { name: 'Saldo', totalsRowFunction: 'sum' }
+                            ], rows)];
                     case 8:
                         _a.sent();
                         _a.label = 9;
@@ -390,6 +395,8 @@ var Report = /** @class */ (function () {
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
                         if (!hideNames) return [3 /*break*/, 7];
+                        if (rows.length == 0)
+                            rows.push(["", 0]);
                         return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
                                 { name: 'Wallet', filterButton: true },
                                 { name: 'Saldo', totalsRowFunction: 'sum' }
@@ -397,11 +404,14 @@ var Report = /** @class */ (function () {
                     case 6:
                         _a.sent();
                         return [3 /*break*/, 9];
-                    case 7: return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
-                            { name: 'Nombre', filterButton: true },
-                            { name: 'Wallet' },
-                            { name: 'Saldo', totalsRowFunction: 'sum' }
-                        ], rows)];
+                    case 7:
+                        if (rows.length == 0)
+                            rows.push(["", "", 0]);
+                        return [4 /*yield*/, addTable(sheet, tableName, 'B7', [
+                                { name: 'Nombre', filterButton: true },
+                                { name: 'Wallet' },
+                                { name: 'Saldo', totalsRowFunction: 'sum' }
+                            ], rows)];
                     case 8:
                         _a.sent();
                         _a.label = 9;
