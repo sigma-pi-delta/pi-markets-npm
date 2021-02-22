@@ -510,6 +510,17 @@ const ALL_ERC223_NO_FIAT = [
     ETH,
     GLDX,
     USDT,
+    DASHx,
+    LTCx,
+    XMRx,
+    BRENT,
+    DOGE,
+    DOT,
+    GAS,
+    GBP,
+    IBEX35,
+    RUB,
+    SP500
 ]
 
 const ALL_PACKABLES = [

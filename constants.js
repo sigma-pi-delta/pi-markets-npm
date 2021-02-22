@@ -612,6 +612,17 @@ var ALL_ERC223_NO_FIAT = [
     ETH,
     GLDX,
     USDT,
+    DASHx,
+    LTCx,
+    XMRx,
+    BRENT,
+    DOGE,
+    DOT,
+    GAS,
+    GBP,
+    IBEX35,
+    RUB,
+    SP500
 ];
 exports.ALL_ERC223_NO_FIAT = ALL_ERC223_NO_FIAT;
 var ALL_PACKABLES = [
