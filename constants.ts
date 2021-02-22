@@ -91,6 +91,61 @@ const ETH = {
     address: "0x4ffb535bbbbd3d74d2f593bd9c21daa946a68c56",
     category: 1
 };
+const DASHx = {
+    symbol: "DASHx",
+    address: "0x900370b357ba48d9aed84f4a8cecbf6969f0a2d8",
+    category: 1
+};
+const LTCx = {
+    symbol: "LTCx",
+    address: "0x7bf2baa78bb7033425fe7cd312e4e30ce0fe76dc",
+    category: 1
+};
+const XMRx = {
+    symbol: "XMRx",
+    address: "0x14f2cac3fb386ea014041c4d8ad4b8848c33f5b3",
+    category: 1
+};
+const BRENT = {
+    symbol: "BRENT",
+    address: "0x4729f5a25ce946ff1f468f7c0c703b07a65b48d2",
+    category: 1
+};
+const DOGE = {
+    symbol: "DOGE",
+    address: "0xe10f7b6bca6c269a52c30ee29fe55074a0dd1146",
+    category: 1
+};
+const DOT = {
+    symbol: "DOT",
+    address: "0x2b11506779855a5d6106bd8a0dd12108d6d862a1",
+    category: 1
+};
+const GAS = {
+    symbol: "GAS",
+    address: "0x6a8e70de39d5600c9d2cf4e162856e0c4798780d",
+    category: 1
+};
+const IBEX35 = {
+    symbol: "IBEX35",
+    address: "0x03bdbce729bfe37a6d2d9edf08ceacf6519db276",
+    category: 1
+};
+const RUB = {
+    symbol: "RUB",
+    address: "0x23100542d162898e3de51fdbc37cc384a59f9143",
+    category: 1
+};
+const SP500 = {
+    symbol: "SP500",
+    address: "0x1ffb0cee0a33bb534af879a4922e1c8ffac441fc",
+    category: 1
+};
+const GBP = {
+    symbol: "GBP",
+    address: "0x3225b88c4850a891f88bee8491f6c1cae11d761d",
+    category: 1
+};
 const EUR = {
     symbol: "EUR",
     address: "0x6645223d7947b4534f09dee35796e1c23326fc5b",
@@ -539,6 +594,17 @@ export {
     BTC,
     USC,
     ETH,
+    DASHx,
+    LTCx,
+    XMRx,
+    BRENT,
+    DOGE,
+    DOT,
+    GAS,
+    GBP,
+    IBEX35,
+    RUB,
+    SP500,
     EUR,
     PEN,
     ARS,
