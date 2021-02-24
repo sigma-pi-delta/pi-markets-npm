@@ -1257,6 +1257,94 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
+    QueryTemplates.prototype.getInstrumentOrderbook = function (token, baseToken) {
+        return __awaiter(this, void 0, void 0, function () {
+            var skip, array, stringArray, customQuery, query, response, queryOrders, orders, buyAmountByPrice, sellAmountByPrice, sellPrices, buyPrices, i, order, price, amount, error_35;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        skip = 0;
+                        array = [];
+                        array.push(token);
+                        array.push(baseToken);
+                        stringArray = array.join('", "');
+                        customQuery = '{ orders(skip: ' + skip + ' where:{sellToken_in:["' + stringArray + '"], buyToken_in:["' + stringArray + '"], open:true}, first:1000, orderBy: price, orderDirection:asc) { amount side price buyToken {id} sellToken {id} } }';
+                        query = new Query("dex", this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 7, , 8]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (!(response != undefined)) return [3 /*break*/, 6];
+                        queryOrders = response.orders;
+                        orders = queryOrders;
+                        _a.label = 3;
+                    case 3:
+                        if (!(queryOrders.length >= 1000)) return [3 /*break*/, 5];
+                        skip = orders.length;
+                        customQuery = '{ orders(skip: ' + skip + ' where:{sellToken_in:["' + stringArray + '"], buyToken_in:["' + stringArray + '"], open:true}, first:1000, orderBy: price, orderDirection:asc) { amount side price buyToken {id} sellToken {id} } }';
+                        query.setCustomQuery(customQuery);
+                        return [4 /*yield*/, query.request()];
+                    case 4:
+                        response = _a.sent();
+                        if (response != undefined) {
+                            queryOrders = response.orders;
+                            orders = orders.concat(queryOrders);
+                        }
+                        else {
+                            queryOrders = [];
+                        }
+                        return [3 /*break*/, 3];
+                    case 5:
+                        buyAmountByPrice = {};
+                        sellAmountByPrice = {};
+                        sellPrices = [];
+                        buyPrices = [];
+                        for (i = 0; i < orders.length; i++) {
+                            order = orders[i];
+                            price = parseFloat(Utils.weiBNToEtherString(order.price));
+                            amount = parseFloat(Utils.weiBNToEtherString(order.amount));
+                            if ((order.side == 1) &&
+                                (order.sellToken.id == baseToken) &&
+                                (order.buyToken.id == token)) {
+                                //SELL
+                                if (!sellPrices.includes(price))
+                                    sellPrices.push(price);
+                                if (sellAmountByPrice[price] != undefined) {
+                                    sellAmountByPrice[price] = sellAmountByPrice[price] + amount;
+                                }
+                                else {
+                                    sellAmountByPrice[price] = amount;
+                                }
+                            }
+                            else if ((order.side == 2) &&
+                                (order.sellToken.id == token) &&
+                                (order.buyToken.id == baseToken)) {
+                                //BUY
+                                if (!buyPrices.includes(price))
+                                    buyPrices.push(price);
+                                amount = amount / price;
+                                if (buyAmountByPrice[price] != undefined) {
+                                    buyAmountByPrice[price] = buyAmountByPrice[price] + amount;
+                                }
+                                else {
+                                    buyAmountByPrice[price] = amount;
+                                }
+                            }
+                        }
+                        return [2 /*return*/, [sellAmountByPrice, buyAmountByPrice]];
+                    case 6: return [3 /*break*/, 8];
+                    case 7:
+                        error_35 = _a.sent();
+                        console.error(error_35);
+                        throw new Error(error_35);
+                    case 8: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return QueryTemplates;
 }());
 exports.QueryTemplates = QueryTemplates;

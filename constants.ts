@@ -509,6 +509,7 @@ const ALL_ERC223_NO_FIAT = [
     USC,
     ETH,
     GLDX,
+    PEL,
     USDT,
     DASHx,
     LTCx,

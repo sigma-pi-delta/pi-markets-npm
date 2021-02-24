@@ -915,4 +915,85 @@ export class QueryTemplates {
             throw new Error(error);
         }
     }
+
+    async getInstrumentOrderbook(
+        token: string,
+        baseToken: string
+    ) {
+        let skip = 0;
+        let array = [];
+        array.push(token);
+        array.push(baseToken);
+        let stringArray = array.join('", "');
+        let customQuery = '{ orders(skip: ' + skip + ' where:{sellToken_in:["' + stringArray + '"], buyToken_in:["' + stringArray + '"], open:true}, first:1000, orderBy: price, orderDirection:asc) { amount side price buyToken {id} sellToken {id} } }';
+        let query = new Query("dex", this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+
+            if (response != undefined) {
+                let queryOrders = response.orders;
+                let orders = queryOrders;
+
+                while(queryOrders.length >= 1000) {
+                    skip = orders.length;
+                    customQuery = '{ orders(skip: ' + skip + ' where:{sellToken_in:["' + stringArray + '"], buyToken_in:["' + stringArray + '"], open:true}, first:1000, orderBy: price, orderDirection:asc) { amount side price buyToken {id} sellToken {id} } }';
+                    query.setCustomQuery(customQuery);
+                    response = await query.request();
+                    if (response != undefined) {
+                        queryOrders = response.orders;
+                        orders = orders.concat(queryOrders);
+                    } else {
+                        queryOrders = [];
+                    }
+                }
+
+                let buyAmountByPrice = {};
+                let sellAmountByPrice = {};
+                let sellPrices = [];
+                let buyPrices = [];
+
+                for (let i = 0; i < orders.length; i++) {
+                    let order = orders[i];
+                    let price = parseFloat(Utils.weiBNToEtherString(order.price));
+                    let amount = parseFloat(Utils.weiBNToEtherString(order.amount));
+
+                    if (
+                        (order.side == 1) && 
+                        (order.sellToken.id == baseToken) && 
+                        (order.buyToken.id == token)
+                    ) {
+                        //SELL
+                        if (!sellPrices.includes(price)) sellPrices.push(price);
+
+                        if (sellAmountByPrice[price] != undefined) {
+                            sellAmountByPrice[price] = sellAmountByPrice[price] + amount;
+                        } else {
+                            sellAmountByPrice[price] = amount;
+                        }
+                    } else if (
+                        (order.side == 2) && 
+                        (order.sellToken.id == token) && 
+                        (order.buyToken.id == baseToken)
+                    ) {
+                        //BUY
+                        if (!buyPrices.includes(price)) buyPrices.push(price);
+
+                        amount = amount/price;
+                        if (buyAmountByPrice[price] != undefined) {
+                            buyAmountByPrice[price] = buyAmountByPrice[price] + amount;
+                        } else {
+                            buyAmountByPrice[price] = amount;
+                        }
+                    }
+                }
+
+                return [sellAmountByPrice, buyAmountByPrice];
+            }
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
