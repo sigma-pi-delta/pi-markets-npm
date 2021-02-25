@@ -280,7 +280,12 @@ export class Report {
     
                 for (let k = 0; k < offers.length; k++) {
                     let array2 = [];
-                    array2.push(offers[k].owner.id);
+                    if (hideNames) {
+                        array2.push(offers[k].owner.id);
+                    } else {
+                        array2.push(offers[k].owner.name);
+                    }
+                    
                     array2.push(parseFloat(weiToEther(offers[k].sellAmount)));
                     rows2.push(array2);
                 }
@@ -443,7 +448,11 @@ export class Report {
     
                 for (let k = 0; k < offers.length; k++) {
                     let array2 = [];
-                    array2.push(offers[k].owner.id);
+                    if (hideNames) {
+                        array2.push(offers[k].owner.id);
+                    } else {
+                        array2.push(offers[k].owner.name);
+                    }
                     array2.push(parseInt(weiToEther(offers[k].sellAmount)));
                     rows2.push(array2);
                 }

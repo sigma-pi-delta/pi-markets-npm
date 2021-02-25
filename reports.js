@@ -294,7 +294,12 @@ var Report = /** @class */ (function () {
                         rows2 = [];
                         for (k = 0; k < offers.length; k++) {
                             array2 = [];
-                            array2.push(offers[k].owner.id);
+                            if (hideNames) {
+                                array2.push(offers[k].owner.id);
+                            }
+                            else {
+                                array2.push(offers[k].owner.name);
+                            }
                             array2.push(parseFloat(utils_1.weiToEther(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
@@ -439,7 +444,12 @@ var Report = /** @class */ (function () {
                         rows2 = [];
                         for (k = 0; k < offers.length; k++) {
                             array2 = [];
-                            array2.push(offers[k].owner.id);
+                            if (hideNames) {
+                                array2.push(offers[k].owner.id);
+                            }
+                            else {
+                                array2.push(offers[k].owner.name);
+                            }
                             array2.push(parseInt(utils_1.weiToEther(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
