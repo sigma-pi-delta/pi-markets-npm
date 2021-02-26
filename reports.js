@@ -1419,13 +1419,12 @@ var Report = /** @class */ (function () {
                         return [4 /*yield*/, getAllTransactions(timeLow, timeHigh, this.url)];
                     case 5:
                         txs = _a.sent();
-                        txs.length = 10;
                         m = 0;
                         _a.label = 6;
                     case 6:
                         if (!(m < txs.length)) return [3 /*break*/, 9];
                         tx = txs[m];
-                        return [4 /*yield*/, convertToUsdFromObj(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, tx.timestamp, ratesObj)];
+                        return [4 /*yield*/, convertToUsdFromObj(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, parseInt(tx.currency.tokenKind), tx.timestamp, ratesObj)];
                     case 7:
                         txAmount = _a.sent();
                         if (tx.from.identity != null) {
@@ -1457,6 +1456,7 @@ var Report = /** @class */ (function () {
                         return [4 /*yield*/, queryTemplates.getNamesByIdentityArray(identitiesArray, names.length)];
                     case 10:
                         namesQuery = _a.sent();
+                        names = namesQuery;
                         _a.label = 11;
                     case 11:
                         if (!(namesQuery.length > 1000)) return [3 /*break*/, 13];
@@ -3336,7 +3336,7 @@ function getAllTransactions(_timeLow, _timeHigh, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
                     queryService = new graph_1.Query('bank', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -3348,7 +3348,7 @@ function getAllTransactions(_timeLow, _timeHigh, _url) {
                 case 2:
                     if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
                     skip = transactions.length;
-                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -4558,7 +4558,7 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_25, dates, rates, responseData, i, len, j, rates2, rates3, j, error_26;
+        var from, to, responseData, rates, factor, i, len, j, error_25, dates, rates, responseData, i, len, j, rates2, rates3, j, error_26, from, to, response, rates, i, j, e_1;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4612,7 +4612,7 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     error_25 = _a.sent();
                     console.error(error_25);
                     throw new Error(error_25);
-                case 5: return [3 /*break*/, 14];
+                case 5: return [3 /*break*/, 17];
                 case 6:
                     if (!((token == Constants.USD.address) ||
                         (token == Constants.USC.address) ||
@@ -4649,9 +4649,33 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     error_26 = _a.sent();
                     console.error(error_26);
                     throw new Error(error_26);
-                case 12: return [3 /*break*/, 14];
-                case 13: return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
-                case 14: return [2 /*return*/];
+                case 12: return [3 /*break*/, 17];
+                case 13:
+                    from = fromYear + "-" + fromMonth + "-01";
+                    to = toYear + "-" + toMonth + "-01";
+                    _a.label = 14;
+                case 14:
+                    _a.trys.push([14, 16, , 17]);
+                    return [4 /*yield*/, requestDataLake(token, from, to)];
+                case 15:
+                    response = _a.sent();
+                    rates = [];
+                    for (i = 0; i < response.length; i++) {
+                        rates.push(1 / response[i].close);
+                    }
+                    if (rates.length < 31) {
+                        for (j = 0; j < (31 - rates.length); j++) {
+                            rates.push(0);
+                        }
+                    }
+                    else if (rates.length > 31) {
+                        rates.length = 31;
+                    }
+                    return [2 /*return*/, rates];
+                case 16:
+                    e_1 = _a.sent();
+                    return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+                case 17: return [2 /*return*/];
             }
         });
     });
@@ -4677,7 +4701,7 @@ function convertMonthAndYearToUTC(fromYear, fromMonth, toYear, toMonth) {
 }
 function convertToUsd(amount, token, timestamp) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPointDates, from, to, rates, rate, rates2, rate2, rates, rate, factor;
+        var endPointDates, from, to, rates, rate, rates2, rate2, rates, rate, rate, factor;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4712,54 +4736,112 @@ function convertToUsd(amount, token, timestamp) {
                 case 6: return [4 /*yield*/, requestRateEndPoint(from, to, token)];
                 case 7:
                     rates = _a.sent();
-                    if (rates.length == 0) {
-                        return [2 /*return*/, 0];
+                    if (!(rates.length == 0)) return [3 /*break*/, 9];
+                    return [4 /*yield*/, requestDataLake(token, from, to)];
+                case 8:
+                    rates = _a.sent();
+                    rate = rates[rates.length - 1].open;
+                    return [2 /*return*/, amount * rate];
+                case 9:
+                    rate = rates[rates.length - 1].rate;
+                    factor = 1;
+                    switch (token) {
+                        case Constants.GLDX.address:
+                            factor = 33.1034768;
+                            break;
+                        case Constants.GLDS.address:
+                            factor = 33.1034768;
+                            break;
+                        default:
+                            break;
                     }
-                    else {
-                        rate = rates[rates.length - 1].rate;
-                        factor = 1;
-                        switch (token) {
-                            case Constants.GLDX.address:
-                                factor = 33.1034768;
-                                break;
-                            case Constants.GLDS.address:
-                                factor = 33.1034768;
-                                break;
-                            default:
-                                break;
-                        }
-                        if ((token == Constants.BTC.address) ||
-                            (token == Constants.ETH.address) ||
-                            (token == Constants.USDT.address)) {
-                            rate = 1 / rate;
-                        }
-                        return [2 /*return*/, amount / (rate * factor)];
+                    if ((token == Constants.BTC.address) ||
+                        (token == Constants.ETH.address) ||
+                        (token == Constants.USDT.address)) {
+                        rate = 1 / rate;
                     }
-                    _a.label = 8;
-                case 8: return [2 /*return*/];
+                    return [2 /*return*/, amount / (rate * factor)];
             }
         });
     });
 }
-function convertToUsdFromObj(amount, token, timestamp, ratesObj) {
+function convertToUsdFromObj(amount, token, tokenKind, timestamp, ratesObj) {
     return __awaiter(this, void 0, void 0, function () {
-        var day, rate;
-        return __generator(this, function (_a) {
-            day = new Date(timestamp * 1000).getDay();
-            if (ratesObj[token] == undefined) {
-                //ToDo: query to data lake
+        var day, date, fromMonth, fromYear, toMonth, toYear, _a, _b, rate;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    day = new Date(timestamp * 1000).getDate();
+                    if (!(ratesObj[token] == undefined)) return [3 /*break*/, 2];
+                    date = new Date(timestamp * 1000);
+                    fromMonth = date.getMonth() + 1;
+                    fromYear = date.getFullYear();
+                    toMonth = 0;
+                    toYear = fromYear;
+                    if (fromMonth == 12) {
+                        toMonth = 1;
+                        fromYear++;
+                    }
+                    else {
+                        toMonth = fromMonth + 1;
+                    }
+                    _a = ratesObj;
+                    _b = token;
+                    return [4 /*yield*/, getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenKind)];
+                case 1:
+                    _a[_b] = _c.sent();
+                    _c.label = 2;
+                case 2:
+                    rate = ratesObj[token][day];
+                    if ((rate == undefined) || (rate == 0))
+                        return [2 /*return*/, 0];
+                    return [2 /*return*/, amount / rate];
             }
-            rate = ratesObj[token][day];
-            if ((rate == undefined) || (rate == 0))
-                return [2 /*return*/, 0];
-            return [2 /*return*/, amount / rate];
+        });
+    });
+}
+function requestDataLake(token, from, to) {
+    return __awaiter(this, void 0, void 0, function () {
+        var parId, endPoint, body, response, responseData, error_27;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    parId = Constants.INSTRUMENT_IDS[token];
+                    endPoint = "https://api.pimarkets.io/v1/instrument/tickers/" + parId;
+                    body = JSON.stringify({ "interval": "1day", "start_date": from, "end_date": to, "empty_candles": true });
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 5, , 6]);
+                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                            "method": 'POST',
+                            "headers": {
+                                "Accept": 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            "body": body,
+                            "redirect": 'follow'
+                        })];
+                case 2:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    responseData = _a.sent();
+                    _a.label = 4;
+                case 4: return [2 /*return*/, responseData];
+                case 5:
+                    error_27 = _a.sent();
+                    console.error(error_27);
+                    throw new Error(error_27);
+                case 6: return [2 /*return*/];
+            }
         });
     });
 }
 function requestRateEndPoint(from, to, token, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var e_1;
+        var e_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4767,14 +4849,14 @@ function requestRateEndPoint(from, to, token, retries) {
                     return [4 /*yield*/, try_requestRateEndPoint(from, to, token)];
                 case 1: return [2 /*return*/, _a.sent()];
                 case 2:
-                    e_1 = _a.sent();
+                    e_2 = _a.sent();
                     if (!(retries < 5)) return [3 /*break*/, 4];
                     console.log("-----REINTENTO: " + retries);
                     return [4 /*yield*/, requestRateEndPoint(from, to, token, retries + 1)];
                 case 3: return [2 /*return*/, _a.sent()];
                 case 4:
-                    console.error(e_1);
-                    throw new Error(e_1);
+                    console.error(e_2);
+                    throw new Error(e_2);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4783,7 +4865,7 @@ function requestRateEndPoint(from, to, token, retries) {
 }
 function try_requestRateEndPoint(from, to, token) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPoint, body, response, responseData, error_27;
+        var endPoint, body, response, responseData, error_28;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4810,9 +4892,9 @@ function try_requestRateEndPoint(from, to, token) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_27 = _a.sent();
-                    console.error(error_27);
-                    throw new Error(error_27);
+                    error_28 = _a.sent();
+                    console.error(error_28);
+                    throw new Error(error_28);
                 case 6: return [2 /*return*/];
             }
         });

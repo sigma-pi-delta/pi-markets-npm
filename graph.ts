@@ -323,7 +323,7 @@ export class QueryTemplates {
     }
 
     async getSmartIDs(skip: number) {
-        let customQuery = '{ identities (first:100, skip: ' + skip + ', orderBy:timestamp, orderDirection:asc) { identity hashDD } }';
+        let customQuery = '{ identities (first:1000, skip: ' + skip + ', orderBy:timestamp, orderDirection:asc) { identity hashDD } }';
         let query = new Query('registry', this.network);
         query.setCustomQuery(customQuery);
 

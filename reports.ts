@@ -1444,14 +1444,14 @@ export class Report {
         }
 
         let txs = await getAllTransactions(timeLow, timeHigh, this.url);
-        txs.length = 10;
 
         for (let m = 0; m < txs.length; m++) {
             let tx = txs[m];
-            
+
             let txAmount = await convertToUsdFromObj(
                 parseFloat(weiToEther(tx.amount)),
                 tx.currency.id,
+                parseInt(tx.currency.tokenKind),
                 tx.timestamp,
                 ratesObj
             );
@@ -1483,6 +1483,7 @@ export class Report {
 
         let names = [];
         let namesQuery = await queryTemplates.getNamesByIdentityArray(identitiesArray, names.length);
+        names = namesQuery;
 
         while(namesQuery.length > 1000) {
             namesQuery = await queryTemplates.getNamesByIdentityArray(identitiesArray, names.length);
@@ -3697,7 +3698,7 @@ async function getAllTransactions(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+    let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
     let queryService = new Query('bank', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -3706,7 +3707,7 @@ async function getAllTransactions(
 
     while(queryTransactions.length >= 1000) {
         skip = transactions.length;
-        query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+        query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryTransactions = response.transactions;
@@ -4809,7 +4810,29 @@ async function getDayRate(
                 throw new Error(error);
             }
         } else {
-            return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            let from = fromYear + "-" + fromMonth + "-01";
+            let to = toYear + "-" + toMonth + "-01";
+
+            try {
+                let response = await requestDataLake(token, from, to);
+
+                let rates = [];
+                for (let i = 0; i < response.length; i++) {
+                    rates.push(1/response[i].close);
+                }
+
+                if (rates.length < 31) {
+                    for (let j = 0; j < (31 - rates.length); j ++) {
+                        rates.push(0);
+                    }
+                } else if (rates.length > 31) {
+                    rates.length = 31;
+                }
+
+                return rates;
+            } catch (e) {
+                return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+            }
         }
     }
 }
@@ -4878,7 +4901,9 @@ async function convertToUsd(
         let rates = await requestRateEndPoint(from, to, token);
 
         if (rates.length == 0) {
-            return 0;
+            rates = await requestDataLake(token, from, to);
+            let rate = rates[rates.length - 1].open;
+            return amount*rate;
         } else {
             let rate = rates[rates.length - 1].rate;
 
@@ -4912,19 +4937,67 @@ async function convertToUsd(
 async function convertToUsdFromObj(
     amount: number,
     token: string,
+    tokenKind: number,
     timestamp: number,
     ratesObj: any
 ) {
-    let day = new Date(timestamp * 1000).getDay();
+    let day = new Date(timestamp * 1000).getDate();
     
     if (ratesObj[token] == undefined) {
-        //ToDo: query to data lake
+        let date = new Date(timestamp * 1000);
+        let fromMonth = date.getMonth() + 1;
+        let fromYear = date.getFullYear()
+        let toMonth = 0;
+        let toYear = fromYear;
+        if (fromMonth == 12) {
+            toMonth = 1;
+            fromYear++;
+        } else {
+            toMonth = fromMonth + 1;
+        }
+
+        ratesObj[token] = await getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenKind);
     }
 
     let rate = ratesObj[token][day];
     if ((rate == undefined) || (rate == 0)) return 0;
 
     return amount/rate;
+}
+
+async function requestDataLake(
+    token: string,
+    from: string,
+    to: string
+) {
+    let parId = Constants.INSTRUMENT_IDS[token];
+
+    let endPoint = "https://api.pimarkets.io/v1/instrument/tickers/" + parId;
+    let body = JSON.stringify({"interval":"1day","start_date":from,"end_date":to,"empty_candles":true});
+
+    let response: any;
+    let responseData: any;
+
+    try {
+        response = await fetch(endPoint, {
+            "method": 'POST',
+            "headers": {
+                "Accept": 'application/json',
+                'Content-Type': 'application/json',
+            },
+            "body": body,
+            "redirect": 'follow'
+        });
+
+        if (response.ok) {
+            responseData = await response.json();
+        }
+
+        return responseData;
+    } catch (error) {
+        console.error(error);
+        throw new Error(error);
+    }
 }
 
 async function requestRateEndPoint(

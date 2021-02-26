@@ -424,7 +424,7 @@ var QueryTemplates = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ identities (first:100, skip: ' + skip + ', orderBy:timestamp, orderDirection:asc) { identity hashDD } }';
+                        customQuery = '{ identities (first:1000, skip: ' + skip + ', orderBy:timestamp, orderDirection:asc) { identity hashDD } }';
                         query = new Query('registry', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
