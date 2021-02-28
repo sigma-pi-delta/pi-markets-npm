@@ -437,6 +437,14 @@ var AGRO = {
     category: 3
 };
 exports.AGRO = AGRO;
+var REPO = {
+    symbol: "REPO",
+    address: "0xba70e52b9af5e502e8377566a8f8c2740ef98c0f",
+    expiry: {
+        never: ["never", "0xe75b3be07761741f1e7d6a7d262119e17c98628dba8f89c1fba266743c52d059"]
+    },
+    category: 3
+};
 // TestNet
 var PI_TESTNET = {
     symbol: "PI_TESTNET",
@@ -575,7 +583,8 @@ var ALL_TOKENS = [
     BRENT_SHORT,
     SP500_LONG,
     SP500_SHORT,
-    AGRO
+    AGRO,
+    REPO
 ];
 exports.ALL_TOKENS = ALL_TOKENS;
 var ALL_ERC223 = [
@@ -640,7 +649,8 @@ var ALL_PACKABLES = [
     BRENT_SHORT,
     SP500_LONG,
     SP500_SHORT,
-    AGRO
+    AGRO,
+    REPO
 ];
 exports.ALL_PACKABLES = ALL_PACKABLES;
 var ALL_PACKABLE_EXP = [
@@ -657,7 +667,8 @@ var ALL_PACKABLE_EXP = [
     BRENT_SHORT.expiry.feb21,
     SP500_LONG.expiry.feb21,
     SP500_SHORT.expiry.feb21,
-    AGRO.expiry.never
+    AGRO.expiry.never,
+    REPO.expiry.never
 ];
 exports.ALL_PACKABLE_EXP = ALL_PACKABLE_EXP;
 var ALL_COLLECTABLES = [

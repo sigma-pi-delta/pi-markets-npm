@@ -347,6 +347,14 @@ const AGRO = {
     },
     category: 3
 };
+const REPO = {
+    symbol: "REPO",
+    address: "0xba70e52b9af5e502e8377566a8f8c2740ef98c0f",
+    expiry: {
+        never: ["never", "0xe75b3be07761741f1e7d6a7d262119e17c98628dba8f89c1fba266743c52d059"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -473,7 +481,8 @@ const ALL_TOKENS = [
     BRENT_SHORT,
     SP500_LONG,
     SP500_SHORT,
-    AGRO
+    AGRO,
+    REPO
 ]
 
 const ALL_ERC223 = [
@@ -538,7 +547,8 @@ const ALL_PACKABLES = [
     BRENT_SHORT,
     SP500_LONG,
     SP500_SHORT,
-    AGRO
+    AGRO,
+    REPO
 ]
 
 const ALL_PACKABLE_EXP = [
@@ -555,7 +565,8 @@ const ALL_PACKABLE_EXP = [
     BRENT_SHORT.expiry.feb21,
     SP500_LONG.expiry.feb21,
     SP500_SHORT.expiry.feb21,
-    AGRO.expiry.never
+    AGRO.expiry.never,
+    REPO.expiry.never
 ]
 
 const ALL_COLLECTABLES = [
