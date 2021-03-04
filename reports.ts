@@ -4902,11 +4902,13 @@ async function getDayRate(
                     rates.push(response[i].close);
                 }
 
-                if (rates.length < 31) {
-                    for (let j = 0; j < (31 - rates.length); j ++) {
+                let len = rates.length;
+
+                if (len < 31) {
+                    for (let j = 0; j < (31 - len); j ++) {
                         rates.push(0);
                     }
-                } else if (rates.length > 31) {
+                } else if (len > 31) {
                     rates.length = 31;
                 }
 

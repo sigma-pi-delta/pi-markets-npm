@@ -477,10 +477,6 @@ const ALL_TOKENS = [
     FVIA,
     CRMA,
     NOVA,
-    BRENT_LONG,
-    BRENT_SHORT,
-    SP500_LONG,
-    SP500_SHORT,
     AGRO,
     REPO
 ]
@@ -543,10 +539,6 @@ const ALL_PACKABLES = [
     FVIA,
     CRMA,
     NOVA,
-    BRENT_LONG,
-    BRENT_SHORT,
-    SP500_LONG,
-    SP500_SHORT,
     AGRO,
     REPO
 ]
@@ -561,10 +553,6 @@ const ALL_PACKABLE_EXP = [
     FVIA.expiry.nov21,
     CRMA.expiry.nov21,
     NOVA.expiry.mar21,
-    BRENT_LONG.expiry.feb21,
-    BRENT_SHORT.expiry.feb21,
-    SP500_LONG.expiry.feb21,
-    SP500_SHORT.expiry.feb21,
     AGRO.expiry.never,
     REPO.expiry.never
 ]
@@ -700,6 +688,7 @@ export {
     SP500_LONG,
     SP500_SHORT,
     AGRO,
+    REPO,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,

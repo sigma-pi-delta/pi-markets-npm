@@ -4635,7 +4635,7 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_25, dates, rates, responseData, i, len, j, rates2, rates3, j, error_26, from, to, response, rates, i, j, e_2;
+        var from, to, responseData, rates, factor, i, len, j, error_25, dates, rates, responseData, i, len, j, rates2, rates3, j, error_26, from, to, response, rates, i, len, j, e_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4745,12 +4745,13 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     for (i = 0; i < response.length; i++) {
                         rates.push(response[i].close);
                     }
-                    if (rates.length < 31) {
-                        for (j = 0; j < (31 - rates.length); j++) {
+                    len = rates.length;
+                    if (len < 31) {
+                        for (j = 0; j < (31 - len); j++) {
                             rates.push(0);
                         }
                     }
-                    else if (rates.length > 31) {
+                    else if (len > 31) {
                         rates.length = 31;
                     }
                     return [2 /*return*/, rates];
