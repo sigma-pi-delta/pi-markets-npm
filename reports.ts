@@ -4831,7 +4831,11 @@ async function getDayRate(
                     ) {
                         rates.push(responseData[i].rate/factor);
                     } else {
-                        rates.push((1/(responseData[i].rate))/factor);
+                        if (responseData[i].rate == 0) {
+                            rates.push(0);
+                        } else {
+                            rates.push((1/(responseData[i].rate))/factor);
+                        }
                     }
                 }
     

@@ -4675,7 +4675,12 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                             rates.push(responseData[i].rate / factor);
                         }
                         else {
-                            rates.push((1 / (responseData[i].rate)) / factor);
+                            if (responseData[i].rate == 0) {
+                                rates.push(0);
+                            }
+                            else {
+                                rates.push((1 / (responseData[i].rate)) / factor);
+                            }
                         }
                     }
                     len = 31 - rates.length;
