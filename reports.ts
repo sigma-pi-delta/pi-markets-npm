@@ -1394,7 +1394,8 @@ export class Report {
 
     async getUsersReport(
         monthIndex: number,
-        year: number
+        year: number,
+        authToken: string
     ) {
         const ratesObj = {};
         const workbook = new ExcelJS.Workbook();
@@ -1462,7 +1463,7 @@ export class Report {
                     outputsObj[from]++;
                     outputsAmountObj[from] = outputsAmountObj[from] + txAmount;
 
-                    if (txAmount > maxObj[from]) {
+                    if (txAmount > Math.abs(maxObj[from])) {
                         maxObj[from] = txAmount * (-1);
                     }
                 }
@@ -1474,7 +1475,7 @@ export class Report {
                     inputsObj[to]++;
                     inputsAmountObj[to] = inputsAmountObj[to] + txAmount;
 
-                    if (txAmount > maxObj[to]) {
+                    if (txAmount > Math.abs(maxObj[to])) {
                         maxObj[to] = txAmount;
                     }
                 }
@@ -1490,6 +1491,13 @@ export class Report {
             names = names.concat(namesQuery);
         }
 
+        let walletsArray = [];
+        for (let p = 0; p < names.length; p++) {
+            walletsArray.push(String(names[p].wallet.id).toLowerCase());
+        }
+
+        let usersKyc = await getUsersDataProtected(walletsArray, authToken);
+
         let tableArray = [];
 
         for(let n = 0; n < names.length; n++) {
@@ -1498,8 +1506,58 @@ export class Report {
             let pibid = String(id.id).toLowerCase();
 
             let total = inputsAmountObj[pibid] - outputsAmountObj[pibid];
-            let kycAmount = 0;
+            let userKyc = usersKyc.filter(obj => {
+                return obj.nickname == id.wallet.name.id;
+            })
+            
+            let kycAmount;
+            let topLimit = 0;
+            let monthly_income = "ERROR";
+
+            if (userKyc[0].user_data != null) {
+                kycAmount = userKyc[0].user_data.monthly_income;
+
+                switch (kycAmount) {
+                    case 500:
+                        topLimit = 600;
+                        monthly_income = "Menos de 500 €";
+                        break;
+                    case 1000:
+                        topLimit = 1800;
+                        monthly_income = "Entre 500 y 1.500 €";
+                        break;
+                    case 2000:
+                        topLimit = 3000;
+                        monthly_income = "Entre 1.500 y 2.500 €";
+                        break;
+                    case 3250:
+                        topLimit = 4800;
+                        monthly_income = "Entre 2.500 y 4.000 €";
+                        break;
+                    case 5000:
+                        topLimit = 7200;
+                        monthly_income = "Entre 4.000 y 6.000 €";
+                        break;
+                    case 8000:
+                        topLimit = 12000;
+                        monthly_income = "Entre 6.000 y 10.000 €";
+                        break;
+                    case 10000:
+                        topLimit = 120000;
+                        monthly_income = "Más de 10.000 €";
+                        break;
+                    default:
+                        topLimit = 0;
+                        monthly_income = "ERROR";
+                        break;
+                }
+            }
+
             let flag = 0;
+
+            if (Math.abs(maxObj[pibid]) > topLimit) {
+                flag = 1;
+            }
 
             array.push(id.wallet.name.id);
             array.push(inputsObj[pibid]);
@@ -1508,7 +1566,7 @@ export class Report {
             array.push(outputsAmountObj[pibid]);
             array.push(total);
             array.push(maxObj[pibid]);
-            array.push(kycAmount);
+            array.push(monthly_income);
             array.push(flag);
             tableArray.push(array);
         }
@@ -1524,9 +1582,9 @@ export class Report {
                 {name: 'N Salidas'},
                 {name: 'Salidas (USD)'},
                 {name: 'Total (USD)'},
-                {name: 'Max (USD)'},
-                {name: 'Declarado (USD)'},
-                {name: 'Alerta'}
+                {name: 'Max (USD)', filterButton: true},
+                {name: 'Declarado (USD)', filterButton: true},
+                {name: 'Alerta', filterButton: true}
             ],
             tableArray
         );
@@ -1746,6 +1804,25 @@ export class Report {
         }
 
         return new HoldersReportData(token.address, token.symbol, holders, offers, expiry);
+    }
+
+    async getDBUser(
+        wallet: string,
+        bearerToken: string,
+        includeBank: boolean
+    ) {
+        let array = [];
+        array.push(wallet);
+        
+        try {
+            return await getUsersDataProtected(
+                array,
+                bearerToken,
+                includeBank
+            );
+        } catch (e) {
+            console.error(e);
+        }
     }
 }
 
@@ -4818,7 +4895,7 @@ async function getDayRate(
 
                 let rates = [];
                 for (let i = 0; i < response.length; i++) {
-                    rates.push(1/response[i].close);
+                    rates.push(response[i].close);
                 }
 
                 if (rates.length < 31) {
@@ -4962,7 +5039,7 @@ async function convertToUsdFromObj(
     let rate = ratesObj[token][day];
     if ((rate == undefined) || (rate == 0)) return 0;
 
-    return amount/rate;
+    return amount*rate;
 }
 
 async function requestDataLake(
@@ -4971,6 +5048,7 @@ async function requestDataLake(
     to: string
 ) {
     let parId = Constants.INSTRUMENT_IDS[token];
+    if (parId == undefined) return [{"open": 0,"close":0,"volume":0}];
 
     let endPoint = "https://api.pimarkets.io/v1/instrument/tickers/" + parId;
     let body = JSON.stringify({"interval":"1day","start_date":from,"end_date":to,"empty_candles":true});
@@ -5036,6 +5114,40 @@ async function try_requestRateEndPoint(
             "headers": {
                 "Accept": 'application/json',
                 'Content-Type': 'application/json',
+            },
+            "body": body,
+            "redirect": 'follow'
+        });
+
+        if (response.ok) {
+            responseData = await response.json();
+        }
+
+        return responseData;
+    } catch (error) {
+        console.error(error);
+        throw new Error(error);
+    }
+}
+
+async function getUsersDataProtected(
+    walletsArray: string[],
+    bearerToken: string,
+    includeBanks: boolean = false
+) {
+    let endPoint = "https://api.pimarkets.io/v1/user/office/users-data";
+    let body = JSON.stringify({"wallets":walletsArray,"include_banks":includeBanks});
+
+    let response: any;
+    let responseData: any;
+
+    try {
+        response = await fetch(endPoint, {
+            "method": 'POST',
+            "headers": {
+                "Accept": 'application/json',
+                'Content-Type': 'application/json',
+                "Authorization": 'Bearer ' + bearerToken
             },
             "body": body,
             "redirect": 'follow'

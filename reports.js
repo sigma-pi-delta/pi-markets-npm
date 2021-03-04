@@ -1364,9 +1364,9 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getUsersReport = function (monthIndex, year) {
+    Report.prototype.getUsersReport = function (monthIndex, year, authToken) {
         return __awaiter(this, void 0, void 0, function () {
-            var ratesObj, workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, response, identities, inputsObj, inputsAmountObj, outputsObj, outputsAmountObj, totalObj, maxObj, kycAmountsObj, flagsObj, identitiesArray, k, identity, txs, m, tx, txAmount, from, to, names, namesQuery, tableArray, n, array, id, pibid, total, kycAmount, flag, error_12, buffer, err_12;
+            var ratesObj, workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, response, identities, inputsObj, inputsAmountObj, outputsObj, outputsAmountObj, totalObj, maxObj, kycAmountsObj, flagsObj, identitiesArray, k, identity, txs, m, tx, txAmount, from, to, names, namesQuery, walletsArray, p, usersKyc, tableArray, _loop_1, n, error_12, buffer, err_12;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1432,7 +1432,7 @@ var Report = /** @class */ (function () {
                             if (identitiesArray.includes(from)) {
                                 outputsObj[from]++;
                                 outputsAmountObj[from] = outputsAmountObj[from] + txAmount;
-                                if (txAmount > maxObj[from]) {
+                                if (txAmount > Math.abs(maxObj[from])) {
                                     maxObj[from] = txAmount * (-1);
                                 }
                             }
@@ -1442,7 +1442,7 @@ var Report = /** @class */ (function () {
                             if (identitiesArray.includes(to)) {
                                 inputsObj[to]++;
                                 inputsAmountObj[to] = inputsAmountObj[to] + txAmount;
-                                if (txAmount > maxObj[to]) {
+                                if (txAmount > Math.abs(maxObj[to])) {
                                     maxObj[to] = txAmount;
                                 }
                             }
@@ -1466,14 +1466,66 @@ var Report = /** @class */ (function () {
                         names = names.concat(namesQuery);
                         return [3 /*break*/, 11];
                     case 13:
+                        walletsArray = [];
+                        for (p = 0; p < names.length; p++) {
+                            walletsArray.push(String(names[p].wallet.id).toLowerCase());
+                        }
+                        return [4 /*yield*/, getUsersDataProtected(walletsArray, authToken)];
+                    case 14:
+                        usersKyc = _a.sent();
                         tableArray = [];
-                        for (n = 0; n < names.length; n++) {
-                            array = [];
-                            id = names[n];
-                            pibid = String(id.id).toLowerCase();
-                            total = inputsAmountObj[pibid] - outputsAmountObj[pibid];
-                            kycAmount = 0;
-                            flag = 0;
+                        _loop_1 = function (n) {
+                            var array = [];
+                            var id = names[n];
+                            var pibid = String(id.id).toLowerCase();
+                            var total = inputsAmountObj[pibid] - outputsAmountObj[pibid];
+                            var userKyc = usersKyc.filter(function (obj) {
+                                return obj.nickname == id.wallet.name.id;
+                            });
+                            var kycAmount = void 0;
+                            var topLimit = 0;
+                            var monthly_income = "ERROR";
+                            if (userKyc[0].user_data != null) {
+                                kycAmount = userKyc[0].user_data.monthly_income;
+                                switch (kycAmount) {
+                                    case 500:
+                                        topLimit = 600;
+                                        monthly_income = "Menos de 500 €";
+                                        break;
+                                    case 1000:
+                                        topLimit = 1800;
+                                        monthly_income = "Entre 500 y 1.500 €";
+                                        break;
+                                    case 2000:
+                                        topLimit = 3000;
+                                        monthly_income = "Entre 1.500 y 2.500 €";
+                                        break;
+                                    case 3250:
+                                        topLimit = 4800;
+                                        monthly_income = "Entre 2.500 y 4.000 €";
+                                        break;
+                                    case 5000:
+                                        topLimit = 7200;
+                                        monthly_income = "Entre 4.000 y 6.000 €";
+                                        break;
+                                    case 8000:
+                                        topLimit = 12000;
+                                        monthly_income = "Entre 6.000 y 10.000 €";
+                                        break;
+                                    case 10000:
+                                        topLimit = 120000;
+                                        monthly_income = "Más de 10.000 €";
+                                        break;
+                                    default:
+                                        topLimit = 0;
+                                        monthly_income = "ERROR";
+                                        break;
+                                }
+                            }
+                            var flag = 0;
+                            if (Math.abs(maxObj[pibid]) > topLimit) {
+                                flag = 1;
+                            }
                             array.push(id.wallet.name.id);
                             array.push(inputsObj[pibid]);
                             array.push(inputsAmountObj[pibid]);
@@ -1481,9 +1533,12 @@ var Report = /** @class */ (function () {
                             array.push(outputsAmountObj[pibid]);
                             array.push(total);
                             array.push(maxObj[pibid]);
-                            array.push(kycAmount);
+                            array.push(monthly_income);
                             array.push(flag);
                             tableArray.push(array);
+                        };
+                        for (n = 0; n < names.length; n++) {
+                            _loop_1(n);
                         }
                         addTable(sheet, 'SmartIDReportTable', 'B2', [
                             { name: 'Nombre', filterButton: true },
@@ -1492,35 +1547,35 @@ var Report = /** @class */ (function () {
                             { name: 'N Salidas' },
                             { name: 'Salidas (USD)' },
                             { name: 'Total (USD)' },
-                            { name: 'Max (USD)' },
-                            { name: 'Declarado (USD)' },
-                            { name: 'Alerta' }
+                            { name: 'Max (USD)', filterButton: true },
+                            { name: 'Declarado (USD)', filterButton: true },
+                            { name: 'Alerta', filterButton: true }
                         ], tableArray);
-                        _a.label = 14;
-                    case 14:
-                        _a.trys.push([14, 16, , 22]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsSmartIDReport.xlsx')];
+                        _a.label = 15;
                     case 15:
-                        _a.sent();
-                        return [3 /*break*/, 22];
+                        _a.trys.push([15, 17, , 23]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsSmartIDReport.xlsx')];
                     case 16:
+                        _a.sent();
+                        return [3 /*break*/, 23];
+                    case 17:
                         error_12 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 17:
-                        buffer = _a.sent();
-                        _a.label = 18;
                     case 18:
-                        _a.trys.push([18, 20, , 21]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsSmartIDReport.xlsx')];
+                        buffer = _a.sent();
+                        _a.label = 19;
                     case 19:
-                        _a.sent();
-                        return [3 /*break*/, 21];
+                        _a.trys.push([19, 21, , 22]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsSmartIDReport.xlsx')];
                     case 20:
+                        _a.sent();
+                        return [3 /*break*/, 22];
+                    case 21:
                         err_12 = _a.sent();
                         console.error(err_12);
-                        return [3 /*break*/, 21];
-                    case 21: return [3 /*break*/, 22];
-                    case 22: return [2 /*return*/];
+                        return [3 /*break*/, 22];
+                    case 22: return [3 /*break*/, 23];
+                    case 23: return [2 /*return*/];
                 }
             });
         });
@@ -1709,6 +1764,28 @@ var Report = /** @class */ (function () {
                         offers = offers.concat(loopOffers);
                         return [3 /*break*/, 24];
                     case 26: return [2 /*return*/, new HoldersReportData(token.address, token.symbol, holders, offers, expiry)];
+                }
+            });
+        });
+    };
+    Report.prototype.getDBUser = function (wallet, bearerToken, includeBank) {
+        return __awaiter(this, void 0, void 0, function () {
+            var array, e_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        array = [];
+                        array.push(wallet);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, getUsersDataProtected(array, bearerToken, includeBank)];
+                    case 2: return [2 /*return*/, _a.sent()];
+                    case 3:
+                        e_1 = _a.sent();
+                        console.error(e_1);
+                        return [3 /*break*/, 4];
+                    case 4: return [2 /*return*/];
                 }
             });
         });
@@ -4558,7 +4635,7 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_25, dates, rates, responseData, i, len, j, rates2, rates3, j, error_26, from, to, response, rates, i, j, e_1;
+        var from, to, responseData, rates, factor, i, len, j, error_25, dates, rates, responseData, i, len, j, rates2, rates3, j, error_26, from, to, response, rates, i, j, e_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4661,7 +4738,7 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     response = _a.sent();
                     rates = [];
                     for (i = 0; i < response.length; i++) {
-                        rates.push(1 / response[i].close);
+                        rates.push(response[i].close);
                     }
                     if (rates.length < 31) {
                         for (j = 0; j < (31 - rates.length); j++) {
@@ -4673,7 +4750,7 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     }
                     return [2 /*return*/, rates];
                 case 16:
-                    e_1 = _a.sent();
+                    e_2 = _a.sent();
                     return [2 /*return*/, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
                 case 17: return [2 /*return*/];
             }
@@ -4795,7 +4872,7 @@ function convertToUsdFromObj(amount, token, tokenKind, timestamp, ratesObj) {
                     rate = ratesObj[token][day];
                     if ((rate == undefined) || (rate == 0))
                         return [2 /*return*/, 0];
-                    return [2 /*return*/, amount / rate];
+                    return [2 /*return*/, amount * rate];
             }
         });
     });
@@ -4807,6 +4884,8 @@ function requestDataLake(token, from, to) {
             switch (_a.label) {
                 case 0:
                     parId = Constants.INSTRUMENT_IDS[token];
+                    if (parId == undefined)
+                        return [2 /*return*/, [{ "open": 0, "close": 0, "volume": 0 }]];
                     endPoint = "https://api.pimarkets.io/v1/instrument/tickers/" + parId;
                     body = JSON.stringify({ "interval": "1day", "start_date": from, "end_date": to, "empty_candles": true });
                     _a.label = 1;
@@ -4841,7 +4920,7 @@ function requestDataLake(token, from, to) {
 function requestRateEndPoint(from, to, token, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var e_2;
+        var e_3;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4849,14 +4928,14 @@ function requestRateEndPoint(from, to, token, retries) {
                     return [4 /*yield*/, try_requestRateEndPoint(from, to, token)];
                 case 1: return [2 /*return*/, _a.sent()];
                 case 2:
-                    e_2 = _a.sent();
+                    e_3 = _a.sent();
                     if (!(retries < 5)) return [3 /*break*/, 4];
                     console.log("-----REINTENTO: " + retries);
                     return [4 /*yield*/, requestRateEndPoint(from, to, token, retries + 1)];
                 case 3: return [2 /*return*/, _a.sent()];
                 case 4:
-                    console.error(e_2);
-                    throw new Error(e_2);
+                    console.error(e_3);
+                    throw new Error(e_3);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4895,6 +4974,45 @@ function try_requestRateEndPoint(from, to, token) {
                     error_28 = _a.sent();
                     console.error(error_28);
                     throw new Error(error_28);
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
+function getUsersDataProtected(walletsArray, bearerToken, includeBanks) {
+    if (includeBanks === void 0) { includeBanks = false; }
+    return __awaiter(this, void 0, void 0, function () {
+        var endPoint, body, response, responseData, error_29;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    endPoint = "https://api.pimarkets.io/v1/user/office/users-data";
+                    body = JSON.stringify({ "wallets": walletsArray, "include_banks": includeBanks });
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 5, , 6]);
+                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                            "method": 'POST',
+                            "headers": {
+                                "Accept": 'application/json',
+                                'Content-Type': 'application/json',
+                                "Authorization": 'Bearer ' + bearerToken
+                            },
+                            "body": body,
+                            "redirect": 'follow'
+                        })];
+                case 2:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    responseData = _a.sent();
+                    _a.label = 4;
+                case 4: return [2 /*return*/, responseData];
+                case 5:
+                    error_29 = _a.sent();
+                    console.error(error_29);
+                    throw new Error(error_29);
                 case 6: return [2 /*return*/];
             }
         });

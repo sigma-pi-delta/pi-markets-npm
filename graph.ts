@@ -338,7 +338,7 @@ export class QueryTemplates {
 
     async getNamesByIdentityArray(identitiesArray: string[], skip: number) {
         let stringArray = identitiesArray.join('", "');
-        let customQuery = '{ identities(first: 1000, skip: ' + skip + ' where:{id_in:["' + stringArray + '"]}) {id wallet { name { id } } } }';
+        let customQuery = '{ identities(first: 1000, skip: ' + skip + ' where:{id_in:["' + stringArray + '"]}) {id wallet { id name { id } } } }';
         let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 

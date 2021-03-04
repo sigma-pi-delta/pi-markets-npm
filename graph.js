@@ -452,7 +452,7 @@ var QueryTemplates = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         stringArray = identitiesArray.join('", "');
-                        customQuery = '{ identities(first: 1000, skip: ' + skip + ' where:{id_in:["' + stringArray + '"]}) {id wallet { name { id } } } }';
+                        customQuery = '{ identities(first: 1000, skip: ' + skip + ' where:{id_in:["' + stringArray + '"]}) {id wallet { id name { id } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
