@@ -1158,12 +1158,13 @@ var SmartID = /** @class */ (function () {
     };
     /******** DEX */
     //TOKEN/TOKEN
-    SmartID.prototype.setOrder = function (sellToken, buyToken, amount, price, side, nonce) {
+    SmartID.prototype.setOrder = function (sellToken, buyToken, amount, price, side, index) {
+        if (index === void 0) { index = "30"; }
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, dexData, walletContract, walletData, error_32;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("30")];
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress(index)];
                     case 1:
                         dexContractAddress = _a.sent();
                         dexContract = this.contractsService.getContractSigner(dexContractAddress, Constants.DEX_ABI, this.signer);
@@ -1184,7 +1185,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_32 = _a.sent();
@@ -1195,12 +1196,13 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
-    SmartID.prototype.cancelOrder = function (orderId, nonce) {
+    SmartID.prototype.cancelOrder = function (orderId, index) {
+        if (index === void 0) { index = "30"; }
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, cancelData, walletContract, walletData, error_33;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("30")];
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress(index)];
                     case 1:
                         dexContractAddress = _a.sent();
                         dexContract = this.contractsService.getContractSigner(dexContractAddress, Constants.DEX_ABI, this.signer);
@@ -1213,7 +1215,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_33 = _a.sent();
@@ -1225,12 +1227,13 @@ var SmartID = /** @class */ (function () {
         });
     };
     //PACKABLE/TOKEN
-    SmartID.prototype.setBuyOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side, nonce) {
+    SmartID.prototype.setBuyOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side, index) {
+        if (index === void 0) { index = "31"; }
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, settings, dexData, walletContract, walletData, error_34;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("31")];
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress(index)];
                     case 1:
                         dexContractAddress = _a.sent();
                         dexContract = this.contractsService.getContractSigner(dexContractAddress, Constants.DEX_PACKABLE_ABI, this.signer);
@@ -1251,7 +1254,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_34 = _a.sent();
@@ -1262,12 +1265,13 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
-    SmartID.prototype.setSellOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side, nonce) {
+    SmartID.prototype.setSellOrderPackableDex = function (sellToken, buyToken, packableId, amount, price, side, index) {
+        if (index === void 0) { index = "31"; }
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, settings, dexData, walletContract, walletData, error_35;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("31")];
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress(index)];
                     case 1:
                         dexContractAddress = _a.sent();
                         dexContract = this.contractsService.getContractSigner(dexContractAddress, Constants.DEX_PACKABLE_ABI, this.signer);
@@ -1289,7 +1293,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 2;
                     case 2:
                         _a.trys.push([2, 4, , 5]);
-                        return [4 /*yield*/, this.forward(this.wallet, walletData, nonce)];
+                        return [4 /*yield*/, this.forward(this.wallet, walletData)];
                     case 3: return [2 /*return*/, _a.sent()];
                     case 4:
                         error_35 = _a.sent();
@@ -1300,12 +1304,13 @@ var SmartID = /** @class */ (function () {
             });
         });
     };
-    SmartID.prototype.cancelOrderPackableDex = function (orderId) {
+    SmartID.prototype.cancelOrderPackableDex = function (orderId, index) {
+        if (index === void 0) { index = "31"; }
         return __awaiter(this, void 0, void 0, function () {
             var dexContractAddress, dexContract, cancelData, walletContract, walletData, error_36;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress("31")];
+                    case 0: return [4 /*yield*/, this.contractsService.getControllerAddress(index)];
                     case 1:
                         dexContractAddress = _a.sent();
                         dexContract = this.contractsService.getContractSigner(dexContractAddress, Constants.DEX_PACKABLE_ABI, this.signer);

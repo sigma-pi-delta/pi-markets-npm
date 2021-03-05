@@ -54,14 +54,15 @@ var Backend = /** @class */ (function () {
             this.controllerAddress = Constants.CONTROLLER_ADDRESS_TESTNET;
         }
     }
-    Backend.prototype.dealOrderTokenDex = function (orderA, orderB, side, nonce) {
+    Backend.prototype.dealOrderTokenDex = function (orderA, orderB, side, nonce, index) {
+        if (index === void 0) { index = "30"; }
         return __awaiter(this, void 0, void 0, function () {
             var error_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.dealOrder(orderA, orderB, side, nonce, "30")];
+                        return [4 /*yield*/, this.dealOrder(orderA, orderB, side, nonce, index)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
                         error_1 = _a.sent();
@@ -71,14 +72,15 @@ var Backend = /** @class */ (function () {
             });
         });
     };
-    Backend.prototype.dealOrderPackableDex = function (orderA, orderB, side, nonce) {
+    Backend.prototype.dealOrderPackableDex = function (orderA, orderB, side, nonce, index) {
+        if (index === void 0) { index = "31"; }
         return __awaiter(this, void 0, void 0, function () {
             var error_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 2, , 3]);
-                        return [4 /*yield*/, this.dealOrder(orderA, orderB, side, nonce, "31")];
+                        return [4 /*yield*/, this.dealOrder(orderA, orderB, side, nonce, index)];
                     case 1: return [2 /*return*/, _a.sent()];
                     case 2:
                         error_2 = _a.sent();

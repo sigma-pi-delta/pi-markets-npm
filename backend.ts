@@ -27,7 +27,8 @@ export class Backend {
         orderA: string,
         orderB: string,
         side: number,
-        nonce: number
+        nonce: number,
+        index: string = "30"
     ) {
         try {
             return await this.dealOrder(
@@ -35,7 +36,7 @@ export class Backend {
                 orderB,
                 side,
                 nonce,
-                "30"
+                index
             )
         } catch (error) {
             throw new Error(error);
@@ -46,7 +47,8 @@ export class Backend {
         orderA: string,
         orderB: string,
         side: number,
-        nonce: number
+        nonce: number,
+        index: string = "31"
     ) {
         try {
             return await this.dealOrder(
@@ -54,7 +56,7 @@ export class Backend {
                 orderB,
                 side,
                 nonce,
-                "31"
+                index
             )
         } catch (error) {
             throw new Error(error);

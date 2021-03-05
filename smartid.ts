@@ -1099,9 +1099,9 @@ export class SmartID {
         amount: ethers.utils.BigNumber,
         price: ethers.utils.BigNumber,
         side: ethers.utils.BigNumber,
-        nonce?: any
+        index: string = "30"
     ) {
-        let dexContractAddress = await this.contractsService.getControllerAddress("30");
+        let dexContractAddress = await this.contractsService.getControllerAddress(index);
         let dexContract = this.contractsService.getContractSigner(
             dexContractAddress, 
             Constants.DEX_ABI, 
@@ -1129,7 +1129,7 @@ export class SmartID {
         ]);
 
         try {
-            return await this.forward(this.wallet, walletData, nonce);
+            return await this.forward(this.wallet, walletData);
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -1138,9 +1138,9 @@ export class SmartID {
 
     async cancelOrder(
         orderId: string,
-        nonce?: any
+        index: string = "30"
     ) {
-        let dexContractAddress = await this.contractsService.getControllerAddress("30");
+        let dexContractAddress = await this.contractsService.getControllerAddress(index);
         let dexContract = this.contractsService.getContractSigner(
             dexContractAddress, 
             Constants.DEX_ABI, 
@@ -1161,7 +1161,7 @@ export class SmartID {
         ]);
 
         try {
-            return await this.forward(this.wallet, walletData, nonce);
+            return await this.forward(this.wallet, walletData);
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -1177,9 +1177,9 @@ export class SmartID {
         amount: ethers.utils.BigNumber,
         price: ethers.utils.BigNumber,
         side: ethers.utils.BigNumber,
-        nonce?: any
+        index: string = "31"
     ) {
-        let dexContractAddress = await this.contractsService.getControllerAddress("31");
+        let dexContractAddress = await this.contractsService.getControllerAddress(index);
         let dexContract = this.contractsService.getContractSigner(
             dexContractAddress, 
             Constants.DEX_PACKABLE_ABI, 
@@ -1207,7 +1207,7 @@ export class SmartID {
         ]);
 
         try {
-            return await this.forward(this.wallet, walletData, nonce);
+            return await this.forward(this.wallet, walletData);
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -1221,9 +1221,9 @@ export class SmartID {
         amount: ethers.utils.BigNumber,
         price: ethers.utils.BigNumber,
         side: ethers.utils.BigNumber,
-        nonce?: any
+        index: string = "31"
     ) {
-        let dexContractAddress = await this.contractsService.getControllerAddress("31");
+        let dexContractAddress = await this.contractsService.getControllerAddress(index);
         let dexContract = this.contractsService.getContractSigner(
             dexContractAddress, 
             Constants.DEX_PACKABLE_ABI, 
@@ -1252,7 +1252,7 @@ export class SmartID {
         ]);
 
         try {
-            return await this.forward(this.wallet, walletData, nonce);
+            return await this.forward(this.wallet, walletData);
         } catch(error) {
             console.error(error);
             throw new Error(error);
@@ -1260,9 +1260,10 @@ export class SmartID {
     }
 
     async cancelOrderPackableDex(
-        orderId: string
+        orderId: string,
+        index: string = "31"
     ) {
-        let dexContractAddress = await this.contractsService.getControllerAddress("31");
+        let dexContractAddress = await this.contractsService.getControllerAddress(index);
         let dexContract = this.contractsService.getContractSigner(
             dexContractAddress, 
             Constants.DEX_PACKABLE_ABI, 
