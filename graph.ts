@@ -40,7 +40,20 @@ export class Query {
     public skip: number;
     public isClean: boolean;
 
-    constructor(subgraph: "bank" | "p2p" | "market" | "p2p-primary" | "auction" | "piprice" | "dividend" | "dex" | "registry" | string, url: string = 'mainnet') {
+    constructor(
+        subgraph: "bank" | 
+            "p2p" | 
+            "market" | 
+            "p2p-primary" | 
+            "auction" | 
+            "piprice" | 
+            "dividend" | 
+            "dex" | 
+            "dex-bicentenario" | 
+            "registry" | 
+            string, 
+        url: string = 'mainnet'
+    ) {
         this.query = '{ <entity> ( where:{ <filter> } first: 1000 skip: 0 <order> ) { <property> }}';
         this.first = 1000;
         this.skip = 0;
@@ -65,6 +78,8 @@ export class Query {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH;
             } else if (subgraph == 'dex') {
                 this.subgraph = Constants.DEX_SUBGRAPH;
+            } else if (subgraph == 'dex-bicentenario') {
+                this.subgraph = Constants.DEX_BICENTENARIO_SUBGRAPH;
             } else if (subgraph == 'registry') {
                 this.subgraph = Constants.REGISTRY_SUBGRAPH;
             } else {
@@ -89,6 +104,8 @@ export class Query {
                 this.subgraph = Constants.DIVIDENDS_SUBGRAPH_TESTNET;
             } else if (subgraph == 'dex') {
                 this.subgraph = Constants.DEX_SUBGRAPH_TESTNET;
+            } else if (subgraph == 'dex-bicentenario') {
+                this.subgraph = Constants.DEX_BICENTENARIO_SUBGRAPH_TESTNET;
             } else if (subgraph == 'registry') {
                 this.subgraph = Constants.REGISTRY_SUBGRAPH_TESTNET;
             } else {
@@ -807,10 +824,11 @@ export class QueryTemplates {
     /******** DEX */
 
     async getOrdersSkip(
-        skip: number
+        skip: number,
+        dex: "dex" | "dex-bicentenario" = "dex"
     ) {
         let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
-        let query = new Query("dex", this.network);
+        let query = new Query(dex, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -843,12 +861,13 @@ export class QueryTemplates {
     }
 
     async getOpenOrdersNotInArray(
-        ordersArray: string[]
+        ordersArray: string[],
+        dex: "dex" | "dex-bicentenario" = "dex"
     ) {
         let skip = 0;
         let stringArray = ordersArray.join('", "');
         let customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true, id_not_in:["' + stringArray + '"]}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
-        let query = new Query("dex", this.network);
+        let query = new Query(dex, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -881,10 +900,11 @@ export class QueryTemplates {
     }
 
     async getCancelationsSkip(
-        skip: number
+        skip: number,
+        dex: "dex" | "dex-bicentenario" = "dex"
     ) {
         let customQuery = '{ cancelations(first:1000, skip:' + skip + ', orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
-        let query = new Query("dex", this.network);
+        let query = new Query(dex, this.network);
         query.setCustomQuery(customQuery);
 
         try {
@@ -918,7 +938,8 @@ export class QueryTemplates {
 
     async getInstrumentOrderbook(
         token: string,
-        baseToken: string
+        baseToken: string,
+        dex: "dex" | "dex-bicentenario" = "dex"
     ) {
         let skip = 0;
         let array = [];
@@ -926,7 +947,7 @@ export class QueryTemplates {
         array.push(baseToken);
         let stringArray = array.join('", "');
         let customQuery = '{ orders(skip: ' + skip + ' where:{sellToken_in:["' + stringArray + '"], buyToken_in:["' + stringArray + '"], open:true}, first:1000, orderBy: price, orderDirection:asc) { amount side price buyToken {id} sellToken {id} } }';
-        let query = new Query("dex", this.network);
+        let query = new Query(dex, this.network);
         query.setCustomQuery(customQuery);
 
         try {

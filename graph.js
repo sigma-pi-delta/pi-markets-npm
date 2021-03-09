@@ -113,6 +113,9 @@ var Query = /** @class */ (function () {
             else if (subgraph == 'dex') {
                 this.subgraph = Constants.DEX_SUBGRAPH;
             }
+            else if (subgraph == 'dex-bicentenario') {
+                this.subgraph = Constants.DEX_BICENTENARIO_SUBGRAPH;
+            }
             else if (subgraph == 'registry') {
                 this.subgraph = Constants.REGISTRY_SUBGRAPH;
             }
@@ -145,6 +148,9 @@ var Query = /** @class */ (function () {
             }
             else if (subgraph == 'dex') {
                 this.subgraph = Constants.DEX_SUBGRAPH_TESTNET;
+            }
+            else if (subgraph == 'dex-bicentenario') {
+                this.subgraph = Constants.DEX_BICENTENARIO_SUBGRAPH_TESTNET;
             }
             else if (subgraph == 'registry') {
                 this.subgraph = Constants.REGISTRY_SUBGRAPH_TESTNET;
@@ -1114,14 +1120,15 @@ var QueryTemplates = /** @class */ (function () {
         });
     };
     /******** DEX */
-    QueryTemplates.prototype.getOrdersSkip = function (skip) {
+    QueryTemplates.prototype.getOrdersSkip = function (skip, dex) {
+        if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, queryOrders, orders, _skip, error_32;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
-                        query = new Query("dex", this.network);
+                        query = new Query(dex, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -1161,7 +1168,8 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getOpenOrdersNotInArray = function (ordersArray) {
+    QueryTemplates.prototype.getOpenOrdersNotInArray = function (ordersArray, dex) {
+        if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
             var skip, stringArray, customQuery, query, response, queryOrders, orders, _skip, error_33;
             return __generator(this, function (_a) {
@@ -1170,7 +1178,7 @@ var QueryTemplates = /** @class */ (function () {
                         skip = 0;
                         stringArray = ordersArray.join('", "');
                         customQuery = '{ orders(first:1000, skip: ' + skip + ', where: {open:true, id_not_in:["' + stringArray + '"]}, orderBy: blockNumber, orderDirection:asc) { id owner { id name }, sellToken { id tokenSymbol } buyToken { id tokenSymbol } isPackable packableId { tokenId metadata } amount price side open cancelled dealed timestamp blockNumber } }';
-                        query = new Query("dex", this.network);
+                        query = new Query(dex, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -1210,14 +1218,15 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getCancelationsSkip = function (skip) {
+    QueryTemplates.prototype.getCancelationsSkip = function (skip, dex) {
+        if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
             var customQuery, query, response, queryOrders, orders, _skip, error_34;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         customQuery = '{ cancelations(first:1000, skip:' + skip + ', orderBy: blockNumber, orderDirection:asc) { id order { owner { id name } } timestamp blockNumber } }';
-                        query = new Query("dex", this.network);
+                        query = new Query(dex, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:
@@ -1257,7 +1266,8 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getInstrumentOrderbook = function (token, baseToken) {
+    QueryTemplates.prototype.getInstrumentOrderbook = function (token, baseToken, dex) {
+        if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
             var skip, array, stringArray, customQuery, query, response, queryOrders, orders, buyAmountByPrice, sellAmountByPrice, sellPrices, buyPrices, i, order, price, amount, error_35;
             return __generator(this, function (_a) {
@@ -1269,7 +1279,7 @@ var QueryTemplates = /** @class */ (function () {
                         array.push(baseToken);
                         stringArray = array.join('", "');
                         customQuery = '{ orders(skip: ' + skip + ' where:{sellToken_in:["' + stringArray + '"], buyToken_in:["' + stringArray + '"], open:true}, first:1000, orderBy: price, orderDirection:asc) { amount side price buyToken {id} sellToken {id} } }';
-                        query = new Query("dex", this.network);
+                        query = new Query(dex, this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
                     case 1:

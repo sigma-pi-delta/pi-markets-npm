@@ -22,6 +22,8 @@ const DIVIDENDS_SUBGRAPH = "/subgraphs/name/gperezalba/dividends-subgraph-mainne
 const DIVIDENDS_SUBGRAPH_TESTNET = "/subgraphs/name/gperezalba/dividends-subgraph-testnet";
 const DEX_SUBGRAPH = "/subgraphs/name/gperezalba/dex-subgraph-mainnet";
 const DEX_SUBGRAPH_TESTNET = "/subgraphs/name/gperezalba/dex-subgraph-testnet";
+const DEX_BICENTENARIO_SUBGRAPH = "/subgraphs/name/gperezalba/dex-bicentenario-mainnet";
+const DEX_BICENTENARIO_SUBGRAPH_TESTNET = "/subgraphs/name/gperezalba/dex-bicentenario-testnet";
 const REGISTRY_SUBGRAPH = "/subgraphs/name/gperezalba/registry-subgraph-mainnet";
 const REGISTRY_SUBGRAPH_TESTNET = "/subgraphs/name/gperezalba/registry-subgraph-testnet";
 
@@ -613,6 +615,8 @@ export {
     DIVIDENDS_SUBGRAPH_TESTNET,
     DEX_SUBGRAPH,
     DEX_SUBGRAPH_TESTNET,
+    DEX_BICENTENARIO_SUBGRAPH,
+    DEX_BICENTENARIO_SUBGRAPH_TESTNET,
     REGISTRY_SUBGRAPH,
     REGISTRY_SUBGRAPH_TESTNET,
     CONTROLLER_ABI,
