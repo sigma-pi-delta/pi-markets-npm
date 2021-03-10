@@ -117,6 +117,33 @@ var Backend = /** @class */ (function () {
             });
         });
     };
+    Backend.prototype.setAllowance = function (wallet, isAlowed) {
+        return __awaiter(this, void 0, void 0, function () {
+            var controllerContract, dexAddress, dex, response, error_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        controllerContract = this.contractsService.getContractCaller(this.controllerAddress, Constants.CONTROLLER_ABI);
+                        return [4 /*yield*/, controllerContract.addresses("32")];
+                    case 1:
+                        dexAddress = _a.sent();
+                        dex = this.contractsService.getContractSigner(dexAddress, Constants.DEX_ALLOW_ABI, this.signer);
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 5]);
+                        return [4 /*yield*/, dex.setAllowance(wallet, ["33", "34"], isAlowed, { gasPrice: 0, gasLimit: 3000000 })];
+                    case 3:
+                        response = _a.sent();
+                        return [2 /*return*/, response];
+                    case 4:
+                        error_4 = _a.sent();
+                        console.error(error_4);
+                        throw new Error(error_4);
+                    case 5: return [2 /*return*/];
+                }
+            });
+        });
+    };
     return Backend;
 }());
 exports.Backend = Backend;

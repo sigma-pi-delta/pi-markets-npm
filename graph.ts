@@ -1017,4 +1017,21 @@ export class QueryTemplates {
             throw new Error(error);
         }
     }
+
+    async isBicentenarioAllowed(
+        wallet: string
+    ) {
+        let customQuery = '{ user(id:"' + wallet.toLowerCase() + '") { allowed allowedPackable } }';
+        let query = new Query('dex-bicentenario', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+
+            if (response != undefined) return response.user;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }

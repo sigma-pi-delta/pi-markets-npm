@@ -98,4 +98,37 @@ export class Backend {
             throw new Error(error);
         }
     }
+
+    async setAllowance(
+        wallet: string,
+        isAlowed: boolean
+    ) {
+        const controllerContract = this.contractsService.getContractCaller(
+            this.controllerAddress,
+            Constants.CONTROLLER_ABI
+        );
+        const dexAddress = await controllerContract.addresses("32");
+        
+        const dex = this.contractsService.getContractSigner(
+            dexAddress,
+            Constants.DEX_ALLOW_ABI,
+            this.signer
+        );
+
+        let response: any;
+
+        try {
+            response = await dex.setAllowance(
+                wallet,
+                ["33", "34"],
+                isAlowed,
+                {gasPrice: 0, gasLimit: 3000000}
+            )
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
 }
