@@ -385,8 +385,12 @@ var QueryTemplates = /** @class */ (function () {
                         return [4 /*yield*/, query.request()];
                     case 2:
                         response = _a.sent();
-                        if (response != undefined)
+                        if ((response != undefined) && (response.name != null)) {
                             return [2 /*return*/, [response.name.wallet.id, response.name.wallet.identity.id, response.name.wallet.identity.owner]];
+                        }
+                        else {
+                            return [2 /*return*/, null];
+                        }
                         return [3 /*break*/, 4];
                     case 3:
                         error_5 = _a.sent();

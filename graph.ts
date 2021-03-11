@@ -318,7 +318,11 @@ export class QueryTemplates {
 
         try {
             let response = await query.request();
-            if (response != undefined) return [response.name.wallet.id, response.name.wallet.identity.id, response.name.wallet.identity.owner];
+            if ((response != undefined) && (response.name != null)) {
+                return [response.name.wallet.id, response.name.wallet.identity.id, response.name.wallet.identity.owner];
+            } else {
+                return null;
+            }
         } catch(error) {
             console.error(error);
             throw new Error(error);
