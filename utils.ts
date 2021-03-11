@@ -39,3 +39,8 @@ export function commify(ether: string): string {
 export function commifyBN(bn: ethers.utils.BigNumber): string {
     return ethers.utils.commify(bn.toString());
 }
+
+export function getDataHash(raw: string) {
+    const packed = ethers.utils.solidityPack(['string'], [raw]);
+    return ethers.utils.keccak256(packed);
+}

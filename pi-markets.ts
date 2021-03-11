@@ -18,6 +18,7 @@ import {
     AuctionParams
 } from './smartid';
 import { Report } from './reports';
+import { ethers } from 'ethers';
 
 export {
     Constants, 
@@ -40,5 +41,6 @@ export {
     P2POfferCommodity,
     P2POfferPackable,
     AuctionParams,
-    Report
+    Report,
+    ethers
 }

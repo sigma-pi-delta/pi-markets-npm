@@ -1,6 +1,6 @@
 "use strict";
 exports.__esModule = true;
-exports.commifyBN = exports.commify = exports.stringToBN = exports.BNToString = exports.weiBNToEtherString = exports.weiToEther = exports.weiToEtherBN = exports.weiStringToEtherBN = exports.etherStringToWeiString = exports.etherStringToWeiBN = void 0;
+exports.getDataHash = exports.commifyBN = exports.commify = exports.stringToBN = exports.BNToString = exports.weiBNToEtherString = exports.weiToEther = exports.weiToEtherBN = exports.weiStringToEtherBN = exports.etherStringToWeiString = exports.etherStringToWeiBN = void 0;
 var ethers_1 = require("ethers");
 function etherStringToWeiBN(ether) {
     return ethers_1.ethers.utils.parseEther(ether);
@@ -42,3 +42,8 @@ function commifyBN(bn) {
     return ethers_1.ethers.utils.commify(bn.toString());
 }
 exports.commifyBN = commifyBN;
+function getDataHash(raw) {
+    var packed = ethers_1.ethers.utils.solidityPack(['string'], [raw]);
+    return ethers_1.ethers.utils.keccak256(packed);
+}
+exports.getDataHash = getDataHash;
