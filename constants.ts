@@ -1,7 +1,7 @@
 // URL
 const RPC_URL = "https://connect.pichain.io";
 const RPC_URL_TESTNET = "https://testnet.pimarkets.io";
-const TRACES_URL = "http://18.192.148.106:8545";
+const TRACES_URL = "https://traces.pichain.io";
 const GRAPH_URL = "https://graph.pimarkets.io";
 const GRAPH_URL_TESTNET = "https://graph-test.pimarkets.io";
 
