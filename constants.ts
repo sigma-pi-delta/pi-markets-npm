@@ -358,6 +358,14 @@ const REPO = {
     },
     category: 3
 };
+const DU = {
+    symbol: "DU",
+    address: "0xfc2919bb0024c3983494ddc2cf98a078036f8655",
+    expiry: {
+        never: ["never", ""]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -481,7 +489,8 @@ const ALL_TOKENS = [
     CRMA,
     NOVA,
     AGRO,
-    REPO
+    REPO,
+    DU
 ]
 
 const ALL_ERC223 = [
@@ -543,7 +552,8 @@ const ALL_PACKABLES = [
     CRMA,
     NOVA,
     AGRO,
-    REPO
+    REPO,
+    DU
 ]
 
 const ALL_PACKABLE_EXP = [
@@ -557,7 +567,8 @@ const ALL_PACKABLE_EXP = [
     CRMA.expiry.nov21,
     NOVA.expiry.mar21,
     AGRO.expiry.never,
-    REPO.expiry.never
+    REPO.expiry.never,
+    DU.expiry.never
 ]
 
 const ALL_COLLECTABLES = [
@@ -695,6 +706,7 @@ export {
     SP500_SHORT,
     AGRO,
     REPO,
+    DU,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,
