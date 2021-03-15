@@ -358,11 +358,11 @@ const REPO = {
     },
     category: 3
 };
-const DU = {
-    symbol: "DU",
-    address: "0xfc2919bb0024c3983494ddc2cf98a078036f8655",
+const BDVE = {
+    symbol: "BDVE",
+    address: "0xa247bfd313d030388f51ca451ba7578f849438d6",
     expiry: {
-        never: ["never", ""]
+        never: ["never", "0x73483947881bf9471e86bb5f311ebab7221ce9f47f3baaa5dc4e16f6499b56a0"]
     },
     category: 3
 };
@@ -490,7 +490,7 @@ const ALL_TOKENS = [
     NOVA,
     AGRO,
     REPO,
-    DU
+    BDVE
 ]
 
 const ALL_ERC223 = [
@@ -553,7 +553,7 @@ const ALL_PACKABLES = [
     NOVA,
     AGRO,
     REPO,
-    DU
+    BDVE
 ]
 
 const ALL_PACKABLE_EXP = [
@@ -568,7 +568,7 @@ const ALL_PACKABLE_EXP = [
     NOVA.expiry.mar21,
     AGRO.expiry.never,
     REPO.expiry.never,
-    DU.expiry.never
+    BDVE.expiry.never
 ]
 
 const ALL_COLLECTABLES = [
@@ -706,7 +706,7 @@ export {
     SP500_SHORT,
     AGRO,
     REPO,
-    DU,
+    BDVE,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,
