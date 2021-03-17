@@ -164,6 +164,11 @@ const ARS = {
     address: "0x6e5040f4ba7a6ec228a5247fe690d5df73539b83",
     category: 1
 };
+const CNY = {
+    symbol: "CNY",
+    address: "0x09ca4aacd1cd443f6b4bf1b1003973e169b1a934",
+    category: 1
+};
 const USD = {
     symbol: "USD",
     address: "0x77f4ab4a154cf41c0b812f0873a3491dd39f478a",
@@ -607,13 +612,57 @@ const BTC_PEL = {
     symbol: "BTC_PEL",
     pair: [BTC.address, PEL.address]
 }
+const BTC_VES = {
+    symbol: "BTC_VES",
+    pair: [BTC.address, VES.address]
+}
+const BTC_PTR = {
+    symbol: "BTC_PTR",
+    pair: [BTC.address, PTR.address]
+}
 const ETH_PEL = {
     symbol: "ETH_PEL",
     pair: [ETH.address, PEL.address]
 }
+const ETH_VES = {
+    symbol: "ETH_VES",
+    pair: [ETH.address, VES.address]
+}
+const ETH_PTR = {
+    symbol: "ETH_PTR",
+    pair: [ETH.address, PTR.address]
+}
 const EUR_PEL = {
     symbol: "EUR_PEL",
     pair: [EUR.address, PEL.address]
+}
+const EUR_VES = {
+    symbol: "EUR_VES",
+    pair: [EUR.address, VES.address]
+}
+const EUR_PTR = {
+    symbol: "EUR_PTR",
+    pair: [EUR.address, PTR.address]
+}
+const CNY_PEL = {
+    symbol: "CNY_PEL",
+    pair: [CNY.address, PEL.address]
+}
+const CNY_VES = {
+    symbol: "CNY_VES",
+    pair: [CNY.address, VES.address]
+}
+const CNY_PTR = {
+    symbol: "CNY_PTR",
+    pair: [CNY.address, PTR.address]
+}
+const PTR_PEL = {
+    symbol: "PTR_PEL",
+    pair: [PTR.address, PEL.address]
+}
+const PTR_VES = {
+    symbol: "PTR_VES",
+    pair: [PTR.address, VES.address]
 }
 const LTC_PEL = {
     symbol: "LTC_PEL",
@@ -631,9 +680,25 @@ const GLD_PEL = {
     symbol: "GLD_PEL",
     pair: [GLDX.address, PEL.address]
 }
+const GLD_VES = {
+    symbol: "GLD_VES",
+    pair: [GLDX.address, VES.address]
+}
+const GLD_PTR = {
+    symbol: "GLD_PTR",
+    pair: [GLDX.address, PTR.address]
+}
 const BRENT_PEL = {
     symbol: "BRENT_PEL",
     pair: [BRENT.address, PEL.address]
+}
+const BRENT_VES = {
+    symbol: "BRENT_VES",
+    pair: [BRENT.address, VES.address]
+}
+const BRENT_PTR = {
+    symbol: "BRENT_PTR",
+    pair: [BRENT.address, PTR.address]
 }
 const RST_PEL = {
     symbol: "RST_PEL",
@@ -671,13 +736,41 @@ const SP500_PEL = {
     symbol: "SP500_PEL",
     pair: [SP500.address, PEL.address]
 }
+const NOVA_PEL = {
+    symbol: "NOVA_PEL",
+    pair: [NOVA.address, PEL.address]
+}
+const NOVA_VES = {
+    symbol: "NOVA_VES",
+    pair: [NOVA.address, VES.address]
+}
+const NOVA_PTR = {
+    symbol: "NOVA_PTR",
+    pair: [NOVA.address, PTR.address]
+}
 const AGRO_PEL = {
     symbol: "AGRO_PEL",
     pair: [AGRO.address, PEL.address]
 }
+const AGRO_VES = {
+    symbol: "AGRO_VES",
+    pair: [AGRO.address, VES.address]
+}
+const AGRO_PTR = {
+    symbol: "AGRO_PTR",
+    pair: [AGRO.address, PTR.address]
+}
 const BDVE_PEL = {
     symbol: "BDVE_PEL",
     pair: [BDVE.address, PEL.address]
+}
+const BDVE_VES = {
+    symbol: "BDVE_VES",
+    pair: [BDVE.address, VES.address]
+}
+const BDVE_PTR = {
+    symbol: "BDVE_PTR",
+    pair: [BDVE.address, PTR.address]
 }
 
 const BDVE_INSTRUMENTS = [
@@ -701,6 +794,38 @@ const BDVE_INSTRUMENTS = [
     SP500_PEL,
     AGRO_PEL,
     BDVE_PEL
+]
+
+const BPVB_INSTRUMENTS = [
+    GLD_PEL,
+    GLD_VES,
+    GLD_PTR,
+    BRENT_PEL,
+    BRENT_VES,
+    BRENT_PTR,
+    NOVA_PEL,
+    NOVA_VES,
+    NOVA_PTR,
+    AGRO_PEL,
+    AGRO_VES,
+    AGRO_PTR,
+    BDVE_PEL,
+    BDVE_VES,
+    BDVE_PTR,
+    BTC_PEL,
+    BTC_VES,
+    BTC_PTR,
+    CNY_PEL,
+    CNY_VES,
+    CNY_PTR,
+    EUR_PEL,
+    EUR_VES,
+    EUR_PTR,
+    PTR_PEL,
+    PTR_VES,
+    ETH_PEL,
+    ETH_VES,
+    ETH_PTR
 ]
 
 // OTHER
@@ -832,5 +957,6 @@ export {
     ALL_PACKABLE_EXP,
     ALL_COLLECTABLES,
     INSTRUMENT_IDS,
-    BDVE_INSTRUMENTS
+    BDVE_INSTRUMENTS,
+    BPVB_INSTRUMENTS
 };
