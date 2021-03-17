@@ -599,6 +599,110 @@ const INSTRUMENT_IDS = {
     "0x2b11506779855a5d6106bd8a0dd12108d6d862a1": 114, //DOT
 }
 
+const PI_PEL = {
+    symbol: "PI_PEL",
+    pair: [PI.address, PEL.address]
+}
+const BTC_PEL = {
+    symbol: "BTC_PEL",
+    pair: [BTC.address, PEL.address]
+}
+const ETH_PEL = {
+    symbol: "ETH_PEL",
+    pair: [ETH.address, PEL.address]
+}
+const EUR_PEL = {
+    symbol: "EUR_PEL",
+    pair: [EUR.address, PEL.address]
+}
+const LTC_PEL = {
+    symbol: "LTC_PEL",
+    pair: [LTCx.address, PEL.address]
+}
+const DOGE_PEL = {
+    symbol: "DOGE_PEL",
+    pair: [DOGE.address, PEL.address]
+}
+const DOT_PEL = {
+    symbol: "DOT_PEL",
+    pair: [DOT.address, PEL.address]
+}
+const GLD_PEL = {
+    symbol: "GLD_PEL",
+    pair: [GLDX.address, PEL.address]
+}
+const BRENT_PEL = {
+    symbol: "BRENT_PEL",
+    pair: [BRENT.address, PEL.address]
+}
+const RST_PEL = {
+    symbol: "RST_PEL",
+    pair: [RST.address, PEL.address]
+}
+const BNC_PEL = {
+    symbol: "BNC_PEL",
+    pair: [BNC.address, PEL.address]
+}
+const PGR_PEL = {
+    symbol: "PGR_PEL",
+    pair: [PGR.address, PEL.address]
+}
+const ENV_PEL = {
+    symbol: "ENV_PEL",
+    pair: [ENV.address, PEL.address]
+}
+const BPV_PEL = {
+    symbol: "BPV_PEL",
+    pair: [BPV.address, PEL.address]
+}
+const FVIA_PEL = {
+    symbol: "FVIA_PEL",
+    pair: [FVIA.address, PEL.address]
+}
+const TDVD_PEL = {
+    symbol: "TDVD_PEL",
+    pair: [TDVD.address, PEL.address]
+}
+const CRMA_PEL = {
+    symbol: "CRMA_PEL",
+    pair: [CRMA.address, PEL.address]
+}
+const SP500_PEL = {
+    symbol: "SP500_PEL",
+    pair: [SP500.address, PEL.address]
+}
+const AGRO_PEL = {
+    symbol: "AGRO_PEL",
+    pair: [AGRO.address, PEL.address]
+}
+const BDVE_PEL = {
+    symbol: "BDVE_PEL",
+    pair: [BDVE.address, PEL.address]
+}
+
+const BDVE_INSTRUMENTS = [
+    PI_PEL,
+    BTC_PEL,
+    ETH_PEL,
+    EUR_PEL,
+    LTC_PEL,
+    DOGE_PEL,
+    DOT_PEL,
+    GLD_PEL,
+    BRENT_PEL,
+    RST_PEL,
+    BNC_PEL,
+    PGR_PEL,
+    ENV_PEL,
+    BPV_PEL,
+    FVIA_PEL,
+    TDVD_PEL,
+    CRMA_PEL,
+    SP500_PEL,
+    AGRO_PEL,
+    BDVE_PEL
+]
+
 // OTHER
 const MIN_GAS_PRICE = "1000000000";
 const OVERRIDES = {gasPrice: 1000000000};
@@ -727,5 +831,6 @@ export {
     ALL_PACKABLES,
     ALL_PACKABLE_EXP,
     ALL_COLLECTABLES,
-    INSTRUMENT_IDS
+    INSTRUMENT_IDS,
+    BDVE_INSTRUMENTS
 };

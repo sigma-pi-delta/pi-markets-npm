@@ -1824,6 +1824,45 @@ export class Report {
             console.error(e);
         }
     }
+
+    async getDexReport(
+        timeLow: number,
+        timeHigh: number,
+        instruments: any[],
+        dex: "dex" | "dex-bicentenario",
+        hideNames: boolean = true
+    ) {
+        const workbook = new ExcelJS.Workbook();
+        let promises: any = [];
+
+        for (let i = 0; i < instruments.length; i++) {
+            let sheet = workbook.addWorksheet(instruments[i].symbol);
+
+            promises.push(setDexSheet(
+                sheet,
+                timeLow,
+                timeHigh,
+                instruments[i],
+                dex,
+                this.url,
+                hideNames
+            ));
+        }
+
+        await Promise.all(promises);
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsDEXReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsDEXReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
 }
 
 async function getUserMonthStatsByIdentityByTime(
@@ -3710,6 +3749,123 @@ async function setBalancesTable(
     );
 }
 
+async function setDexSheet(
+    sheet: any,
+    timeLow: number,
+    timeHigh: number,
+    instrument: any,
+    dex: "dex" | "dex-bicentenario",
+    url: string,
+    hideNames: boolean = true
+) {
+    let deals = await try_getDexDeals(timeLow, timeHigh, instrument.pair, dex, url);
+
+    let dealsRow = [];
+    for (let i = 0; i < deals.length; i++) {
+        let deal = deals[i];
+        let dealRow = [];
+
+        dealRow.push(new Date(deal.timestamp * 1000));
+
+        if (deal.side == "1") {
+            //amountA is in nominatorToken
+            //amountB is in baseToken (PEL)
+            //orderA-SELL & orderB-BUY
+            
+            //SELLER
+            if (!hideNames) {
+                if (deal.orderA.owner.name == null) {
+                    dealRow.push("");
+                } else {
+                    dealRow.push(deal.orderA.owner.name);
+                }
+            } else {
+                dealRow.push(deal.orderA.owner.id);
+            }
+
+            //BUYER
+            if (!hideNames) {
+                if (deal.orderB.owner.name == null) {
+                    dealRow.push("");
+                } else {
+                    dealRow.push(deal.orderB.owner.name);
+                }
+            } else {
+                dealRow.push(deal.orderB.owner.id);
+            }
+
+            //PRICE
+            dealRow.push(parseFloat(weiToEther(deal.price)));
+
+            //AMOUNT (in nominatorToken)
+            dealRow.push(parseFloat(weiToEther(deal.amountA)));
+
+            //AMOUNT (in baseToken aka PEL)
+            dealRow.push(parseFloat(weiToEther(deal.amountB)));
+
+        } else {
+            //amountA is in baseToken (PEL)
+            //amountB is in nominatorToken
+            //orderA-BUY & orderB-SELL
+
+            //SELLER
+            if (!hideNames) {
+                if (deal.orderB.owner.name == null) {
+                    dealRow.push("");
+                } else {
+                    dealRow.push(deal.orderB.owner.name);
+                }
+            } else {
+                dealRow.push(deal.orderB.owner.id);
+            }
+
+            //BUYER
+            if (!hideNames) {
+                if (deal.orderA.owner.name == null) {
+                    dealRow.push("");
+                } else {
+                    dealRow.push(deal.orderA.owner.name);
+                }
+            } else {
+                dealRow.push(deal.orderA.owner.id);
+            }
+
+            //PRICE
+            dealRow.push(parseFloat(weiToEther(deal.price)));
+
+            //AMOUNT (in nominatorToken)
+            dealRow.push(parseFloat(weiToEther(deal.amountB)));
+
+            //AMOUNT (in baseToken aka PEL)
+            dealRow.push(parseFloat(weiToEther(deal.amountA)));
+        }
+
+        dealsRow.push(dealRow);
+    }
+
+    //TXs TABLE
+    let tableName = 'Tabla' + instrument.symbol;
+
+    if (dealsRow.length == 0) {
+        dealsRow = [[new Date(), "", "", 0, 0, 0]];
+    }
+
+    addTable(
+        sheet,
+        tableName,
+        'B2',
+        [
+            {name: 'Fecha', filterButton: true},
+            {name: 'Vendedor', filterButton: true},
+            {name: 'Comprador', filterButton: true},
+            {name: 'Precio', totalsRowFunction: 'average'},
+            {name: 'Cantidad', totalsRowFunction: 'sum'},
+            {name: 'Cantidad (contrapartida)', totalsRowFunction: 'sum'}
+        ],
+        dealsRow
+    );
+}
+
 async function try_getTransactions(
     _timeLow: number, 
     _timeHigh: number, 
@@ -4640,6 +4796,61 @@ async function getUserLastTxBeforeTime(
     if (response == undefined) return null;
 
     return response.name.wallet.transactions[0].id;
+}
+
+async function try_getDexDeals(
+    _timeLow: number,
+    _timeHigh: number,
+    _instrument: string[],
+    _dex: "dex" | "dex-bicentenario",
+    _url: string = 'mainnet',
+    retries: number = 0
+) {
+    let deals: any;
+    try {
+        deals = await getDexDeals(_timeLow, _timeHigh, _instrument, _dex, _url);
+
+        return deals;
+    } catch (error) {
+        if (retries < 10) {
+            retries++;
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            deals = await try_getDexDeals(_timeLow, _timeHigh, _instrument, _dex, _url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return deals;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+}
+
+async function getDexDeals(
+    _timeLow: number,
+    _timeHigh: number,
+    _instrument: string[],
+    _dex: "dex" | "dex-bicentenario",
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let stringArray = _instrument.join('", "');
+    let query = '{ deals (first: 1000, skip: ' + skip + ', where:{tokenA_in:["' + stringArray + '"], tokenB_in:["' + stringArray + '"], timestamp_gte:' + _timeLow + ', timestamp_lte:' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc) { tokenA { id tokenSymbol } tokenB { id tokenSymbol } orderA { owner { id name } } orderB { owner { id name } } amountA amountB price side timestamp } }';
+    let queryService = new Query(_dex, _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryDeals = response.deals;
+    let deals = queryDeals;
+
+    while(queryDeals.length >= 1000) {
+        skip = deals.length;
+        query = '{ deals (first: 1000, skip: ' + skip + ', where:{tokenA_in:["' + stringArray + '"], tokenB_in:["' + stringArray + '"], timestamp_gte:' + _timeLow + ', timestamp_lte:' + _timeHigh + '}, orderBy: timestamp, orderDirection:desc) { tokenA { id tokenSymbol } tokenB { id tokenSymbol } orderA { owner { id name } } orderB { owner { id name } } amountA amountB price side timestamp } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryDeals = response.deals;
+        deals = deals.concat(queryDeals);
+    }
+
+    return deals;
 }
 
 async function getPiPrice(
