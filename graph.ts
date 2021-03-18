@@ -281,6 +281,39 @@ export class QueryTemplates {
         this.network = network;
     }
 
+    async getPiPrice() {
+        let query = '{ prices ( orderBy: timestamp, orderDirection:desc, first: 1, skip: 0) { id supply collateral piPrice collateralPrice timestamp } }';
+        let queryService = new Query('piprice', this.network);
+        queryService.setCustomQuery(query);
+
+        try {
+            let response = await queryService.request();
+            if ((response != undefined) && (response.prices.length > 0)) {
+                let piPrice = response.prices[0].piPrice;
+
+                let date = new Date(response.prices[0].timestamp * 1000);
+                let from = date.getUTCFullYear() + "-" + (date.getUTCMonth() +1) + "-" + (date.getUTCDate());
+                let to = date.getUTCFullYear() + "-" + (date.getUTCMonth() +1) + "-" + (date.getUTCDate());
+
+                try {
+                    let response2 = await requestDataLake(Constants.BTC.address, from, to);
+                    let btcPrice = response2[response2.length - 1].open;
+                    
+                    return piPrice * btcPrice;
+                } catch(e2) {
+                    console.error(e2);
+                    return 0;
+                }
+                
+            } else {
+                return 0;
+            }
+        } catch (e) {
+            console.error(e);
+            return 0;
+        }
+    }
+
     /******** BANK */
 
     async getWalletByName(name: string) {
@@ -1037,5 +1070,41 @@ export class QueryTemplates {
             console.error(error);
             throw new Error(error);
         }
+    }
+}
+
+async function requestDataLake(
+    token: string,
+    from: string,
+    to: string
+) {
+    let parId = Constants.INSTRUMENT_IDS[token];
+    if (parId == undefined) return [{"open": 0,"close":0,"volume":0}];
+
+    let endPoint = "https://api.pimarkets.io/v1/instrument/tickers/" + parId;
+    let body = JSON.stringify({"interval":"1min","start_date":from,"end_date":to,"empty_candles":true});
+
+    let response: any;
+    let responseData: any;
+
+    try {
+        response = await fetch(endPoint, {
+            "method": 'POST',
+            "headers": {
+                "Accept": 'application/json',
+                'Content-Type': 'application/json',
+            },
+            "body": body,
+            "redirect": 'follow'
+        });
+
+        if (response.ok) {
+            responseData = await response.json();
+        }
+
+        return responseData;
+    } catch (error) {
+        console.error(error);
+        throw new Error(error);
     }
 }

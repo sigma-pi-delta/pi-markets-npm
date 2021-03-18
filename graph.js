@@ -315,6 +315,50 @@ var QueryTemplates = /** @class */ (function () {
         if (network === void 0) { network = 'mainnet'; }
         this.network = network;
     }
+    QueryTemplates.prototype.getPiPrice = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var query, queryService, response, piPrice, date, from, to, response2, btcPrice, e2_1, e_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        query = '{ prices ( orderBy: timestamp, orderDirection:desc, first: 1, skip: 0) { id supply collateral piPrice collateralPrice timestamp } }';
+                        queryService = new Query('piprice', this.network);
+                        queryService.setCustomQuery(query);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 9, , 10]);
+                        return [4 /*yield*/, queryService.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (!((response != undefined) && (response.prices.length > 0))) return [3 /*break*/, 7];
+                        piPrice = response.prices[0].piPrice;
+                        date = new Date(response.prices[0].timestamp * 1000);
+                        from = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + (date.getUTCDate());
+                        to = date.getUTCFullYear() + "-" + (date.getUTCMonth() + 1) + "-" + (date.getUTCDate());
+                        _a.label = 3;
+                    case 3:
+                        _a.trys.push([3, 5, , 6]);
+                        return [4 /*yield*/, requestDataLake(Constants.BTC.address, from, to)];
+                    case 4:
+                        response2 = _a.sent();
+                        btcPrice = response2[response2.length - 1].open;
+                        return [2 /*return*/, piPrice * btcPrice];
+                    case 5:
+                        e2_1 = _a.sent();
+                        console.error(e2_1);
+                        return [2 /*return*/, 0];
+                    case 6: return [3 /*break*/, 8];
+                    case 7: return [2 /*return*/, 0];
+                    case 8: return [3 /*break*/, 10];
+                    case 9:
+                        e_1 = _a.sent();
+                        console.error(e_1);
+                        return [2 /*return*/, 0];
+                    case 10: return [2 /*return*/];
+                }
+            });
+        });
+    };
     /******** BANK */
     QueryTemplates.prototype.getWalletByName = function (name) {
         return __awaiter(this, void 0, void 0, function () {
@@ -1389,3 +1433,43 @@ var QueryTemplates = /** @class */ (function () {
     return QueryTemplates;
 }());
 exports.QueryTemplates = QueryTemplates;
+function requestDataLake(token, from, to) {
+    return __awaiter(this, void 0, void 0, function () {
+        var parId, endPoint, body, response, responseData, error_37;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    parId = Constants.INSTRUMENT_IDS[token];
+                    if (parId == undefined)
+                        return [2 /*return*/, [{ "open": 0, "close": 0, "volume": 0 }]];
+                    endPoint = "https://api.pimarkets.io/v1/instrument/tickers/" + parId;
+                    body = JSON.stringify({ "interval": "1min", "start_date": from, "end_date": to, "empty_candles": true });
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 5, , 6]);
+                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                            "method": 'POST',
+                            "headers": {
+                                "Accept": 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            "body": body,
+                            "redirect": 'follow'
+                        })];
+                case 2:
+                    response = _a.sent();
+                    if (!response.ok) return [3 /*break*/, 4];
+                    return [4 /*yield*/, response.json()];
+                case 3:
+                    responseData = _a.sent();
+                    _a.label = 4;
+                case 4: return [2 /*return*/, responseData];
+                case 5:
+                    error_37 = _a.sent();
+                    console.error(error_37);
+                    throw new Error(error_37);
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
