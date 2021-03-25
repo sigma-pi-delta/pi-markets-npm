@@ -405,6 +405,50 @@ export class QueryTemplates {
         }
     }
 
+    async getLimitsByOwner(owner: string) {
+        let customQuery = '{ identities(where: { owner: "' + owner + '" }) { id state owner recovery wallet { id name { id } isToLimited allowedDestinations { id name { id } } valueLimits { id isActive token { id tokenSymbol } limit } dayLimits { id isActive token { id tokenSymbol } limit } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) {
+                if ((response.identities != null) && (response.identities.lenth > 0)) {
+                    return response.identities[0];
+                } else {
+                    return [];
+                }
+            } else {
+                return [];
+            } 
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getLimitsByRecovery(recovery: string) {
+        let customQuery = '{ identities(where: { recovery: "' + recovery + '" }) { id state owner recovery wallet { id name { id } isToLimited allowedDestinations { id name { id } } valueLimits { id isActive token { id tokenSymbol } limit } dayLimits { id isActive token { id tokenSymbol } limit } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) {
+                if ((response.identities != null) && (response.identities.lenth > 0)) {
+                    return response.identities[0];
+                } else {
+                    return [];
+                }
+            } else {
+                return [];
+            } 
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
     async getTransactionsByName(
         name: string,
         orderBy: string,

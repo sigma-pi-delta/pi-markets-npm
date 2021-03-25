@@ -325,6 +325,130 @@ export class SmartID {
         }
     }
 
+    /******** WALLET LIMITS */
+
+    //ownerOrRecovery
+    async limitValue(
+        tokenAddress: string,
+        limit: ethers.utils.BigNumber
+    ) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.limitValue.encode([
+            tokenAddress,
+            limit
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    //onlyRecovery
+    async limitTo(
+        receiver: string,
+        isAllowed: boolean
+    ) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.limitTo.encode([
+            receiver,
+            isAllowed
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    //ownerOrRecovery
+    async limitDaily(
+        tokenAddress: string,
+        limit: ethers.utils.BigNumber
+    ) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.limitDaily.encode([
+            tokenAddress,
+            limit
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    //onlyRecovery
+    async unlimitValue(
+        tokenAddress: string
+    ) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.unlimitValue.encode([
+            tokenAddress
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    //onlyRecovery
+    async unlimitTo() {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.unlimitTo.encode([]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    //onlyRecovery
+    async unlimitDaily(
+        tokenAddress: string
+    ) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.unlimitDaily.encode([
+            tokenAddress
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
     /******** P2P */
 
     // Common for all P2Ps [9-17]
