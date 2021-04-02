@@ -371,6 +371,46 @@ const BDVE = {
     },
     category: 3
 };
+const A = {
+    symbol: "A",
+    address: "0xf53a429ee338739168fb9b7a7b573a533c3102b9",
+    expiry: {
+        never: ["never", "0x16916c7cd47f261d1ffd87db0bf86b22c0fb5baebd333ce8f9c279b7e7151b1e"]
+    },
+    category: 3
+};
+const B = {
+    symbol: "B",
+    address: "0xcd18ffbcb4317bd276dcfb02f7d19b00861e00b6",
+    expiry: {
+        never: ["never", "0xf42b592c6d56f6c82493470eab3da884d5995211a59d449f9456c06c3aed9c71"]
+    },
+    category: 3
+};
+const C = {
+    symbol: "C",
+    address: "0xf97737fd89b3a7937660e8f7444179d12e30e7cd",
+    expiry: {
+        never: ["never", "0x82b8e3ae775514cd973e469e80df58b06e805933859a774c7ff6fca710505791"]
+    },
+    category: 3
+};
+const D = {
+    symbol: "D",
+    address: "0x71fd493c23acdb5dd09aa90489fbe45248e58de4",
+    expiry: {
+        never: ["never", "0x685bd0053a997786d53d10a8457d0cc02c4977ebaa2c437df2e370464eeb1449"]
+    },
+    category: 3
+};
+const F = {
+    symbol: "F",
+    address: "0x7890239408e63c886db3c3c929be41a1ea13953a",
+    expiry: {
+        never: ["never", "0xddc7f8706c8cc57063ae6e83a645aecd659ae66563bbf7e89b2e0682c2715877"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -495,7 +535,12 @@ const ALL_TOKENS = [
     NOVA,
     AGRO,
     REPO,
-    BDVE
+    BDVE,
+    A,
+    B,
+    C,
+    D,
+    F
 ]
 
 const ALL_ERC223 = [
@@ -558,7 +603,12 @@ const ALL_PACKABLES = [
     NOVA,
     AGRO,
     REPO,
-    BDVE
+    BDVE,
+    A,
+    B,
+    C,
+    D,
+    F
 ]
 
 const ALL_PACKABLE_EXP = [
@@ -573,7 +623,12 @@ const ALL_PACKABLE_EXP = [
     NOVA.expiry.mar21,
     AGRO.expiry.never,
     REPO.expiry.never,
-    BDVE.expiry.never
+    BDVE.expiry.never,
+    A.expiry.never,
+    B.expiry.never,
+    C.expiry.never,
+    D.expiry.never,
+    F.expiry.never
 ]
 
 const ALL_COLLECTABLES = [
@@ -936,6 +991,11 @@ export {
     AGRO,
     REPO,
     BDVE,
+    A,
+    B,
+    C,
+    D,
+    F,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,

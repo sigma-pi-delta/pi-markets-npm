@@ -3561,7 +3561,7 @@ function getAllTransactions(_timeLow, _timeHigh, _url) {
             switch (_a.label) {
                 case 0:
                     skip = 0;
-                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {currency: "0xe1f2d5b6d86030660fc2e80965585af3163a1454" timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
                     queryService = new graph_1.Query('bank', _url);
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
@@ -3573,7 +3573,7 @@ function getAllTransactions(_timeLow, _timeHigh, _url) {
                 case 2:
                     if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
                     skip = transactions.length;
-                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {currency: "0xe1f2d5b6d86030660fc2e80965585af3163a1454" timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
