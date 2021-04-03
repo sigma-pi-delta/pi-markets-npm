@@ -345,7 +345,7 @@ var Report = /** @class */ (function () {
     Report.prototype.getPackableHoldersReport = function (orderBy, orderDirection, tokensArray, expiries, hideNames) {
         if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, namesAllowed, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -384,9 +384,17 @@ var Report = /** @class */ (function () {
                         sheet.getCell('C6').value = 'HOLDERS';
                         sheet.getCell('C6').font = { bold: true };
                         rows = [];
+                        namesAllowed = false;
+                        if ((tokensArray[i].address == Constants.A.address) ||
+                            (tokensArray[i].address == Constants.B.address) ||
+                            (tokensArray[i].address == Constants.C.address) ||
+                            (tokensArray[i].address == Constants.D.address) ||
+                            (tokensArray[i].address == Constants.F.address)) {
+                            namesAllowed = true;
+                        }
                         for (j = 0; j < response.length; j++) {
                             array = [];
-                            if (!hideNames) {
+                            if ((!hideNames) || namesAllowed) {
                                 if (response[j].wallet.name == null) {
                                     array.push("");
                                 }
@@ -399,7 +407,7 @@ var Report = /** @class */ (function () {
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
-                        if (!hideNames) return [3 /*break*/, 7];
+                        if (!((hideNames) || !namesAllowed)) return [3 /*break*/, 7];
                         if (rows.length == 0)
                             rows.push(["", 0]);
                         return [4 /*yield*/, addTable(sheet, tableName, 'B7', [

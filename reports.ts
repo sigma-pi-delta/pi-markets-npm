@@ -369,11 +369,23 @@ export class Report {
             sheet.getCell('C6').font = {bold: true};
     
             let rows = [];
+
+            let namesAllowed = false;
+
+                if (
+                    (tokensArray[i].address == Constants.A.address) ||
+                    (tokensArray[i].address == Constants.B.address) ||
+                    (tokensArray[i].address == Constants.C.address) ||
+                    (tokensArray[i].address == Constants.D.address) ||
+                    (tokensArray[i].address == Constants.F.address)
+                ) {
+                    namesAllowed = true;
+                }
     
             for (let j = 0; j < response.length; j++) {
                 let array = [];
 
-                if (!hideNames) {
+                if ((!hideNames) || namesAllowed) {
                     if (response[j].wallet.name == null) {
                         array.push("");
                     } else {
@@ -388,7 +400,7 @@ export class Report {
     
             let tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
     
-            if (hideNames) {
+            if ((hideNames) || !namesAllowed) {
                 if (rows.length == 0) rows.push(["", 0]);
                 await addTable(
                     sheet,
