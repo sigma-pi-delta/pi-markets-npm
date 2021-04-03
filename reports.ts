@@ -344,7 +344,7 @@ export class Report {
     
             while(loopresponse.length >= 1000) {
                 skip = response.length;
-                response = await queryTemplates.getPackableHolders(
+                loopresponse = await queryTemplates.getPackableHolders(
                     tokensArray[i].address,
                     expiries[i][1],
                     orderBy,

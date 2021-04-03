@@ -367,7 +367,7 @@ var Report = /** @class */ (function () {
                         skip = response.length;
                         return [4 /*yield*/, queryTemplates.getPackableHolders(tokensArray[i].address, expiries[i][1], orderBy, orderDirection, first, skip)];
                     case 4:
-                        response = _a.sent();
+                        loopresponse = _a.sent();
                         response = response.concat(loopresponse);
                         return [3 /*break*/, 3];
                     case 5:
