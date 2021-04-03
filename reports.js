@@ -407,7 +407,7 @@ var Report = /** @class */ (function () {
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
-                        if (!((hideNames) || !namesAllowed)) return [3 /*break*/, 7];
+                        if (!((hideNames) && !namesAllowed)) return [3 /*break*/, 7];
                         if (rows.length == 0)
                             rows.push(["", 0]);
                         return [4 /*yield*/, addTable(sheet, tableName, 'B7', [

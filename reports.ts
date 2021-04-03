@@ -400,7 +400,7 @@ export class Report {
     
             let tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
     
-            if ((hideNames) || !namesAllowed) {
+            if ((hideNames) && !namesAllowed) {
                 if (rows.length == 0) rows.push(["", 0]);
                 await addTable(
                     sheet,
