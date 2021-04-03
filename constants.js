@@ -511,6 +511,14 @@ var F = {
     category: 3
 };
 exports.F = F;
+var INFO = {
+    symbol: "INFO",
+    address: "0xb3e3d1f019ccdb56dceb2c6aaadd0422c85962a4",
+    expiry: {
+        never: ["never", "0x2a9ef91a29fe7042d3ef12fefee57b680f8fa98b33627a718441217c74a5e36e"]
+    },
+    category: 3
+};
 // TestNet
 var PI_TESTNET = {
     symbol: "PI_TESTNET",
@@ -652,7 +660,8 @@ var ALL_TOKENS = [
     B,
     C,
     D,
-    F
+    F,
+    INFO
 ];
 exports.ALL_TOKENS = ALL_TOKENS;
 var ALL_ERC223 = [
@@ -720,7 +729,8 @@ var ALL_PACKABLES = [
     B,
     C,
     D,
-    F
+    F,
+    INFO
 ];
 exports.ALL_PACKABLES = ALL_PACKABLES;
 var ALL_PACKABLE_EXP = [
@@ -740,7 +750,8 @@ var ALL_PACKABLE_EXP = [
     B.expiry.never,
     C.expiry.never,
     D.expiry.never,
-    F.expiry.never
+    F.expiry.never,
+    INFO.expiry.never
 ];
 exports.ALL_PACKABLE_EXP = ALL_PACKABLE_EXP;
 var ALL_COLLECTABLES = [

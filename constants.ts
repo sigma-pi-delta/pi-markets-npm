@@ -411,6 +411,14 @@ const F = {
     },
     category: 3
 };
+const INFO = {
+    symbol: "INFO",
+    address: "0xb3e3d1f019ccdb56dceb2c6aaadd0422c85962a4",
+    expiry: {
+        never: ["never", "0x2a9ef91a29fe7042d3ef12fefee57b680f8fa98b33627a718441217c74a5e36e"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -540,7 +548,8 @@ const ALL_TOKENS = [
     B,
     C,
     D,
-    F
+    F,
+    INFO
 ]
 
 const ALL_ERC223 = [
@@ -608,7 +617,8 @@ const ALL_PACKABLES = [
     B,
     C,
     D,
-    F
+    F,
+    INFO
 ]
 
 const ALL_PACKABLE_EXP = [
@@ -628,7 +638,8 @@ const ALL_PACKABLE_EXP = [
     B.expiry.never,
     C.expiry.never,
     D.expiry.never,
-    F.expiry.never
+    F.expiry.never,
+    INFO.expiry.never
 ]
 
 const ALL_COLLECTABLES = [
