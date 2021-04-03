@@ -1007,6 +1007,7 @@ export {
     C,
     D,
     F,
+    INFO,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,
