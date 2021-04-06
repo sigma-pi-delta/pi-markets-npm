@@ -112,6 +112,27 @@ export class SmartID {
         }
     }
 
+    async walletForward(
+        destination: string,
+        _data: string
+    ) {
+        let walletContract = this.contractsService.getContractSigner(
+            this.wallet, 
+            Constants.WALLET_ABI, 
+            this.signer);
+        let data = walletContract.interface.functions.forward.encode([
+            destination,
+            _data
+        ]);
+
+        try {
+            return await this.forward(this.wallet, data);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
     /******** TRANSFER */
 
     async transfer(tx: TransferRequest) {
