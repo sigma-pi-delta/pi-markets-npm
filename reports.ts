@@ -19,6 +19,46 @@ export class Report {
         this.url = url;
     }
 
+    async getTransactionReportByArray(
+        timeLow: number,
+        timeHigh: number,
+        tokensArray: any[],
+        addressesArray: string[],
+        hideNames: boolean = true
+    ) {
+        const workbook = new ExcelJS.Workbook();
+
+        let promises: any = [];
+
+        for (let i = 0; i < tokensArray.length; i++) {
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol);
+
+            promises.push(setTransactionSheetByArray(
+                sheet, 
+                timeLow, 
+                timeHigh, 
+                addressesArray,
+                this.url,
+                tokensArray[i],
+                hideNames
+            ));
+        }
+
+        await Promise.all(promises);
+
+        try {
+            await workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
     async getTransactionReportV2(
         monthIndex: number,
         year: number,
@@ -2227,6 +2267,89 @@ async function setTransactionSheet(
     sheet.getCell('L1').font = {bold: true};
 }
 
+async function setTransactionSheetByArray(
+    sheet: any,
+    timeLow: number,
+    timeHigh: number,
+    addressesArray: string[],
+    url: string,
+    token: any,
+    hideNames: boolean = true
+) {
+    let txRows = [];
+
+    let fromTxs = await try_getTransactionsFromArray(timeLow, timeHigh, token.address, addressesArray, url, 0);
+    let toTxs = await try_getTransactionsToArray(timeLow, timeHigh, token.address, addressesArray, url, 0);
+
+    while ((fromTxs.length > 0) || (toTxs.length > 0)) {
+        let nextTx: any;
+        if (fromTxs.length == 0) {
+            nextTx = toTxs.pop();
+        } else if (toTxs.length == 0) {
+            nextTx = fromTxs.pop();
+        } else {
+            let fromTimestamp = fromTxs[fromTxs.length - 1].timestamp;
+            let toTimestamp = toTxs[toTxs.length - 1].timestamp;
+
+            if (fromTimestamp < toTimestamp) {
+                nextTx = fromTxs.pop();
+            } else {
+                nextTx = toTxs.pop();
+            }
+        }
+
+        let txDayRow = [];
+
+        //TXs Table
+        txDayRow.push(new Date(nextTx.timestamp * 1000));
+        txDayRow.push(nextTx.currency.tokenSymbol);
+        
+        if (!hideNames) {
+            if (nextTx.from.name == null) {
+                txDayRow.push("");
+            } else {
+                txDayRow.push(nextTx.from.name.id);
+            }
+        } else {
+            txDayRow.push(nextTx.from.id);
+        }
+
+        if (!hideNames) {
+            if (nextTx.to.name == null) {
+                txDayRow.push("");
+            } else {
+                txDayRow.push(nextTx.to.name.id);
+            }
+        } else {
+            txDayRow.push(nextTx.to.id);
+        }
+
+        txDayRow.push(parseFloat(weiToEther(nextTx.amount)));
+        txRows.push(txDayRow);
+    }
+
+    //TXs TABLE
+    let tableName = 'Tabla' + token.symbol;
+
+    if (txRows.length == 0) {
+        txRows = getEmptyTransaction();
+    }
+
+    addTable(
+        sheet,
+        tableName,
+        'B2',
+        [
+            {name: 'Fecha', filterButton: true},
+            {name: 'Divisa'},
+            {name: 'Origen (wallet)', filterButton: true},
+            {name: 'Destino (wallet)', filterButton: true},
+            {name: 'Monto', totalsRowFunction: 'sum'}
+        ],
+        txRows
+    );
+}
+
 async function setTokenDealsSheet(
     sheet: any,
     timeLow: number,
@@ -3911,6 +4034,58 @@ async function try_getTransactions(
     }
 }
 
+async function try_getTransactionsFromArray(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    addressesArray: string[],
+    url: string,
+    retries: number = 0
+) {
+    let transactions: any;
+    try {
+        transactions = await getTransactionsFromArray(_timeLow, _timeHigh, token, addressesArray, url);
+
+        return transactions;
+    } catch (error) {
+        if (retries < 5) {
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            transactions = await try_getTransactionsFromArray(_timeLow, _timeHigh, token, addressesArray, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return transactions;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+}
+
+async function try_getTransactionsToArray(
+    _timeLow: number, 
+    _timeHigh: number, 
+    token: string,
+    addressesArray: string[],
+    url: string,
+    retries: number = 0
+) {
+    let transactions: any;
+    try {
+        transactions = await getTransactionsToArray(_timeLow, _timeHigh, token, addressesArray, url);
+
+        return transactions;
+    } catch (error) {
+        if (retries < 5) {
+            console.log("-- REINTENTO DE QUERY: " + retries);  
+            transactions = await try_getTransactionsToArray(_timeLow, _timeHigh, token, addressesArray, url, retries + 1);
+            console.log("-- REINTENTO EXITOSO --");
+            return transactions;
+        } else {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+}
+
 async function getTransactions(
     _timeLow: number, 
     _timeHigh: number, 
@@ -3928,6 +4103,62 @@ async function getTransactions(
     while(queryTransactions.length >= 1000) {
         skip = transactions.length;
         query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryTransactions = response.transactions;
+        transactions = transactions.concat(queryTransactions);
+    }
+
+    return transactions;
+}
+
+async function getTransactionsFromArray(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _tokenAddress: string,
+    _addressesArray: string[],
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let stringArray = _addressesArray.join('", "');
+    let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", from_in:["'+ stringArray +'"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+    let queryService = new Query('bank', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryTransactions = response.transactions;
+    let transactions = queryTransactions;
+
+    while(queryTransactions.length >= 1000) {
+        skip = transactions.length;
+        query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", from_in:["'+ stringArray +'"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryTransactions = response.transactions;
+        transactions = transactions.concat(queryTransactions);
+    }
+
+    return transactions;
+}
+
+async function getTransactionsToArray(
+    _timeLow: number, 
+    _timeHigh: number, 
+    _tokenAddress: string,
+    _addressesArray: string[],
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let stringArray = _addressesArray.join('", "');
+    let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", to_in:["'+ stringArray +'"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+    let queryService = new Query('bank', _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryTransactions = response.transactions;
+    let transactions = queryTransactions;
+
+    while(queryTransactions.length >= 1000) {
+        skip = transactions.length;
+        query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", to_in:["'+ stringArray +'"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryTransactions = response.transactions;

@@ -51,10 +51,55 @@ var Report = /** @class */ (function () {
         if (url === void 0) { url = 'mainnet'; }
         this.url = url;
     }
+    Report.prototype.getTransactionReportByArray = function (timeLow, timeHigh, tokensArray, addressesArray, hideNames) {
+        if (hideNames === void 0) { hideNames = true; }
+        return __awaiter(this, void 0, void 0, function () {
+            var workbook, promises, i, sheet, error_1, buffer, err_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        workbook = new ExcelJS.Workbook();
+                        promises = [];
+                        for (i = 0; i < tokensArray.length; i++) {
+                            sheet = workbook.addWorksheet(tokensArray[i].symbol);
+                            promises.push(setTransactionSheetByArray(sheet, timeLow, timeHigh, addressesArray, this.url, tokensArray[i], hideNames));
+                        }
+                        return [4 /*yield*/, Promise.all(promises)];
+                    case 1:
+                        _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 4, , 10]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx')];
+                    case 3:
+                        _a.sent();
+                        return [3 /*break*/, 10];
+                    case 4:
+                        error_1 = _a.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 5:
+                        buffer = _a.sent();
+                        _a.label = 6;
+                    case 6:
+                        _a.trys.push([6, 8, , 9]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReport.xlsx')];
+                    case 7:
+                        _a.sent();
+                        return [3 /*break*/, 9];
+                    case 8:
+                        err_1 = _a.sent();
+                        console.error(err_1);
+                        return [3 /*break*/, 9];
+                    case 9: return [3 /*break*/, 10];
+                    case 10: return [2 /*return*/];
+                }
+            });
+        });
+    };
     Report.prototype.getTransactionReportV2 = function (monthIndex, year, tokensArray, hideNames, name) {
         if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, error_1, buffer, err_1;
+            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, error_2, buffer, err_2;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -83,7 +128,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 10];
                     case 4:
-                        error_1 = _a.sent();
+                        error_2 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 5:
                         buffer = _a.sent();
@@ -95,8 +140,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        err_1 = _a.sent();
-                        console.error(err_1);
+                        err_2 = _a.sent();
+                        console.error(err_2);
                         return [3 /*break*/, 9];
                     case 9: return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
@@ -106,7 +151,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getTransactionReport = function (timeLow, timeHigh, name) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, sheet, transactions, rows, j, array, usdAmount, tableName, error_2, buffer, err_2;
+            var workbook, sheet, transactions, rows, j, array, usdAmount, tableName, error_3, buffer, err_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -175,7 +220,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 17];
                     case 11:
-                        error_2 = _a.sent();
+                        error_3 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 12:
                         buffer = _a.sent();
@@ -187,8 +232,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 16];
                     case 15:
-                        err_2 = _a.sent();
-                        console.error(err_2);
+                        err_3 = _a.sent();
+                        console.error(err_3);
                         return [3 /*break*/, 16];
                     case 16: return [3 /*break*/, 17];
                     case 17: return [2 /*return*/];
@@ -199,7 +244,7 @@ var Report = /** @class */ (function () {
     Report.prototype.getTokenHoldersReport = function (orderBy, orderDirection, tokensArray, hideNames) {
         if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_3, buffer, err_3;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -321,7 +366,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 24];
                     case 18:
-                        error_3 = _a.sent();
+                        error_4 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 19:
                         buffer = _a.sent();
@@ -333,8 +378,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 23];
                     case 22:
-                        err_3 = _a.sent();
-                        console.error(err_3);
+                        err_4 = _a.sent();
+                        console.error(err_4);
                         return [3 /*break*/, 23];
                     case 23: return [3 /*break*/, 24];
                     case 24: return [2 /*return*/];
@@ -345,7 +390,7 @@ var Report = /** @class */ (function () {
     Report.prototype.getPackableHoldersReport = function (orderBy, orderDirection, tokensArray, expiries, hideNames) {
         if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, namesAllowed, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_4, buffer, err_4;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, namesAllowed, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_5, buffer, err_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -479,7 +524,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 24];
                     case 18:
-                        error_4 = _a.sent();
+                        error_5 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 19:
                         buffer = _a.sent();
@@ -491,8 +536,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 23];
                     case 22:
-                        err_4 = _a.sent();
-                        console.error(err_4);
+                        err_5 = _a.sent();
+                        console.error(err_5);
                         return [3 /*break*/, 23];
                     case 23: return [3 /*break*/, 24];
                     case 24: return [2 /*return*/];
@@ -502,7 +547,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getCollectableHoldersReport = function (orderBy, orderDirection, tokensArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_5, buffer, err_5;
+            var first, skip, queryTemplates, workbook, i, response, loopresponse, sheet, rows, j, array, tableName, skipOffers, offers, loopOffers, rows2, k, array2, tableName2, error_6, buffer, err_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -603,7 +648,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 21];
                     case 15:
-                        error_5 = _a.sent();
+                        error_6 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 16:
                         buffer = _a.sent();
@@ -615,8 +660,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 20];
                     case 19:
-                        err_5 = _a.sent();
-                        console.error(err_5);
+                        err_6 = _a.sent();
+                        console.error(err_6);
                         return [3 /*break*/, 20];
                     case 20: return [3 /*break*/, 21];
                     case 21: return [2 /*return*/];
@@ -627,7 +672,7 @@ var Report = /** @class */ (function () {
     Report.prototype.getTokenDealsReportV2 = function (monthIndex, year, tokensArray, hideNames) {
         if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_6, buffer, err_6;
+            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_7, buffer, err_7;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -658,7 +703,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 10];
                     case 4:
-                        error_6 = _a.sent();
+                        error_7 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 5:
                         buffer = _a.sent();
@@ -670,8 +715,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        err_6 = _a.sent();
-                        console.error(err_6);
+                        err_7 = _a.sent();
+                        console.error(err_7);
                         return [3 /*break*/, 9];
                     case 9: return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
@@ -681,7 +726,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getTokenDealsReport = function (timeLow, timeHigh) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, sheet, deals, dealsPrimary, rows, nextDeal, nextDealTimestamp, nextDealPrimaryTimestamp, array, tableName, error_7, buffer, err_7;
+            var workbook, sheet, deals, dealsPrimary, rows, nextDeal, nextDealTimestamp, nextDealPrimaryTimestamp, array, tableName, error_8, buffer, err_8;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -761,7 +806,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 12];
                     case 6:
-                        error_7 = _a.sent();
+                        error_8 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 7:
                         buffer = _a.sent();
@@ -773,8 +818,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 11];
                     case 10:
-                        err_7 = _a.sent();
-                        console.error(err_7);
+                        err_8 = _a.sent();
+                        console.error(err_8);
                         return [3 /*break*/, 11];
                     case 11: return [3 /*break*/, 12];
                     case 12: return [2 /*return*/];
@@ -784,7 +829,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getDealsReport = function (timeLow, timeHigh) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, sheet, deals, dealsPrimary, dealsPack, dealsPrimaryPack, rows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array, tableName, error_8, buffer, err_8;
+            var workbook, sheet, deals, dealsPrimary, dealsPack, dealsPrimaryPack, rows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array, tableName, error_9, buffer, err_9;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -897,7 +942,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 14];
                     case 8:
-                        error_8 = _a.sent();
+                        error_9 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 9:
                         buffer = _a.sent();
@@ -909,8 +954,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 13];
                     case 12:
-                        err_8 = _a.sent();
-                        console.error(err_8);
+                        err_9 = _a.sent();
+                        console.error(err_9);
                         return [3 /*break*/, 13];
                     case 13: return [3 /*break*/, 14];
                     case 14: return [2 /*return*/];
@@ -921,7 +966,7 @@ var Report = /** @class */ (function () {
     Report.prototype.getPackableDealsReportV2 = function (monthIndex, year, tokensArray, hideNames) {
         if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_9, buffer, err_9;
+            var workbook, toYear, toMonthIndex, timeLow, timeHigh, promises, i, sheet, sheet2, error_10, buffer, err_10;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -952,7 +997,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 10];
                     case 4:
-                        error_9 = _a.sent();
+                        error_10 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 5:
                         buffer = _a.sent();
@@ -964,8 +1009,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        err_9 = _a.sent();
-                        console.error(err_9);
+                        err_10 = _a.sent();
+                        console.error(err_10);
                         return [3 /*break*/, 9];
                     case 9: return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
@@ -975,7 +1020,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getPackableDealsReport = function (timeLow, timeHigh) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, sheet, deals, dealsPrimary, rows, nextDeal, nextDealTimestamp, nextDealPrimaryTimestamp, array, tableName, error_10, buffer, err_10;
+            var workbook, sheet, deals, dealsPrimary, rows, nextDeal, nextDealTimestamp, nextDealPrimaryTimestamp, array, tableName, error_11, buffer, err_11;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1055,7 +1100,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 12];
                     case 6:
-                        error_10 = _a.sent();
+                        error_11 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 7:
                         buffer = _a.sent();
@@ -1067,8 +1112,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 11];
                     case 10:
-                        err_10 = _a.sent();
-                        console.error(err_10);
+                        err_11 = _a.sent();
+                        console.error(err_11);
                         return [3 /*break*/, 11];
                     case 11: return [3 /*break*/, 12];
                     case 12: return [2 /*return*/];
@@ -1078,7 +1123,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getUserDealsReport = function (wallet, monthIndex, year) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, generalSheet, dealSheet, txSheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, nickname, deals, dealsPack, dealsPrimary, dealsPrimaryPack, txs, totalUsd, totalDeals, dealRows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array_1, usdAmount, tableName, array, rows, months, tableNameGeneral, bc, firstBlockNumber, lastBlockNumber, prevTx, _a, txHash, logIndex, tx, _b, txHashFirst, logIndexFirst, txFirst, _c, txHashLast, logIndexLast, txLast, balancesFirst, balancesLast, txRows, j, array_2, usdAmount, tableName, error_11, buffer, err_11;
+            var workbook, generalSheet, dealSheet, txSheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, nickname, deals, dealsPack, dealsPrimary, dealsPrimaryPack, txs, totalUsd, totalDeals, dealRows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array_1, usdAmount, tableName, array, rows, months, tableNameGeneral, bc, firstBlockNumber, lastBlockNumber, prevTx, _a, txHash, logIndex, tx, _b, txHashFirst, logIndexFirst, txFirst, _c, txHashLast, logIndexLast, txLast, balancesFirst, balancesLast, txRows, j, array_2, usdAmount, tableName, error_12, buffer, err_12;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
@@ -1351,7 +1396,7 @@ var Report = /** @class */ (function () {
                         _d.sent();
                         return [3 /*break*/, 36];
                     case 30:
-                        error_11 = _d.sent();
+                        error_12 = _d.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 31:
                         buffer = _d.sent();
@@ -1363,8 +1408,8 @@ var Report = /** @class */ (function () {
                         _d.sent();
                         return [3 /*break*/, 35];
                     case 34:
-                        err_11 = _d.sent();
-                        console.error(err_11);
+                        err_12 = _d.sent();
+                        console.error(err_12);
                         return [3 /*break*/, 35];
                     case 35: return [3 /*break*/, 36];
                     case 36: return [2 /*return*/];
@@ -1374,7 +1419,7 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getUsersReport = function (monthIndex, year, authToken) {
         return __awaiter(this, void 0, void 0, function () {
-            var ratesObj, workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, response, identities, inputsObj, inputsAmountObj, outputsObj, outputsAmountObj, totalObj, maxObj, kycAmountsObj, flagsObj, identitiesArray, k, identity, txs, m, tx, txAmount, from, to, names, namesQuery, walletsArray, p, usersKyc, tableArray, _loop_1, n, error_12, buffer, err_12;
+            var ratesObj, workbook, sheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, response, identities, inputsObj, inputsAmountObj, outputsObj, outputsAmountObj, totalObj, maxObj, kycAmountsObj, flagsObj, identitiesArray, k, identity, txs, m, tx, txAmount, from, to, names, namesQuery, walletsArray, p, usersKyc, tableArray, _loop_1, n, error_13, buffer, err_13;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1567,7 +1612,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 23];
                     case 17:
-                        error_12 = _a.sent();
+                        error_13 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 18:
                         buffer = _a.sent();
@@ -1579,8 +1624,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 22];
                     case 21:
-                        err_12 = _a.sent();
-                        console.error(err_12);
+                        err_13 = _a.sent();
+                        console.error(err_13);
                         return [3 /*break*/, 22];
                     case 22: return [3 /*break*/, 23];
                     case 23: return [2 /*return*/];
@@ -1801,7 +1846,7 @@ var Report = /** @class */ (function () {
     Report.prototype.getDexReport = function (timeLow, timeHigh, instruments, dex, hideNames) {
         if (hideNames === void 0) { hideNames = true; }
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, promises, i, sheet, error_13, buffer, err_13;
+            var workbook, promises, i, sheet, error_14, buffer, err_14;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1822,7 +1867,7 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 10];
                     case 4:
-                        error_13 = _a.sent();
+                        error_14 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
                     case 5:
                         buffer = _a.sent();
@@ -1834,8 +1879,8 @@ var Report = /** @class */ (function () {
                         _a.sent();
                         return [3 /*break*/, 9];
                     case 8:
-                        err_13 = _a.sent();
-                        console.error(err_13);
+                        err_14 = _a.sent();
+                        console.error(err_14);
                         return [3 /*break*/, 9];
                     case 9: return [3 /*break*/, 10];
                     case 10: return [2 /*return*/];
@@ -2117,6 +2162,83 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                     sheet.getCell('G1').font = { bold: true };
                     sheet.getCell('L1').value = 'TOTAL (mensual)';
                     sheet.getCell('L1').font = { bold: true };
+                    return [2 /*return*/];
+            }
+        });
+    });
+}
+function setTransactionSheetByArray(sheet, timeLow, timeHigh, addressesArray, url, token, hideNames) {
+    if (hideNames === void 0) { hideNames = true; }
+    return __awaiter(this, void 0, void 0, function () {
+        var txRows, fromTxs, toTxs, nextTx, fromTimestamp, toTimestamp, txDayRow, tableName;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    txRows = [];
+                    return [4 /*yield*/, try_getTransactionsFromArray(timeLow, timeHigh, token.address, addressesArray, url, 0)];
+                case 1:
+                    fromTxs = _a.sent();
+                    return [4 /*yield*/, try_getTransactionsToArray(timeLow, timeHigh, token.address, addressesArray, url, 0)];
+                case 2:
+                    toTxs = _a.sent();
+                    while ((fromTxs.length > 0) || (toTxs.length > 0)) {
+                        nextTx = void 0;
+                        if (fromTxs.length == 0) {
+                            nextTx = toTxs.pop();
+                        }
+                        else if (toTxs.length == 0) {
+                            nextTx = fromTxs.pop();
+                        }
+                        else {
+                            fromTimestamp = fromTxs[fromTxs.length - 1].timestamp;
+                            toTimestamp = toTxs[toTxs.length - 1].timestamp;
+                            if (fromTimestamp < toTimestamp) {
+                                nextTx = fromTxs.pop();
+                            }
+                            else {
+                                nextTx = toTxs.pop();
+                            }
+                        }
+                        txDayRow = [];
+                        //TXs Table
+                        txDayRow.push(new Date(nextTx.timestamp * 1000));
+                        txDayRow.push(nextTx.currency.tokenSymbol);
+                        if (!hideNames) {
+                            if (nextTx.from.name == null) {
+                                txDayRow.push("");
+                            }
+                            else {
+                                txDayRow.push(nextTx.from.name.id);
+                            }
+                        }
+                        else {
+                            txDayRow.push(nextTx.from.id);
+                        }
+                        if (!hideNames) {
+                            if (nextTx.to.name == null) {
+                                txDayRow.push("");
+                            }
+                            else {
+                                txDayRow.push(nextTx.to.name.id);
+                            }
+                        }
+                        else {
+                            txDayRow.push(nextTx.to.id);
+                        }
+                        txDayRow.push(parseFloat(utils_1.weiToEther(nextTx.amount)));
+                        txRows.push(txDayRow);
+                    }
+                    tableName = 'Tabla' + token.symbol;
+                    if (txRows.length == 0) {
+                        txRows = getEmptyTransaction();
+                    }
+                    addTable(sheet, tableName, 'B2', [
+                        { name: 'Fecha', filterButton: true },
+                        { name: 'Divisa' },
+                        { name: 'Origen (wallet)', filterButton: true },
+                        { name: 'Destino (wallet)', filterButton: true },
+                        { name: 'Monto', totalsRowFunction: 'sum' }
+                    ], txRows);
                     return [2 /*return*/];
             }
         });
@@ -3491,7 +3613,7 @@ function setDexSheet(sheet, timeLow, timeHigh, instrument, dex, url, hideNames) 
 function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var transactions, error_14;
+        var transactions, error_15;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3510,7 +3632,7 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
                     _a.label = 5;
                 case 5: return [2 /*return*/, transactions];
                 case 6:
-                    error_14 = _a.sent();
+                    error_15 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 8];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3520,10 +3642,70 @@ function try_getTransactions(_timeLow, _timeHigh, token, url, retries, name) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, transactions];
                 case 8:
-                    console.error(error_14);
-                    throw new Error(error_14);
+                    console.error(error_15);
+                    throw new Error(error_15);
                 case 9: return [3 /*break*/, 10];
                 case 10: return [2 /*return*/];
+            }
+        });
+    });
+}
+function try_getTransactionsFromArray(_timeLow, _timeHigh, token, addressesArray, url, retries) {
+    if (retries === void 0) { retries = 0; }
+    return __awaiter(this, void 0, void 0, function () {
+        var transactions, error_16;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 6]);
+                    return [4 /*yield*/, getTransactionsFromArray(_timeLow, _timeHigh, token, addressesArray, url)];
+                case 1:
+                    transactions = _a.sent();
+                    return [2 /*return*/, transactions];
+                case 2:
+                    error_16 = _a.sent();
+                    if (!(retries < 5)) return [3 /*break*/, 4];
+                    console.log("-- REINTENTO DE QUERY: " + retries);
+                    return [4 /*yield*/, try_getTransactionsFromArray(_timeLow, _timeHigh, token, addressesArray, url, retries + 1)];
+                case 3:
+                    transactions = _a.sent();
+                    console.log("-- REINTENTO EXITOSO --");
+                    return [2 /*return*/, transactions];
+                case 4:
+                    console.error(error_16);
+                    throw new Error(error_16);
+                case 5: return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
+            }
+        });
+    });
+}
+function try_getTransactionsToArray(_timeLow, _timeHigh, token, addressesArray, url, retries) {
+    if (retries === void 0) { retries = 0; }
+    return __awaiter(this, void 0, void 0, function () {
+        var transactions, error_17;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 6]);
+                    return [4 /*yield*/, getTransactionsToArray(_timeLow, _timeHigh, token, addressesArray, url)];
+                case 1:
+                    transactions = _a.sent();
+                    return [2 /*return*/, transactions];
+                case 2:
+                    error_17 = _a.sent();
+                    if (!(retries < 5)) return [3 /*break*/, 4];
+                    console.log("-- REINTENTO DE QUERY: " + retries);
+                    return [4 /*yield*/, try_getTransactionsToArray(_timeLow, _timeHigh, token, addressesArray, url, retries + 1)];
+                case 3:
+                    transactions = _a.sent();
+                    console.log("-- REINTENTO EXITOSO --");
+                    return [2 /*return*/, transactions];
+                case 4:
+                    console.error(error_17);
+                    throw new Error(error_17);
+                case 5: return [3 /*break*/, 6];
+                case 6: return [2 /*return*/];
             }
         });
     });
@@ -3549,6 +3731,74 @@ function getTransactions(_timeLow, _timeHigh, _tokenAddress, _url) {
                     if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
                     skip = transactions.length;
                     query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '"}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryTransactions = response.transactions;
+                    transactions = transactions.concat(queryTransactions);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, transactions];
+            }
+        });
+    });
+}
+function getTransactionsFromArray(_timeLow, _timeHigh, _tokenAddress, _addressesArray, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, stringArray, query, queryService, response, queryTransactions, transactions;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    stringArray = _addressesArray.join('", "');
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", from_in:["' + stringArray + '"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    queryService = new graph_1.Query('bank', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryTransactions = response.transactions;
+                    transactions = queryTransactions;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
+                    skip = transactions.length;
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", from_in:["' + stringArray + '"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryTransactions = response.transactions;
+                    transactions = transactions.concat(queryTransactions);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, transactions];
+            }
+        });
+    });
+}
+function getTransactionsToArray(_timeLow, _timeHigh, _tokenAddress, _addressesArray, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, stringArray, query, queryService, response, queryTransactions, transactions;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    stringArray = _addressesArray.join('", "');
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", to_in:["' + stringArray + '"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
+                    queryService = new graph_1.Query('bank', _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryTransactions = response.transactions;
+                    transactions = queryTransactions;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryTransactions.length >= 1000)) return [3 /*break*/, 4];
+                    skip = transactions.length;
+                    query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + ', currency:"' + _tokenAddress + '", to_in:["' + stringArray + '"]}, orderBy: timestamp, orderDirection: desc) { from { id name { id } } to { id name { id } } currency { tokenSymbol id } amount timestamp } }';
                     queryService.setCustomQuery(query);
                     return [4 /*yield*/, queryService.request()];
                 case 3:
@@ -3663,7 +3913,7 @@ function getAllTransactionsByName(_timeLow, _timeHigh, _name, _url) {
 function try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var txsAndName, error_15;
+        var txsAndName, error_18;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3673,7 +3923,7 @@ function try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, 
                     txsAndName = _a.sent();
                     return [2 /*return*/, txsAndName];
                 case 2:
-                    error_15 = _a.sent();
+                    error_18 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     console.log("-- REINTENTO DE QUERY: " + retries);
                     return [4 /*yield*/, try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, retries + 1)];
@@ -3683,8 +3933,8 @@ function try_getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url, 
                     return [2 /*return*/, txsAndName];
                 case 4:
                     console.log("------------ SUPERAMOS REINTENTOS");
-                    console.error(error_15);
-                    throw new Error(error_15);
+                    console.error(error_18);
+                    throw new Error(error_18);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3727,7 +3977,7 @@ function getAllTransactionsByIdentity(_timeLow, _timeHigh, _identity, _url) {
 function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_16;
+        var offers, error_19;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3737,7 +3987,7 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_16 = _a.sent();
+                    error_19 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3747,8 +3997,8 @@ function try_getOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_16);
-                    throw new Error(error_16);
+                    console.error(error_19);
+                    throw new Error(error_19);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -3956,7 +4206,7 @@ function getUserPackableAllDealsPrimary(_nickname, _timeLow, _timeHigh, _url) {
 function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_17;
+        var offers, error_20;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -3966,7 +4216,7 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_17 = _a.sent();
+                    error_20 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -3976,8 +4226,8 @@ function try_getRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_17);
-                    throw new Error(error_17);
+                    console.error(error_20);
+                    throw new Error(error_20);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4020,7 +4270,7 @@ function getRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_18;
+        var offers, error_21;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4030,7 +4280,7 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_18 = _a.sent();
+                    error_21 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4040,8 +4290,8 @@ function try_getOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_18);
-                    throw new Error(error_18);
+                    console.error(error_21);
+                    throw new Error(error_21);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4117,7 +4367,7 @@ function getAllDealsPrimary(_timeLow, _timeHigh, _url) {
 function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_19;
+        var offers, error_22;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4127,7 +4377,7 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_19 = _a.sent();
+                    error_22 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4137,8 +4387,8 @@ function try_getRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_19);
-                    throw new Error(error_19);
+                    console.error(error_22);
+                    throw new Error(error_22);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4181,7 +4431,7 @@ function getRequestsPrimary(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_20;
+        var offers, error_23;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4191,7 +4441,7 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_20 = _a.sent();
+                    error_23 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4201,8 +4451,8 @@ function try_getCollectableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_20);
-                    throw new Error(error_20);
+                    console.error(error_23);
+                    throw new Error(error_23);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4245,7 +4495,7 @@ function getCollectableOffers(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_21;
+        var offers, error_24;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4255,7 +4505,7 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_21 = _a.sent();
+                    error_24 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4265,8 +4515,8 @@ function try_getCollectableOffersPrimary(_timeLow, _timeHigh, token, url, retrie
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_21);
-                    throw new Error(error_21);
+                    console.error(error_24);
+                    throw new Error(error_24);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4309,7 +4559,7 @@ function getCollectableOffersPrimary(_timeLow, _timeHigh, _tokensAddress, _url) 
 function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_22;
+        var offers, error_25;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4319,7 +4569,7 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_22 = _a.sent();
+                    error_25 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4329,8 +4579,8 @@ function try_getPackableOffers(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_22);
-                    throw new Error(error_22);
+                    console.error(error_25);
+                    throw new Error(error_25);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4406,7 +4656,7 @@ function getAllPackableDeals(_timeLow, _timeHigh, _url) {
 function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_23;
+        var offers, error_26;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4416,7 +4666,7 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_23 = _a.sent();
+                    error_26 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4426,8 +4676,8 @@ function try_getPackableRequests(_timeLow, _timeHigh, token, url, retries) {
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_23);
-                    throw new Error(error_23);
+                    console.error(error_26);
+                    throw new Error(error_26);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4470,7 +4720,7 @@ function getPackableRequests(_timeLow, _timeHigh, _tokensAddress, _url) {
 function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_24;
+        var offers, error_27;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4480,7 +4730,7 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_24 = _a.sent();
+                    error_27 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4490,8 +4740,8 @@ function try_getPackableOffersPrimary(_timeLow, _timeHigh, token, url, retries) 
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_24);
-                    throw new Error(error_24);
+                    console.error(error_27);
+                    throw new Error(error_27);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4567,7 +4817,7 @@ function getAllPackableDealPrimary(_timeLow, _timeHigh, _url) {
 function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries) {
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var offers, error_25;
+        var offers, error_28;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4577,7 +4827,7 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     offers = _a.sent();
                     return [2 /*return*/, offers];
                 case 2:
-                    error_25 = _a.sent();
+                    error_28 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4587,8 +4837,8 @@ function try_getPackableRequestsPrimary(_timeLow, _timeHigh, token, url, retries
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, offers];
                 case 4:
-                    console.error(error_25);
-                    throw new Error(error_25);
+                    console.error(error_28);
+                    throw new Error(error_28);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4672,7 +4922,7 @@ function try_getDexDeals(_timeLow, _timeHigh, _instrument, _dex, _url, retries) 
     if (_url === void 0) { _url = 'mainnet'; }
     if (retries === void 0) { retries = 0; }
     return __awaiter(this, void 0, void 0, function () {
-        var deals, error_26;
+        var deals, error_29;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4682,7 +4932,7 @@ function try_getDexDeals(_timeLow, _timeHigh, _instrument, _dex, _url, retries) 
                     deals = _a.sent();
                     return [2 /*return*/, deals];
                 case 2:
-                    error_26 = _a.sent();
+                    error_29 = _a.sent();
                     if (!(retries < 10)) return [3 /*break*/, 4];
                     retries++;
                     console.log("-- REINTENTO DE QUERY: " + retries);
@@ -4692,8 +4942,8 @@ function try_getDexDeals(_timeLow, _timeHigh, _instrument, _dex, _url, retries) 
                     console.log("-- REINTENTO EXITOSO --");
                     return [2 /*return*/, deals];
                 case 4:
-                    console.error(error_26);
-                    throw new Error(error_26);
+                    console.error(error_29);
+                    throw new Error(error_29);
                 case 5: return [3 /*break*/, 6];
                 case 6: return [2 /*return*/];
             }
@@ -4857,7 +5107,7 @@ function cleanEmptyDeals(array) {
 }
 function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) {
     return __awaiter(this, void 0, void 0, function () {
-        var from, to, responseData, rates, factor, i, len, j, error_27, dates, rates, responseData, i, len, j, rates2, rates3, j, error_28, from, to, response, rates, i, len, j, e_2;
+        var from, to, responseData, rates, factor, i, len, j, error_30, dates, rates, responseData, i, len, j, rates2, rates3, j, error_31, from, to, response, rates, i, len, j, e_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -4913,9 +5163,9 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     }
                     return [2 /*return*/, rates];
                 case 4:
-                    error_27 = _a.sent();
-                    console.error(error_27);
-                    throw new Error(error_27);
+                    error_30 = _a.sent();
+                    console.error(error_30);
+                    throw new Error(error_30);
                 case 5: return [3 /*break*/, 17];
                 case 6:
                     if (!((token == Constants.USD.address) ||
@@ -4950,9 +5200,9 @@ function getDayRate(fromYear, fromMonth, toYear, toMonth, token, tokenCategory) 
                     }
                     return [2 /*return*/, rates3];
                 case 11:
-                    error_28 = _a.sent();
-                    console.error(error_28);
-                    throw new Error(error_28);
+                    error_31 = _a.sent();
+                    console.error(error_31);
+                    throw new Error(error_31);
                 case 12: return [3 /*break*/, 17];
                 case 13:
                     from = fromYear + "-" + fromMonth + "-01";
@@ -5107,7 +5357,7 @@ function convertToUsdFromObj(amount, token, tokenKind, timestamp, ratesObj) {
 }
 function requestDataLake(token, from, to) {
     return __awaiter(this, void 0, void 0, function () {
-        var parId, endPoint, body, response, responseData, error_29;
+        var parId, endPoint, body, response, responseData, error_32;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5137,9 +5387,9 @@ function requestDataLake(token, from, to) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_29 = _a.sent();
-                    console.error(error_29);
-                    throw new Error(error_29);
+                    error_32 = _a.sent();
+                    console.error(error_32);
+                    throw new Error(error_32);
                 case 6: return [2 /*return*/];
             }
         });
@@ -5172,7 +5422,7 @@ function requestRateEndPoint(from, to, token, retries) {
 }
 function try_requestRateEndPoint(from, to, token) {
     return __awaiter(this, void 0, void 0, function () {
-        var endPoint, body, response, responseData, error_30;
+        var endPoint, body, response, responseData, error_33;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5199,9 +5449,9 @@ function try_requestRateEndPoint(from, to, token) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_30 = _a.sent();
-                    console.error(error_30);
-                    throw new Error(error_30);
+                    error_33 = _a.sent();
+                    console.error(error_33);
+                    throw new Error(error_33);
                 case 6: return [2 /*return*/];
             }
         });
@@ -5210,7 +5460,7 @@ function try_requestRateEndPoint(from, to, token) {
 function getUsersDataProtected(walletsArray, bearerToken, includeBanks) {
     if (includeBanks === void 0) { includeBanks = false; }
     return __awaiter(this, void 0, void 0, function () {
-        var endPoint, body, response, responseData, error_31;
+        var endPoint, body, response, responseData, error_34;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -5238,9 +5488,9 @@ function getUsersDataProtected(walletsArray, bearerToken, includeBanks) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_31 = _a.sent();
-                    console.error(error_31);
-                    throw new Error(error_31);
+                    error_34 = _a.sent();
+                    console.error(error_34);
+                    throw new Error(error_34);
                 case 6: return [2 /*return*/];
             }
         });

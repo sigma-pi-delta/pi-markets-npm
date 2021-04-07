@@ -894,6 +894,45 @@ const BPVB_INSTRUMENTS = [
     ETH_PTR
 ]
 
+const BPVB_ALL_TOKENS = [
+    PEL,
+    VES,
+    PTR,
+    GLDX,
+    BRENT,
+    NOVA,
+    AGRO,
+    BDVE,
+    BTC,
+    ETH,
+    CNY,
+    EUR
+]
+
+const BPVB_ALL_ERC223 = [
+    PEL,
+    VES,
+    PTR,
+    GLDX,
+    BTC,
+    ETH,
+    CNY,
+    EUR,
+    BRENT
+]
+
+const BPVB_ALL_PACKABLES = [
+    NOVA,
+    AGRO,
+    BDVE
+]
+
+const BPVB_ALL_PACKABLES_EXP = [
+    NOVA.expiry.mar21,
+    AGRO.expiry.never,
+    BDVE.expiry.never
+]
+
 // OTHER
 const MIN_GAS_PRICE = "1000000000";
 const OVERRIDES = {gasPrice: 1000000000};
@@ -1030,5 +1069,9 @@ export {
     ALL_COLLECTABLES,
     INSTRUMENT_IDS,
     BDVE_INSTRUMENTS,
-    BPVB_INSTRUMENTS
+    BPVB_INSTRUMENTS,
+    BPVB_ALL_TOKENS,
+    BPVB_ALL_ERC223,
+    BPVB_ALL_PACKABLES,
+    BPVB_ALL_PACKABLES_EXP
 };
