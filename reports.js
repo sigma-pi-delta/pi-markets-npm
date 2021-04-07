@@ -1123,14 +1123,10 @@ var Report = /** @class */ (function () {
     };
     Report.prototype.getUserDealsReport = function (wallet, monthIndex, year) {
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, generalSheet, dealSheet, txSheet, toYear, toMonthIndex, timeLow, timeHigh, queryTemplates, nickname, deals, dealsPack, dealsPrimary, dealsPrimaryPack, txs, totalUsd, totalDeals, dealRows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array_1, usdAmount, tableName, array, rows, months, tableNameGeneral, bc, firstBlockNumber, lastBlockNumber, prevTx, _a, txHash, logIndex, tx, _b, txHashFirst, logIndexFirst, txFirst, _c, txHashLast, logIndexLast, txLast, balancesFirst, balancesLast, txRows, j, array_2, usdAmount, tableName, error_12, buffer, err_12;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var toYear, toMonthIndex, timeLow, timeHigh;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
                     case 0:
-                        workbook = new ExcelJS.Workbook();
-                        generalSheet = workbook.addWorksheet('Resumen');
-                        dealSheet = workbook.addWorksheet('Pactos');
-                        txSheet = workbook.addWorksheet('Transferencias');
                         toYear = year;
                         toMonthIndex = monthIndex + 1;
                         if (monthIndex == 12) {
@@ -1139,6 +1135,24 @@ var Report = /** @class */ (function () {
                         }
                         timeLow = getUtcTimeFromDate(year, monthIndex, 1);
                         timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+                        return [4 /*yield*/, this.getUserDealsReportByTime(wallet, timeLow, timeHigh)];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
+    };
+    Report.prototype.getUserDealsReportByTime = function (wallet, timeLow, timeHigh) {
+        return __awaiter(this, void 0, void 0, function () {
+            var workbook, generalSheet, dealSheet, txSheet, queryTemplates, nickname, deals, dealsPack, dealsPrimary, dealsPrimaryPack, txs, totalUsd, totalDeals, dealRows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array_1, usdAmount, tableName, array, rows, tableNameGeneral, bc, firstBlockNumber, lastBlockNumber, prevTx, _a, txHash, logIndex, tx, _b, txHashFirst, logIndexFirst, txFirst, _c, txHashLast, logIndexLast, txLast, balancesFirst, balancesLast, txRows, j, array_2, usdAmount, tableName, error_12, buffer, err_12;
+            return __generator(this, function (_d) {
+                switch (_d.label) {
+                    case 0:
+                        workbook = new ExcelJS.Workbook();
+                        generalSheet = workbook.addWorksheet('Resumen');
+                        dealSheet = workbook.addWorksheet('Pactos');
+                        txSheet = workbook.addWorksheet('Transferencias');
                         queryTemplates = new graph_1.QueryTemplates(this.url);
                         return [4 /*yield*/, queryTemplates.getNameByWallet(wallet)];
                     case 1:
@@ -1273,8 +1287,7 @@ var Report = /** @class */ (function () {
                         }
                         array = [];
                         rows = [];
-                        months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-                        generalSheet.getCell('B2').value = 'RESUMEN ' + months[monthIndex - 1] + ' ' + year;
+                        generalSheet.getCell('B2').value = 'RESUMEN: ' + (new Date(timeLow * 1000)).toUTCString() + ' <--> ' + (new Date(timeHigh * 1000)).toUTCString();
                         generalSheet.getCell('B2').font = { bold: true };
                         array.push(nickname);
                         array.push(totalUsd);
@@ -1331,9 +1344,9 @@ var Report = /** @class */ (function () {
                         balancesLast = _d.sent();
                         setBalancesTable(generalSheet, balancesFirst, 'Balances_Init', 'B9');
                         setBalancesTable(generalSheet, balancesLast, 'Balances_Last', 'E9');
-                        generalSheet.getCell('B8').value = 'Inicio de mes';
+                        generalSheet.getCell('B8').value = 'Fecha de inicio';
                         generalSheet.getCell('B8').font = { bold: true };
-                        generalSheet.getCell('E8').value = 'Final de mes';
+                        generalSheet.getCell('E8').value = 'Final final';
                         generalSheet.getCell('E8').font = { bold: true };
                         if (!(txs.length > 0)) return [3 /*break*/, 27];
                         txRows = [];
@@ -5295,6 +5308,8 @@ function convertToUsd(amount, token, timestamp) {
                     return [4 /*yield*/, requestDataLake(token, from, to)];
                 case 8:
                     rates = _a.sent();
+                    if (rates == undefined)
+                        return [2 /*return*/, 0];
                     rate = rates[rates.length - 1].open;
                     return [2 /*return*/, amount * rate];
                 case 9:

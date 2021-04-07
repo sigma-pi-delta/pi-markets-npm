@@ -1133,13 +1133,6 @@ export class Report {
         monthIndex: number,
         year: number
     ) {
-        //GENERAL
-        const workbook = new ExcelJS.Workbook();
-
-        let generalSheet = workbook.addWorksheet('Resumen');
-        let dealSheet = workbook.addWorksheet('Pactos');
-        let txSheet = workbook.addWorksheet('Transferencias');
-
         let toYear = year;
         let toMonthIndex = monthIndex + 1;
 
@@ -1150,6 +1143,21 @@ export class Report {
 
         let timeLow = getUtcTimeFromDate(year, monthIndex, 1);
         let timeHigh = getUtcTimeFromDate(toYear, toMonthIndex, 1);
+
+        await this.getUserDealsReportByTime(wallet, timeLow, timeHigh);
+    }
+
+    async getUserDealsReportByTime(
+        wallet: string,
+        timeLow: number,
+        timeHigh: number
+    ) {
+        //GENERAL
+        const workbook = new ExcelJS.Workbook();
+
+        let generalSheet = workbook.addWorksheet('Resumen');
+        let dealSheet = workbook.addWorksheet('Pactos');
+        let txSheet = workbook.addWorksheet('Transferencias');
 
         let queryTemplates = new QueryTemplates(this.url);
         let nickname = await queryTemplates.getNameByWallet(wallet);
@@ -1303,9 +1311,8 @@ export class Report {
         //GENERAL
         let array = [];
         let rows = [];
-        let months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
-        generalSheet.getCell('B2').value = 'RESUMEN ' + months[monthIndex - 1] + ' ' + year;
+        generalSheet.getCell('B2').value = 'RESUMEN: ' + (new Date(timeLow * 1000)).toUTCString() + ' <--> ' + (new Date(timeHigh * 1000)).toUTCString();
         generalSheet.getCell('B2').font = {bold: true};
 
         array.push(nickname);
@@ -1364,9 +1371,9 @@ export class Report {
         setBalancesTable(generalSheet, balancesFirst, 'Balances_Init', 'B9');
         setBalancesTable(generalSheet, balancesLast, 'Balances_Last', 'E9');
 
-        generalSheet.getCell('B8').value = 'Inicio de mes';
+        generalSheet.getCell('B8').value = 'Fecha de inicio';
         generalSheet.getCell('B8').font = {bold: true};
-        generalSheet.getCell('E8').value = 'Final de mes';
+        generalSheet.getCell('E8').value = 'Final final';
         generalSheet.getCell('E8').font = {bold: true};
 
         //TRANSFERS
@@ -5439,6 +5446,7 @@ async function convertToUsd(
 
         if (rates.length == 0) {
             rates = await requestDataLake(token, from, to);
+            if (rates == undefined) return 0;
             let rate = rates[rates.length - 1].open;
             return amount*rate;
         } else {
