@@ -1150,13 +1150,15 @@ export class Report {
     async getUserDealsReportByTime(
         wallet: string,
         timeLow: number,
-        timeHigh: number
+        timeHigh: number,
+        dex: "dex" | "dex-bicentenario" = "dex"
     ) {
         //GENERAL
         const workbook = new ExcelJS.Workbook();
 
         let generalSheet = workbook.addWorksheet('Resumen');
-        let dealSheet = workbook.addWorksheet('Pactos');
+        let dealSheet = workbook.addWorksheet('P2P');
+        let dexSheet = workbook.addWorksheet('DEX');
         let txSheet = workbook.addWorksheet('Transferencias');
 
         let queryTemplates = new QueryTemplates(this.url);
@@ -1308,6 +1310,93 @@ export class Report {
             dealSheet.getCell('B2').font = {bold: true};
         }
 
+        let dexDeals = await getDexDealsByWallet(timeLow, timeHigh, wallet, dex, this.url);
+
+        let nextDexDeal: any;
+        let dealsRow = [];
+
+        for (let i = 0; i < dexDeals.length; i++) {
+            nextDexDeal = dexDeals[i];
+
+            let dealRow = [];
+            let baseToken: string;
+            let baseAmount: string;
+
+            dealRow.push(new Date(nextDexDeal.timestamp * 1000));
+
+            if (nextDexDeal.side == "1") {
+                //amountA is in nominatorToken
+                //amountB is in baseToken (PEL)
+                //orderA-SELL & orderB-BUY
+                baseToken = nextDexDeal.tokenA.id;
+                baseAmount = nextDexDeal.amountB;
+
+                dealRow.push(nextDexDeal.tokenB.tokenSymbol + "_" + nextDexDeal.tokenA.tokenSymbol);
+
+                if (nextDexDeal.orderB.owner.id == wallet) {
+                    dealRow.push("COMPRA");
+                } else if (nextDexDeal.orderA.owner.id) {
+                    dealRow.push("VENTA");
+                }
+                
+                //PRICE
+                dealRow.push(parseFloat(weiToEther(nextDexDeal.price)));
+
+                //AMOUNT (in nominatorToken)
+                dealRow.push(parseFloat(weiToEther(nextDexDeal.amountA)));
+
+                //AMOUNT (in baseToken aka PEL)
+                dealRow.push(parseFloat(weiToEther(nextDexDeal.amountB)));
+
+            } else {
+                //amountA is in baseToken (PEL)
+                //amountB is in nominatorToken
+                //orderA-BUY & orderB-SELL
+                baseToken = nextDexDeal.tokenB.id;
+                baseAmount = nextDexDeal.amountA;
+
+                dealRow.push(nextDexDeal.tokenA.tokenSymbol + "_" + nextDexDeal.tokenB.tokenSymbol);
+
+                if (nextDexDeal.orderA.owner.id == wallet) {
+                    dealRow.push("COMPRA");
+                } else if (nextDexDeal.orderB.owner.id) {
+                    dealRow.push("VENTA");
+                }
+
+                //PRICE
+                dealRow.push(parseFloat(weiToEther(nextDexDeal.price)));
+
+                //AMOUNT (in nominatorToken)
+                dealRow.push(parseFloat(weiToEther(nextDexDeal.amountB)));
+
+                //AMOUNT (in baseToken aka PEL)
+                dealRow.push(parseFloat(weiToEther(nextDexDeal.amountA)));
+            }
+
+            let usdAmount = 0;
+
+            if (
+                (baseToken == Constants.USD.address) ||
+                (baseToken == Constants.USC.address) ||
+                (baseToken == Constants.PEL.address)
+            ) {
+                usdAmount = parseFloat(weiToEther(baseAmount));
+            } else {
+                usdAmount = await convertToUsd(
+                    parseFloat(weiToEther(baseAmount)), 
+                    baseToken,
+                    nextDexDeal.timestamp
+                );
+            }
+
+            dealRow.push(usdAmount);
+
+            dealsRow.push(dealRow);
+
+            totalUsd = +totalUsd + +usdAmount;
+            totalDeals++;
+        }
+
         //GENERAL
         let array = [];
         let rows = [];
@@ -1437,6 +1526,29 @@ export class Report {
             txSheet.getCell('B2').value = 'NO HAY TRANSFERENCIAS';
             txSheet.getCell('B2').font = {bold: true};
         }
+
+        //DEX TABLE
+        let tableName = 'DexDeals';
+
+        if (dealsRow.length == 0) {
+            dealsRow = [[new Date(), "", "", 0, 0, 0]];
+        }
+
+        addTable(
+            dexSheet,
+            tableName,
+            'B2',
+            [
+                {name: 'Fecha', filterButton: true},
+                {name: 'Par', filterButton: true},
+                {name: 'Compra/Venta', filterButton: true},
+                {name: 'Precio', totalsRowFunction: 'average'},
+                {name: 'Cantidad', totalsRowFunction: 'sum'},
+                {name: 'Cantidad (contrapartida)', totalsRowFunction: 'sum'},
+                {name: 'Cantidad (USD)', totalsRowFunction: 'sum'}
+            ],
+            dealsRow
+        );
 
         try {
             await workbook.xlsx.writeFile('PiMarketsUserReport.xlsx');
@@ -5097,6 +5209,33 @@ async function getDexDeals(
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryDeals = response.deals;
+        deals = deals.concat(queryDeals);
+    }
+
+    return deals;
+}
+
+async function getDexDealsByWallet(
+    _timeLow: number,
+    _timeHigh: number,
+    _wallet: string,
+    _dex: "dex" | "dex-bicentenario",
+    _url: string = 'mainnet'
+) {
+    let skip = 0;
+    let query = '{ user(id:"'+ String(_wallet).toLowerCase() +'") { deals (first:1000, skip:' + skip + ', orderBy: timestamp, orderDirection:desc) { timestamp orderA { owner { id name } } orderB { owner { id name } } tokenA { id tokenSymbol } tokenB { id tokenSymbol } amountA amountB price side } } }';
+    let queryService = new Query(_dex, _url);
+    queryService.setCustomQuery(query);
+    let response = await queryService.request();
+    let queryDeals = response.user.deals;
+    let deals = queryDeals;
+
+    while(queryDeals.length >= 1000) {
+        skip = deals.length;
+        query = '{ user(id:"'+ String(_wallet).toLowerCase() +'") { deals (first:1000, skip:' + skip + ', orderBy: timestamp, orderDirection:desc) { timestamp orderA { owner { id name } } orderB { owner { id name } } tokenA { id tokenSymbol } tokenB { id tokenSymbol } amountA amountB price side } } }';
+        queryService.setCustomQuery(query);
+        response = await queryService.request();
+        queryDeals = response.user.deals;
         deals = deals.concat(queryDeals);
     }
 

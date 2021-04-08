@@ -1143,15 +1143,17 @@ var Report = /** @class */ (function () {
             });
         });
     };
-    Report.prototype.getUserDealsReportByTime = function (wallet, timeLow, timeHigh) {
+    Report.prototype.getUserDealsReportByTime = function (wallet, timeLow, timeHigh, dex) {
+        if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
-            var workbook, generalSheet, dealSheet, txSheet, queryTemplates, nickname, deals, dealsPack, dealsPrimary, dealsPrimaryPack, txs, totalUsd, totalDeals, dealRows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array_1, usdAmount, tableName, array, rows, tableNameGeneral, bc, firstBlockNumber, lastBlockNumber, prevTx, _a, txHash, logIndex, tx, _b, txHashFirst, logIndexFirst, txFirst, _c, txHashLast, logIndexLast, txLast, balancesFirst, balancesLast, txRows, j, array_2, usdAmount, tableName, error_12, buffer, err_12;
+            var workbook, generalSheet, dealSheet, dexSheet, txSheet, queryTemplates, nickname, deals, dealsPack, dealsPrimary, dealsPrimaryPack, txs, totalUsd, totalDeals, dealRows, nextDeal, _array, nextDealTimestamp, nextDealPrimaryTimestamp, nextDealPackTimestamp, nextDealPrimaryPackTimestamp, index, min, i, array_1, usdAmount, tableName_1, dexDeals, nextDexDeal, dealsRow, i, dealRow, baseToken, baseAmount, usdAmount, array, rows, tableNameGeneral, bc, firstBlockNumber, lastBlockNumber, prevTx, _a, txHash, logIndex, tx, _b, txHashFirst, logIndexFirst, txFirst, _c, txHashLast, logIndexLast, txLast, balancesFirst, balancesLast, txRows, j, array_2, usdAmount, tableName_2, tableName, error_12, buffer, err_12;
             return __generator(this, function (_d) {
                 switch (_d.label) {
                     case 0:
                         workbook = new ExcelJS.Workbook();
                         generalSheet = workbook.addWorksheet('Resumen');
-                        dealSheet = workbook.addWorksheet('Pactos');
+                        dealSheet = workbook.addWorksheet('P2P');
+                        dexSheet = workbook.addWorksheet('DEX');
                         txSheet = workbook.addWorksheet('Transferencias');
                         queryTemplates = new graph_1.QueryTemplates(this.url);
                         return [4 /*yield*/, queryTemplates.getNameByWallet(wallet)];
@@ -1265,8 +1267,8 @@ var Report = /** @class */ (function () {
                         if (dealRows.length > 0) {
                             dealSheet.getCell('B2').value = 'PACTOS';
                             dealSheet.getCell('B2').font = { bold: true };
-                            tableName = 'Month_Deals';
-                            addTable(dealSheet, tableName, 'B4', [
+                            tableName_1 = 'Month_Deals';
+                            addTable(dealSheet, tableName_1, 'B4', [
                                 { name: 'Fecha (pacto)', filterButton: true },
                                 { name: 'Hora (oferta)' },
                                 { name: 'Hora (pacto)' },
@@ -1285,6 +1287,79 @@ var Report = /** @class */ (function () {
                             dealSheet.getCell('B2').value = 'NO HAY PACTOS';
                             dealSheet.getCell('B2').font = { bold: true };
                         }
+                        return [4 /*yield*/, getDexDealsByWallet(timeLow, timeHigh, wallet, dex, this.url)];
+                    case 12:
+                        dexDeals = _d.sent();
+                        dealsRow = [];
+                        i = 0;
+                        _d.label = 13;
+                    case 13:
+                        if (!(i < dexDeals.length)) return [3 /*break*/, 18];
+                        nextDexDeal = dexDeals[i];
+                        dealRow = [];
+                        baseToken = void 0;
+                        baseAmount = void 0;
+                        dealRow.push(new Date(nextDexDeal.timestamp * 1000));
+                        if (nextDexDeal.side == "1") {
+                            //amountA is in nominatorToken
+                            //amountB is in baseToken (PEL)
+                            //orderA-SELL & orderB-BUY
+                            baseToken = nextDexDeal.tokenA.id;
+                            baseAmount = nextDexDeal.amountB;
+                            dealRow.push(nextDexDeal.tokenB.tokenSymbol + "_" + nextDexDeal.tokenA.tokenSymbol);
+                            if (nextDexDeal.orderB.owner.id == wallet) {
+                                dealRow.push("COMPRA");
+                            }
+                            else if (nextDexDeal.orderA.owner.id) {
+                                dealRow.push("VENTA");
+                            }
+                            //PRICE
+                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.price)));
+                            //AMOUNT (in nominatorToken)
+                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountA)));
+                            //AMOUNT (in baseToken aka PEL)
+                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountB)));
+                        }
+                        else {
+                            //amountA is in baseToken (PEL)
+                            //amountB is in nominatorToken
+                            //orderA-BUY & orderB-SELL
+                            baseToken = nextDexDeal.tokenB.id;
+                            baseAmount = nextDexDeal.amountA;
+                            dealRow.push(nextDexDeal.tokenA.tokenSymbol + "_" + nextDexDeal.tokenB.tokenSymbol);
+                            if (nextDexDeal.orderA.owner.id == wallet) {
+                                dealRow.push("COMPRA");
+                            }
+                            else if (nextDexDeal.orderB.owner.id) {
+                                dealRow.push("VENTA");
+                            }
+                            //PRICE
+                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.price)));
+                            //AMOUNT (in nominatorToken)
+                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountB)));
+                            //AMOUNT (in baseToken aka PEL)
+                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountA)));
+                        }
+                        usdAmount = 0;
+                        if (!((baseToken == Constants.USD.address) ||
+                            (baseToken == Constants.USC.address) ||
+                            (baseToken == Constants.PEL.address))) return [3 /*break*/, 14];
+                        usdAmount = parseFloat(utils_1.weiToEther(baseAmount));
+                        return [3 /*break*/, 16];
+                    case 14: return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(baseAmount)), baseToken, nextDexDeal.timestamp)];
+                    case 15:
+                        usdAmount = _d.sent();
+                        _d.label = 16;
+                    case 16:
+                        dealRow.push(usdAmount);
+                        dealsRow.push(dealRow);
+                        totalUsd = +totalUsd + +usdAmount;
+                        totalDeals++;
+                        _d.label = 17;
+                    case 17:
+                        i++;
+                        return [3 /*break*/, 13];
+                    case 18:
                         array = [];
                         rows = [];
                         generalSheet.getCell('B2').value = 'RESUMEN: ' + (new Date(timeLow * 1000)).toUTCString() + ' <--> ' + (new Date(timeHigh * 1000)).toUTCString();
@@ -1302,45 +1377,45 @@ var Report = /** @class */ (function () {
                         bc = new blockchain_1.Blockchain(this.url);
                         firstBlockNumber = 0;
                         lastBlockNumber = 0;
-                        if (!(txs.length == 0)) return [3 /*break*/, 17];
+                        if (!(txs.length == 0)) return [3 /*break*/, 24];
                         return [4 /*yield*/, getUserLastTxBeforeTime(nickname, timeLow, this.url)];
-                    case 12:
+                    case 19:
                         prevTx = _d.sent();
-                        if (!(prevTx != null)) return [3 /*break*/, 14];
+                        if (!(prevTx != null)) return [3 /*break*/, 21];
                         _a = String(prevTx).split('-'), txHash = _a[0], logIndex = _a[1];
                         return [4 /*yield*/, bc.getTransaction(txHash)];
-                    case 13:
+                    case 20:
                         tx = _d.sent();
                         firstBlockNumber = tx.blockNumber;
                         firstBlockNumber = firstBlockNumber + 1;
                         lastBlockNumber = firstBlockNumber;
-                        return [3 /*break*/, 16];
-                    case 14: return [4 /*yield*/, bc.getBlockNumber()];
-                    case 15:
+                        return [3 /*break*/, 23];
+                    case 21: return [4 /*yield*/, bc.getBlockNumber()];
+                    case 22:
                         firstBlockNumber = _d.sent();
                         firstBlockNumber = firstBlockNumber - 5;
                         lastBlockNumber = firstBlockNumber;
-                        _d.label = 16;
-                    case 16: return [3 /*break*/, 20];
-                    case 17:
+                        _d.label = 23;
+                    case 23: return [3 /*break*/, 27];
+                    case 24:
                         _b = String(txs[txs.length - 1].id).split('-'), txHashFirst = _b[0], logIndexFirst = _b[1];
                         return [4 /*yield*/, bc.getTransaction(txHashFirst)];
-                    case 18:
+                    case 25:
                         txFirst = _d.sent();
                         firstBlockNumber = txFirst.blockNumber;
                         firstBlockNumber = firstBlockNumber + 1;
                         _c = String(txs[0].id).split('-'), txHashLast = _c[0], logIndexLast = _c[1];
                         return [4 /*yield*/, bc.getTransaction(txHashLast)];
-                    case 19:
+                    case 26:
                         txLast = _d.sent();
                         lastBlockNumber = txLast.blockNumber;
                         lastBlockNumber = lastBlockNumber + 1;
-                        _d.label = 20;
-                    case 20: return [4 /*yield*/, getUserBalances(nickname, firstBlockNumber, this.url)];
-                    case 21:
+                        _d.label = 27;
+                    case 27: return [4 /*yield*/, getUserBalances(nickname, firstBlockNumber, this.url)];
+                    case 28:
                         balancesFirst = _d.sent();
                         return [4 /*yield*/, getUserBalances(nickname, lastBlockNumber, this.url)];
-                    case 22:
+                    case 29:
                         balancesLast = _d.sent();
                         setBalancesTable(generalSheet, balancesFirst, 'Balances_Init', 'B9');
                         setBalancesTable(generalSheet, balancesLast, 'Balances_Last', 'E9');
@@ -1348,12 +1423,12 @@ var Report = /** @class */ (function () {
                         generalSheet.getCell('B8').font = { bold: true };
                         generalSheet.getCell('E8').value = 'Final final';
                         generalSheet.getCell('E8').font = { bold: true };
-                        if (!(txs.length > 0)) return [3 /*break*/, 27];
+                        if (!(txs.length > 0)) return [3 /*break*/, 34];
                         txRows = [];
                         j = 0;
-                        _d.label = 23;
-                    case 23:
-                        if (!(j < txs.length)) return [3 /*break*/, 26];
+                        _d.label = 30;
+                    case 30:
+                        if (!(j < txs.length)) return [3 /*break*/, 33];
                         array_2 = [];
                         array_2.push(new Date(txs[j].timestamp * 1000));
                         array_2.push(txs[j].currency.tokenSymbol);
@@ -1373,20 +1448,20 @@ var Report = /** @class */ (function () {
                         }
                         array_2.push(parseFloat(utils_1.weiToEther(txs[j].amount)));
                         return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(txs[j].amount)), txs[j].currency.id, txs[j].timestamp)];
-                    case 24:
+                    case 31:
                         usdAmount = _d.sent();
                         array_2.push(usdAmount);
                         txRows.push(array_2);
-                        _d.label = 25;
-                    case 25:
+                        _d.label = 32;
+                    case 32:
                         j++;
-                        return [3 /*break*/, 23];
-                    case 26:
+                        return [3 /*break*/, 30];
+                    case 33:
                         if (txRows.length > 0) {
                             txSheet.getCell('B2').value = 'TRANSFERENCIAS';
                             txSheet.getCell('B2').font = { bold: true };
-                            tableName = 'Month_TXs';
-                            addTable(txSheet, tableName, 'B4', [
+                            tableName_2 = 'Month_TXs';
+                            addTable(txSheet, tableName_2, 'B4', [
                                 { name: 'Fecha', filterButton: true },
                                 { name: 'Divisa' },
                                 { name: 'Origen (wallet)' },
@@ -1397,35 +1472,50 @@ var Report = /** @class */ (function () {
                                 { name: 'Monto (USD)' }
                             ], txRows);
                         }
-                        return [3 /*break*/, 28];
-                    case 27:
-                        txSheet.getCell('B2').value = 'NO HAY TRANSFERENCIAS';
-                        txSheet.getCell('B2').font = { bold: true };
-                        _d.label = 28;
-                    case 28:
-                        _d.trys.push([28, 30, , 36]);
-                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsUserReport.xlsx')];
-                    case 29:
-                        _d.sent();
-                        return [3 /*break*/, 36];
-                    case 30:
-                        error_12 = _d.sent();
-                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 31:
-                        buffer = _d.sent();
-                        _d.label = 32;
-                    case 32:
-                        _d.trys.push([32, 34, , 35]);
-                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsUserReport.xlsx')];
-                    case 33:
-                        _d.sent();
                         return [3 /*break*/, 35];
                     case 34:
+                        txSheet.getCell('B2').value = 'NO HAY TRANSFERENCIAS';
+                        txSheet.getCell('B2').font = { bold: true };
+                        _d.label = 35;
+                    case 35:
+                        tableName = 'DexDeals';
+                        if (dealsRow.length == 0) {
+                            dealsRow = [[new Date(), "", "", 0, 0, 0]];
+                        }
+                        addTable(dexSheet, tableName, 'B2', [
+                            { name: 'Fecha', filterButton: true },
+                            { name: 'Par', filterButton: true },
+                            { name: 'Compra/Venta', filterButton: true },
+                            { name: 'Precio', totalsRowFunction: 'average' },
+                            { name: 'Cantidad', totalsRowFunction: 'sum' },
+                            { name: 'Cantidad (contrapartida)', totalsRowFunction: 'sum' },
+                            { name: 'Cantidad (USD)', totalsRowFunction: 'sum' }
+                        ], dealsRow);
+                        _d.label = 36;
+                    case 36:
+                        _d.trys.push([36, 38, , 44]);
+                        return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsUserReport.xlsx')];
+                    case 37:
+                        _d.sent();
+                        return [3 /*break*/, 44];
+                    case 38:
+                        error_12 = _d.sent();
+                        return [4 /*yield*/, workbook.xlsx.writeBuffer()];
+                    case 39:
+                        buffer = _d.sent();
+                        _d.label = 40;
+                    case 40:
+                        _d.trys.push([40, 42, , 43]);
+                        return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsUserReport.xlsx')];
+                    case 41:
+                        _d.sent();
+                        return [3 /*break*/, 43];
+                    case 42:
                         err_12 = _d.sent();
                         console.error(err_12);
-                        return [3 /*break*/, 35];
-                    case 35: return [3 /*break*/, 36];
-                    case 36: return [2 /*return*/];
+                        return [3 /*break*/, 43];
+                    case 43: return [3 /*break*/, 44];
+                    case 44: return [2 /*return*/];
                 }
             });
         });
@@ -4990,6 +5080,39 @@ function getDexDeals(_timeLow, _timeHigh, _instrument, _dex, _url) {
                 case 3:
                     response = _a.sent();
                     queryDeals = response.deals;
+                    deals = deals.concat(queryDeals);
+                    return [3 /*break*/, 2];
+                case 4: return [2 /*return*/, deals];
+            }
+        });
+    });
+}
+function getDexDealsByWallet(_timeLow, _timeHigh, _wallet, _dex, _url) {
+    if (_url === void 0) { _url = 'mainnet'; }
+    return __awaiter(this, void 0, void 0, function () {
+        var skip, query, queryService, response, queryDeals, deals;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    skip = 0;
+                    query = '{ user(id:"' + String(_wallet).toLowerCase() + '") { deals (first:1000, skip:' + skip + ', orderBy: timestamp, orderDirection:desc) { timestamp orderA { owner { id name } } orderB { owner { id name } } tokenA { id tokenSymbol } tokenB { id tokenSymbol } amountA amountB price side } } }';
+                    queryService = new graph_1.Query(_dex, _url);
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 1:
+                    response = _a.sent();
+                    queryDeals = response.user.deals;
+                    deals = queryDeals;
+                    _a.label = 2;
+                case 2:
+                    if (!(queryDeals.length >= 1000)) return [3 /*break*/, 4];
+                    skip = deals.length;
+                    query = '{ user(id:"' + String(_wallet).toLowerCase() + '") { deals (first:1000, skip:' + skip + ', orderBy: timestamp, orderDirection:desc) { timestamp orderA { owner { id name } } orderB { owner { id name } } tokenA { id tokenSymbol } tokenB { id tokenSymbol } amountA amountB price side } } }';
+                    queryService.setCustomQuery(query);
+                    return [4 /*yield*/, queryService.request()];
+                case 3:
+                    response = _a.sent();
+                    queryDeals = response.user.deals;
                     deals = deals.concat(queryDeals);
                     return [3 /*break*/, 2];
                 case 4: return [2 /*return*/, deals];
