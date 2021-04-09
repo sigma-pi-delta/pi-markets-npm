@@ -112,6 +112,23 @@ export class SmartID {
         }
     }
 
+    async setState(
+        state: ethers.utils.BigNumber
+    ) {
+        let identityContract = this.contractsService.getContractSigner(
+            this.identity, 
+            Constants.IDENTITY_ABI, 
+            this.signer
+        );
+
+        try {
+            return await identityContract.setState(state);
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
     async walletForward(
         destination: string,
         _data: string
