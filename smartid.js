@@ -147,7 +147,7 @@ var SmartID = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, identityContract.setState(state)];
+                        return [4 /*yield*/, identityContract.setState(state, Constants.OVERRIDES)];
                     case 2: return [2 /*return*/, _a.sent()];
                     case 3:
                         error_2 = _a.sent();

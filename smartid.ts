@@ -122,7 +122,7 @@ export class SmartID {
         );
 
         try {
-            return await identityContract.setState(state);
+            return await identityContract.setState(state, Constants.OVERRIDES);
         } catch(error) {
             console.error(error);
             throw new Error(error);
