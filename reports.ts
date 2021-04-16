@@ -358,6 +358,115 @@ export class Report {
         }
     }
 
+    async getTokenHoldersReportInArray(
+        orderBy: string,
+        orderDirection: "desc" | "asc",
+        tokensArray: any[],
+        holdersArray: string[],
+        hideNames: boolean = true,
+    ) {
+        const first = 1000;
+        let skip = 0;
+        let queryTemplates = new QueryTemplates(this.url);
+        const workbook = new ExcelJS.Workbook();
+    
+        for (let i = 0; i < tokensArray.length; i++) {
+            skip = 0;
+            let response = await queryTemplates.getTokenHoldersInArray(
+                orderBy,
+                orderDirection,
+                first,
+                skip,
+                tokensArray[i].address,
+                holdersArray
+            );
+    
+            let loopresponse = response;
+    
+            while(loopresponse.length >= 1000) {
+                skip = response.length;
+                loopresponse = await queryTemplates.getTokenHoldersInArray(
+                    orderBy,
+                    orderDirection,
+                    first,
+                    skip,
+                    tokensArray[i].address,
+                    holdersArray
+                );
+                response = response.concat(loopresponse);
+            }
+    
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol);
+            sheet.getCell('B2').value = 'TOKEN';
+            sheet.getCell('B3').value = 'FECHA';
+            sheet.getCell('B2').font = {bold: true};
+            sheet.getCell('B3').font = {bold: true};
+            sheet.getCell('C2').value = tokensArray[i].symbol;
+            sheet.getCell('C3').value = getTime();
+            sheet.getCell('C6').value = 'HOLDERS';
+            sheet.getCell('C6').font = {bold: true};
+    
+            let rows = [];
+    
+            for (let j = 0; j < response.length; j++) {
+                let array = [];
+                
+                if (!hideNames) {
+                    if (response[j].wallet.name == null) {
+                        array.push("");
+                    } else {
+                        array.push(response[j].wallet.name.id);
+                    }
+                }
+                
+                array.push(response[j].wallet.id);
+                array.push(parseFloat(weiToEther(response[j].balance)));
+                rows.push(array);
+            }
+    
+            let tableName = 'Tabla' + tokensArray[i].symbol;
+    
+            if (hideNames) {
+                if (rows.length == 0) rows.push(["", 0]);
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Wallet', filterButton: true},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
+                );
+            } else {
+                if (rows.length == 0) rows.push(["", "", 0]);
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Nombre', filterButton: true},
+                        {name: 'Wallet'},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
+                );
+            }
+        }
+    
+        try {
+            await workbook.xlsx.writeFile('PiMarketsTokenHoldersReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTokenHoldersReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
     async getPackableHoldersReport(
         orderBy: string,
         orderDirection: "desc" | "asc",
@@ -520,6 +629,132 @@ export class Report {
                         {name: 'Cantidad ofertada', totalsRowFunction: 'sum'}
                     ],
                     rows2
+                );
+            }
+        }
+    
+        try {
+            await workbook.xlsx.writeFile('PiMarketsPackableHoldersReport.xlsx');
+        } catch (error) {
+            let buffer = await workbook.xlsx.writeBuffer();
+            
+            try {
+                await FileSaver.saveAs(new Blob([buffer]), 'PiMarketsPackableHoldersReport.xlsx');
+            } catch (err) {
+                console.error(err);
+            }
+        }
+    }
+
+    async getPackableHoldersReportInArray(
+        orderBy: string,
+        orderDirection: "desc" | "asc",
+        tokensArray: any[],
+        expiries: any[],
+        holdersArray: string[],
+        hideNames: boolean = true,
+    ) {
+        const first = 1000;
+        let skip = 0;
+        let queryTemplates = new QueryTemplates(this.url);
+        const workbook = new ExcelJS.Workbook();
+    
+        for (let i = 0; i < tokensArray.length; i++) {
+            let response = await queryTemplates.getPackableHoldersInArray(
+                tokensArray[i].address,
+                expiries[i][1],
+                orderBy,
+                orderDirection,
+                first,
+                skip,
+                holdersArray
+            );
+    
+            let loopresponse = response;
+    
+            while(loopresponse.length >= 1000) {
+                skip = response.length;
+                loopresponse = await queryTemplates.getPackableHoldersInArray(
+                    tokensArray[i].address,
+                    expiries[i][1],
+                    orderBy,
+                    orderDirection,
+                    first,
+                    skip,
+                    holdersArray
+                );
+                response = response.concat(loopresponse);
+            }
+    
+            let sheet = workbook.addWorksheet(tokensArray[i].symbol + '-' + expiries[i][0]);
+            sheet.getCell('B2').value = 'TOKEN';
+            sheet.getCell('B3').value = 'VENCIMIENTO';
+            sheet.getCell('B4').value = 'FECHA';
+            sheet.getCell('B2').font = {bold: true};
+            sheet.getCell('B3').font = {bold: true};
+            sheet.getCell('B4').font = {bold: true};
+            sheet.getCell('C2').value = tokensArray[i].symbol;
+            sheet.getCell('C3').value = expiries[i][0];
+            sheet.getCell('C4').value = getTime();
+            sheet.getCell('C6').value = 'HOLDERS';
+            sheet.getCell('C6').font = {bold: true};
+    
+            let rows = [];
+
+            let namesAllowed = false;
+
+                if (
+                    (tokensArray[i].address == Constants.A.address) ||
+                    (tokensArray[i].address == Constants.B.address) ||
+                    (tokensArray[i].address == Constants.C.address) ||
+                    (tokensArray[i].address == Constants.D.address) ||
+                    (tokensArray[i].address == Constants.F.address)
+                ) {
+                    namesAllowed = true;
+                }
+    
+            for (let j = 0; j < response.length; j++) {
+                let array = [];
+
+                if ((!hideNames) || namesAllowed) {
+                    if (response[j].wallet.name == null) {
+                        array.push("");
+                    } else {
+                        array.push(response[j].wallet.name.id);
+                    }
+                }
+                
+                array.push(response[j].wallet.id);
+                array.push(parseInt(weiToEther(response[j].balance)));
+                rows.push(array);
+            }
+    
+            let tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
+    
+            if ((hideNames) && !namesAllowed) {
+                if (rows.length == 0) rows.push(["", 0]);
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Wallet', filterButton: true},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
+                );
+            } else {
+                if (rows.length == 0) rows.push(["", "", 0]);
+                await addTable(
+                    sheet,
+                    tableName,
+                    'B7',
+                    [
+                        {name: 'Nombre', filterButton: true},
+                        {name: 'Wallet'},
+                        {name: 'Saldo', totalsRowFunction: 'sum'}
+                    ],
+                    rows
                 );
             }
         }

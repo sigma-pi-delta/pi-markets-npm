@@ -811,6 +811,10 @@ var ETH_PTR = {
     symbol: "ETH_PTR",
     pair: [ETH.address, PTR.address]
 };
+var VES_PEL = {
+    symbol: "VES_PEL",
+    pair: [VES.address, PEL.address]
+};
 var EUR_PEL = {
     symbol: "EUR_PEL",
     pair: [EUR.address, PEL.address]
@@ -1003,7 +1007,8 @@ var BPVB_INSTRUMENTS = [
     PTR_VES,
     ETH_PEL,
     ETH_VES,
-    ETH_PTR
+    ETH_PTR,
+    VES_PEL
 ];
 exports.BPVB_INSTRUMENTS = BPVB_INSTRUMENTS;
 var BPVB_ALL_TOKENS = [

@@ -640,6 +640,28 @@ export class QueryTemplates {
         }
     }
 
+    async getTokenHoldersInArray(
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        token: string,
+        holdersArray: string[]
+    ) {
+        let stringArray = holdersArray.join('", "');
+        let customQuery = '{ tokenBalances(where:{wallet_in: ["' + stringArray + '"] token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.tokenBalances;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
     async getNFTHolders(
         orderBy: string,
         orderDirection: "asc" | "desc",
@@ -670,6 +692,30 @@ export class QueryTemplates {
     ) {
         let tokenPackableId = tokenAddress + "-" + packableId
         let customQuery = '{ packableBalances (where: {packableId:"' + tokenPackableId + '", balance_gt:0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first +', skip: ' + skip + ') { packableId { id } balance wallet { id name { id } } } }';
+        let query = new Query('bank', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+            if (response != undefined) return response.packableBalances;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getPackableHoldersInArray(
+        tokenAddress: string,
+        packableId: string,
+        orderBy: string,
+        orderDirection: "asc" | "desc",
+        first: number,
+        skip: number,
+        holdersArray: string[]
+    ) {
+        let stringArray = holdersArray.join('", "');
+        let tokenPackableId = tokenAddress + "-" + packableId
+        let customQuery = '{ packableBalances (where: {wallet_in: ["' + stringArray + '"] packableId:"' + tokenPackableId + '", balance_gt:0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first +', skip: ' + skip + ') { packableId { id } balance wallet { id name { id } } } }';
         let query = new Query('bank', this.network);
         query.setCustomQuery(customQuery);
 
@@ -1110,6 +1156,46 @@ export class QueryTemplates {
             let response = await query.request();
 
             if (response != undefined) return response.user;
+        } catch(error) {
+            console.error(error);
+            throw new Error(error);
+        }
+    }
+
+    async getBicentenarioAllowedUsers() {
+        let customQuery = '{ users(first:1000, skip:0 where:{allowed:true}) { id } }';
+        let query = new Query('dex-bicentenario', this.network);
+        query.setCustomQuery(customQuery);
+
+        try {
+            let response = await query.request();
+
+            if (response != undefined) {
+                let queryUsers = response.users;
+                let users = [];
+
+                for (let i = 0; i < queryUsers.length; i++) {
+                    users.push(queryUsers[i].id);
+                }
+
+                while(queryUsers.length >= 1000) {
+                    let skip = users.length;
+                    customQuery = '{ users(first:1000, skip: ' + skip + ' where:{allowed:true}) { id } }';
+                    query.setCustomQuery(customQuery);
+                    response = await query.request();
+                    if (response != undefined) {
+                        queryUsers = response.users;
+                        
+                        for (let j = 0; j < queryUsers.length; j++) {
+                            users.push(queryUsers[j].id);
+                        }
+                    } else {
+                        queryUsers = [];
+                    }
+                }
+
+                return users;
+            }
         } catch(error) {
             console.error(error);
             throw new Error(error);

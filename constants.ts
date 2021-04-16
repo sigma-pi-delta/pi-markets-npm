@@ -698,6 +698,10 @@ const ETH_PTR = {
     symbol: "ETH_PTR",
     pair: [ETH.address, PTR.address]
 }
+const VES_PEL = {
+    symbol: "VES_PEL",
+    pair: [VES.address, PEL.address]
+}
 const EUR_PEL = {
     symbol: "EUR_PEL",
     pair: [EUR.address, PEL.address]
@@ -891,7 +895,8 @@ const BPVB_INSTRUMENTS = [
     PTR_VES,
     ETH_PEL,
     ETH_VES,
-    ETH_PTR
+    ETH_PTR,
+    VES_PEL
 ]
 
 const BPVB_ALL_TOKENS = [

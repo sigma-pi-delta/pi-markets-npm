@@ -878,13 +878,14 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
-    QueryTemplates.prototype.getNFTHolders = function (orderBy, orderDirection, first, skip, token) {
+    QueryTemplates.prototype.getTokenHoldersInArray = function (orderBy, orderDirection, first, skip, token, holdersArray) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_21;
+            var stringArray, customQuery, query, response, error_21;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+                        stringArray = holdersArray.join('", "');
+                        customQuery = '{ tokenBalances(where:{wallet_in: ["' + stringArray + '"] token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance wallet { id name { id } } } }';
                         query = new Query('bank', this.network);
                         query.setCustomQuery(customQuery);
                         _a.label = 1;
@@ -905,9 +906,36 @@ var QueryTemplates = /** @class */ (function () {
             });
         });
     };
+    QueryTemplates.prototype.getNFTHolders = function (orderBy, orderDirection, first, skip, token) {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, error_22;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ tokenBalances(where:{token:"' + token + '", balance_gt: 0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { token { id tokenSymbol } balance commodities { tokenId reference metadata } wallet { id name { id } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.tokenBalances];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_22 = _a.sent();
+                        console.error(error_22);
+                        throw new Error(error_22);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
     QueryTemplates.prototype.getPackableHolders = function (tokenAddress, packableId, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var tokenPackableId, customQuery, query, response, error_22;
+            var tokenPackableId, customQuery, query, response, error_23;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -925,9 +953,38 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.packableBalances];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_22 = _a.sent();
-                        console.error(error_22);
-                        throw new Error(error_22);
+                        error_23 = _a.sent();
+                        console.error(error_23);
+                        throw new Error(error_23);
+                    case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getPackableHoldersInArray = function (tokenAddress, packableId, orderBy, orderDirection, first, skip, holdersArray) {
+        return __awaiter(this, void 0, void 0, function () {
+            var stringArray, tokenPackableId, customQuery, query, response, error_24;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        stringArray = holdersArray.join('", "');
+                        tokenPackableId = tokenAddress + "-" + packableId;
+                        customQuery = '{ packableBalances (where: {wallet_in: ["' + stringArray + '"] packableId:"' + tokenPackableId + '", balance_gt:0}, orderBy: ' + orderBy + ', orderDirection: ' + orderDirection + ', first: ' + first + ', skip: ' + skip + ') { packableId { id } balance wallet { id name { id } } } }';
+                        query = new Query('bank', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (response != undefined)
+                            return [2 /*return*/, response.packableBalances];
+                        return [3 /*break*/, 4];
+                    case 3:
+                        error_24 = _a.sent();
+                        console.error(error_24);
+                        throw new Error(error_24);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -937,7 +994,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getOffers = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_23;
+            var customQuery, query, response, error_25;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -954,9 +1011,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.offers];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_23 = _a.sent();
-                        console.error(error_23);
-                        throw new Error(error_23);
+                        error_25 = _a.sent();
+                        console.error(error_25);
+                        throw new Error(error_25);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -965,7 +1022,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getPackableOffers = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_24;
+            var customQuery, query, response, error_26;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -982,9 +1039,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.offerPackables];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_24 = _a.sent();
-                        console.error(error_24);
-                        throw new Error(error_24);
+                        error_26 = _a.sent();
+                        console.error(error_26);
+                        throw new Error(error_26);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -993,7 +1050,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getNFTOffers = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_25;
+            var customQuery, query, response, error_27;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1010,9 +1067,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.offerCommodities];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_25 = _a.sent();
-                        console.error(error_25);
-                        throw new Error(error_25);
+                        error_27 = _a.sent();
+                        console.error(error_27);
+                        throw new Error(error_27);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1021,7 +1078,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getDeals = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_26;
+            var customQuery, query, response, error_28;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1038,9 +1095,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.deals];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_26 = _a.sent();
-                        console.error(error_26);
-                        throw new Error(error_26);
+                        error_28 = _a.sent();
+                        console.error(error_28);
+                        throw new Error(error_28);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1049,7 +1106,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getPackableDeals = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_27;
+            var customQuery, query, response, error_29;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1066,9 +1123,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.dealPackables];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_27 = _a.sent();
-                        console.error(error_27);
-                        throw new Error(error_27);
+                        error_29 = _a.sent();
+                        console.error(error_29);
+                        throw new Error(error_29);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1077,7 +1134,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getNFTDeals = function (filter, orderBy, orderDirection, first, skip, market) {
         if (market === void 0) { market = "p2p"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_28;
+            var customQuery, query, response, error_30;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1094,9 +1151,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.dealPackables];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_28 = _a.sent();
-                        console.error(error_28);
-                        throw new Error(error_28);
+                        error_30 = _a.sent();
+                        console.error(error_30);
+                        throw new Error(error_30);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1105,7 +1162,7 @@ var QueryTemplates = /** @class */ (function () {
     /******** MARKET */
     QueryTemplates.prototype.getTransfersCommission = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_29;
+            var customQuery, query, response, error_31;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1122,9 +1179,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.controllers[0].commission];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_29 = _a.sent();
-                        console.error(error_29);
-                        throw new Error(error_29);
+                        error_31 = _a.sent();
+                        console.error(error_31);
+                        throw new Error(error_31);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1133,7 +1190,7 @@ var QueryTemplates = /** @class */ (function () {
     /******** AUCTIONS */
     QueryTemplates.prototype.getAuctions = function (filter, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_30;
+            var customQuery, query, response, error_32;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1150,9 +1207,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.auctions];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_30 = _a.sent();
-                        console.error(error_30);
-                        throw new Error(error_30);
+                        error_32 = _a.sent();
+                        console.error(error_32);
+                        throw new Error(error_32);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1160,7 +1217,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getBids = function (filter, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_31;
+            var customQuery, query, response, error_33;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1177,9 +1234,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.bids];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_31 = _a.sent();
-                        console.error(error_31);
-                        throw new Error(error_31);
+                        error_33 = _a.sent();
+                        console.error(error_33);
+                        throw new Error(error_33);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1187,7 +1244,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getAuctionsUserStats = function (filter, orderBy, orderDirection, first, skip) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_32;
+            var customQuery, query, response, error_34;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1204,9 +1261,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.users];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_32 = _a.sent();
-                        console.error(error_32);
-                        throw new Error(error_32);
+                        error_34 = _a.sent();
+                        console.error(error_34);
+                        throw new Error(error_34);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1214,7 +1271,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.getAuctionsCommission = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_33;
+            var customQuery, query, response, error_35;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1231,9 +1288,9 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, Utils.weiToEther(response.factories[0].commission)];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_33 = _a.sent();
-                        console.error(error_33);
-                        throw new Error(error_33);
+                        error_35 = _a.sent();
+                        console.error(error_35);
+                        throw new Error(error_35);
                     case 4: return [2 /*return*/];
                 }
             });
@@ -1243,7 +1300,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getOrdersSkip = function (skip, dex) {
         if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, queryOrders, orders, _skip, error_34;
+            var customQuery, query, response, queryOrders, orders, _skip, error_36;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1280,9 +1337,9 @@ var QueryTemplates = /** @class */ (function () {
                     case 5: return [2 /*return*/, orders];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        error_34 = _a.sent();
-                        console.error(error_34);
-                        throw new Error(error_34);
+                        error_36 = _a.sent();
+                        console.error(error_36);
+                        throw new Error(error_36);
                     case 8: return [2 /*return*/];
                 }
             });
@@ -1291,7 +1348,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getOpenOrdersNotInArray = function (ordersArray, dex) {
         if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
-            var skip, stringArray, customQuery, query, response, queryOrders, orders, _skip, error_35;
+            var skip, stringArray, customQuery, query, response, queryOrders, orders, _skip, error_37;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1330,9 +1387,9 @@ var QueryTemplates = /** @class */ (function () {
                     case 5: return [2 /*return*/, orders];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        error_35 = _a.sent();
-                        console.error(error_35);
-                        throw new Error(error_35);
+                        error_37 = _a.sent();
+                        console.error(error_37);
+                        throw new Error(error_37);
                     case 8: return [2 /*return*/];
                 }
             });
@@ -1341,7 +1398,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getCancelationsSkip = function (skip, dex) {
         if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, queryOrders, orders, _skip, error_36;
+            var customQuery, query, response, queryOrders, orders, _skip, error_38;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1378,9 +1435,9 @@ var QueryTemplates = /** @class */ (function () {
                     case 5: return [2 /*return*/, orders];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        error_36 = _a.sent();
-                        console.error(error_36);
-                        throw new Error(error_36);
+                        error_38 = _a.sent();
+                        console.error(error_38);
+                        throw new Error(error_38);
                     case 8: return [2 /*return*/];
                 }
             });
@@ -1389,7 +1446,7 @@ var QueryTemplates = /** @class */ (function () {
     QueryTemplates.prototype.getInstrumentOrderbook = function (token, baseToken, dex) {
         if (dex === void 0) { dex = "dex"; }
         return __awaiter(this, void 0, void 0, function () {
-            var skip, array, stringArray, customQuery, query, response, queryOrders, orders, buyAmountByPrice, sellAmountByPrice, sellPrices, buyPrices, i, order, price, amount, error_37;
+            var skip, array, stringArray, customQuery, query, response, queryOrders, orders, buyAmountByPrice, sellAmountByPrice, sellPrices, buyPrices, i, order, price, amount, error_39;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1467,9 +1524,9 @@ var QueryTemplates = /** @class */ (function () {
                         return [2 /*return*/, [sellAmountByPrice, buyAmountByPrice]];
                     case 6: return [3 /*break*/, 8];
                     case 7:
-                        error_37 = _a.sent();
-                        console.error(error_37);
-                        throw new Error(error_37);
+                        error_39 = _a.sent();
+                        console.error(error_39);
+                        throw new Error(error_39);
                     case 8: return [2 /*return*/];
                 }
             });
@@ -1477,7 +1534,7 @@ var QueryTemplates = /** @class */ (function () {
     };
     QueryTemplates.prototype.isBicentenarioAllowed = function (wallet) {
         return __awaiter(this, void 0, void 0, function () {
-            var customQuery, query, response, error_38;
+            var customQuery, query, response, error_40;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -1494,10 +1551,61 @@ var QueryTemplates = /** @class */ (function () {
                             return [2 /*return*/, response.user];
                         return [3 /*break*/, 4];
                     case 3:
-                        error_38 = _a.sent();
-                        console.error(error_38);
-                        throw new Error(error_38);
+                        error_40 = _a.sent();
+                        console.error(error_40);
+                        throw new Error(error_40);
                     case 4: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    QueryTemplates.prototype.getBicentenarioAllowedUsers = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var customQuery, query, response, queryUsers, users, i, skip, j, error_41;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        customQuery = '{ users(first:1000, skip:0 where:{allowed:true}) { id } }';
+                        query = new Query('dex-bicentenario', this.network);
+                        query.setCustomQuery(customQuery);
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 7, , 8]);
+                        return [4 /*yield*/, query.request()];
+                    case 2:
+                        response = _a.sent();
+                        if (!(response != undefined)) return [3 /*break*/, 6];
+                        queryUsers = response.users;
+                        users = [];
+                        for (i = 0; i < queryUsers.length; i++) {
+                            users.push(queryUsers[i].id);
+                        }
+                        _a.label = 3;
+                    case 3:
+                        if (!(queryUsers.length >= 1000)) return [3 /*break*/, 5];
+                        skip = users.length;
+                        customQuery = '{ users(first:1000, skip: ' + skip + ' where:{allowed:true}) { id } }';
+                        query.setCustomQuery(customQuery);
+                        return [4 /*yield*/, query.request()];
+                    case 4:
+                        response = _a.sent();
+                        if (response != undefined) {
+                            queryUsers = response.users;
+                            for (j = 0; j < queryUsers.length; j++) {
+                                users.push(queryUsers[j].id);
+                            }
+                        }
+                        else {
+                            queryUsers = [];
+                        }
+                        return [3 /*break*/, 3];
+                    case 5: return [2 /*return*/, users];
+                    case 6: return [3 /*break*/, 8];
+                    case 7:
+                        error_41 = _a.sent();
+                        console.error(error_41);
+                        throw new Error(error_41);
+                    case 8: return [2 /*return*/];
                 }
             });
         });
@@ -1507,7 +1615,7 @@ var QueryTemplates = /** @class */ (function () {
 exports.QueryTemplates = QueryTemplates;
 function requestDataLake(token, from, to) {
     return __awaiter(this, void 0, void 0, function () {
-        var parId, endPoint, body, response, responseData, error_39;
+        var parId, endPoint, body, response, responseData, error_42;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -1537,9 +1645,9 @@ function requestDataLake(token, from, to) {
                     _a.label = 4;
                 case 4: return [2 /*return*/, responseData];
                 case 5:
-                    error_39 = _a.sent();
-                    console.error(error_39);
-                    throw new Error(error_39);
+                    error_42 = _a.sent();
+                    console.error(error_42);
+                    throw new Error(error_42);
                 case 6: return [2 /*return*/];
             }
         });
