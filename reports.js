@@ -1865,45 +1865,58 @@ var Report = /** @class */ (function () {
                             var kycAmount = void 0;
                             var topLimit = 0;
                             var monthly_income = "ERROR";
-                            if (userKyc[0].user_data != null) {
-                                kycAmount = userKyc[0].user_data.monthly_income;
-                                switch (kycAmount) {
-                                    case 500:
-                                        topLimit = 600;
-                                        monthly_income = "Menos de 500 €";
-                                        break;
-                                    case 1000:
-                                        topLimit = 1800;
-                                        monthly_income = "Entre 500 y 1.500 €";
-                                        break;
-                                    case 2000:
-                                        topLimit = 3000;
-                                        monthly_income = "Entre 1.500 y 2.500 €";
-                                        break;
-                                    case 3250:
-                                        topLimit = 4800;
-                                        monthly_income = "Entre 2.500 y 4.000 €";
-                                        break;
-                                    case 5000:
-                                        topLimit = 7200;
-                                        monthly_income = "Entre 4.000 y 6.000 €";
-                                        break;
-                                    case 8000:
-                                        topLimit = 12000;
-                                        monthly_income = "Entre 6.000 y 10.000 €";
-                                        break;
-                                    case 10000:
-                                        topLimit = 120000;
-                                        monthly_income = "Más de 10.000 €";
-                                        break;
-                                    default:
-                                        topLimit = 0;
-                                        monthly_income = "ERROR";
-                                        break;
+                            if (userKyc[0] != undefined) {
+                                if (userKyc[0].user_data != undefined) {
+                                    kycAmount = userKyc[0].user_data.monthly_income;
+                                    switch (kycAmount) {
+                                        case 500:
+                                            topLimit = 600;
+                                            monthly_income = "Menos de 500 €";
+                                            break;
+                                        case 1000:
+                                            topLimit = 1800;
+                                            monthly_income = "Entre 500 y 1.500 €";
+                                            break;
+                                        case 2000:
+                                            topLimit = 3000;
+                                            monthly_income = "Entre 1.500 y 2.500 €";
+                                            break;
+                                        case 3250:
+                                            topLimit = 4800;
+                                            monthly_income = "Entre 2.500 y 4.000 €";
+                                            break;
+                                        case 5000:
+                                            topLimit = 7200;
+                                            monthly_income = "Entre 4.000 y 6.000 €";
+                                            break;
+                                        case 8000:
+                                            topLimit = 12000;
+                                            monthly_income = "Entre 6.000 y 10.000 €";
+                                            break;
+                                        case 10000:
+                                            topLimit = 120000;
+                                            monthly_income = "Más de 10.000 €";
+                                            break;
+                                        default:
+                                            topLimit = 0;
+                                            monthly_income = "ERROR";
+                                            break;
+                                    }
                                 }
+                                else {
+                                    topLimit = 0;
+                                    monthly_income = "ERROR";
+                                }
+                            }
+                            else {
+                                topLimit = 0;
+                                monthly_income = "ERROR";
                             }
                             var flag = 0;
                             if (Math.abs(maxObj[pibid]) > topLimit) {
+                                flag = 1;
+                            }
+                            if ((topLimit == 0) && (monthly_income == "ERROR")) {
                                 flag = 1;
                             }
                             array.push(id.wallet.name.id);
