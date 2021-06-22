@@ -448,6 +448,14 @@ var AGRO = {
     category: 3
 };
 exports.AGRO = AGRO;
+var INVB = {
+    symbol: "INV.B",
+    address: "0xbf5d2878955a605ee21ffba2bb6eac8e25e20341",
+    expiry: {
+        never: ["never", "0x81901acbd781826795ac271701e495aaa73681b9f85be63e5903d705a23506dd"]
+    },
+    category: 3
+};
 var REPO = {
     symbol: "REPO",
     address: "0xba70e52b9af5e502e8377566a8f8c2740ef98c0f",
@@ -655,6 +663,7 @@ var ALL_TOKENS = [
     CRMA,
     NOVA,
     AGRO,
+    INVB,
     REPO,
     BDVE,
     A,
@@ -724,6 +733,7 @@ var ALL_PACKABLES = [
     CRMA,
     NOVA,
     AGRO,
+    INVB,
     REPO,
     BDVE,
     A,
@@ -745,6 +755,7 @@ var ALL_PACKABLE_EXP = [
     CRMA.expiry.nov21,
     NOVA.expiry.mar21,
     AGRO.expiry.never,
+    INVB.expiry.never,
     REPO.expiry.never,
     BDVE.expiry.never,
     A.expiry.never,
