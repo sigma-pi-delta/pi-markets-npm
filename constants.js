@@ -528,6 +528,14 @@ var INFO = {
     category: 3
 };
 exports.INFO = INFO;
+var AGPA = {
+    symbol: "AGPA",
+    address: "0x1a01fb780c7b08f746cfadf2451719e715f566bf",
+    expiry: {
+        never: ["never", "0x524c44a9ec4dc7c377917ac18c38b61c46906f2752c408069119bb260ce514ff"]
+    },
+    category: 3
+};
 // TestNet
 var PI_TESTNET = {
     symbol: "PI_TESTNET",
@@ -663,6 +671,7 @@ var ALL_TOKENS = [
     CRMA,
     NOVA,
     AGRO,
+    AGPA,
     INVB,
     REPO,
     BDVE,
@@ -733,6 +742,7 @@ var ALL_PACKABLES = [
     CRMA,
     NOVA,
     AGRO,
+    AGPA,
     INVB,
     REPO,
     BDVE,
@@ -755,6 +765,7 @@ var ALL_PACKABLE_EXP = [
     CRMA.expiry.nov21,
     NOVA.expiry.mar21,
     AGRO.expiry.never,
+    AGPA.expiry.never,
     INVB.expiry.never,
     REPO.expiry.never,
     BDVE.expiry.never,
@@ -954,6 +965,10 @@ var AGRO_PTR = {
     symbol: "AGRO_PTR",
     pair: [AGRO.address, PTR.address]
 };
+var AGPA_PEL = {
+    symbol: "AGPA_PEL",
+    pair: [AGPA.address, PEL.address]
+};
 var BDVE_PEL = {
     symbol: "BDVE_PEL",
     pair: [BDVE.address, PEL.address]
@@ -986,6 +1001,7 @@ var BDVE_INSTRUMENTS = [
     CRMA_PEL,
     SP500_PEL,
     AGRO_PEL,
+    AGPA_PEL,
     BDVE_PEL
 ];
 exports.BDVE_INSTRUMENTS = BDVE_INSTRUMENTS;
