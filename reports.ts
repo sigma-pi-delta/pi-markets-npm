@@ -4540,7 +4540,7 @@ async function getAllTransactions(
     _url: string = 'mainnet'
 ) {
     let skip = 0;
-    let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {currency: "0xe1f2d5b6d86030660fc2e80965585af3163a1454" timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
+    let query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
     let queryService = new Query('bank', _url);
     queryService.setCustomQuery(query);
     let response = await queryService.request();
@@ -4549,7 +4549,7 @@ async function getAllTransactions(
 
     while(queryTransactions.length >= 1000) {
         skip = transactions.length;
-        query = '{ transactions(first: 1000, skip: ' + skip + ', where: {currency: "0xe1f2d5b6d86030660fc2e80965585af3163a1454" timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
+        query = '{ transactions(first: 1000, skip: ' + skip + ', where: {timestamp_gte: ' + _timeLow + ', timestamp_lte: ' + _timeHigh + '}, orderBy: timestamp, orderDirection: desc) { from { id identity {id} name { id } } to { id identity {id} name { id } } currency { tokenSymbol id tokenKind } amount timestamp } }';
         queryService.setCustomQuery(query);
         response = await queryService.request();
         queryTransactions = response.transactions;
