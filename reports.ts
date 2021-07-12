@@ -135,7 +135,6 @@ export class Report {
             for (let j = 0; j < transactions.length; j++) {
                 let array = [];
                 
-                
                 array.push(new Date(transactions[j].timestamp * 1000));
                 array.push(transactions[j].currency.tokenSymbol);
                 array.push(transactions[j].from.id);
@@ -155,11 +154,12 @@ export class Report {
                 }
 
                 array.push(parseFloat(weiToEther(transactions[j].amount)));
-                let usdAmount = await convertToUsd(
+                /*let usdAmount = await convertToUsd(
                     parseFloat(weiToEther(transactions[j].amount)), 
                     transactions[j].currency.id,
                     transactions[j].timestamp
-                );
+                );*/
+                let usdAmount = 0;
                 array.push(usdAmount);
                 rows.push(array);
             }

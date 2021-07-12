@@ -167,76 +167,68 @@ var Report = /** @class */ (function () {
                         transactions = _a.sent();
                         _a.label = 4;
                     case 4:
-                        if (!(transactions.length > 0)) return [3 /*break*/, 9];
-                        rows = [];
-                        j = 0;
+                        if (transactions.length > 0) {
+                            rows = [];
+                            for (j = 0; j < transactions.length; j++) {
+                                array = [];
+                                array.push(new Date(transactions[j].timestamp * 1000));
+                                array.push(transactions[j].currency.tokenSymbol);
+                                array.push(transactions[j].from.id);
+                                if (transactions[j].from.name == null) {
+                                    array.push("");
+                                }
+                                else {
+                                    array.push(transactions[j].from.name.id);
+                                }
+                                array.push(transactions[j].to.id);
+                                if (transactions[j].to.name == null) {
+                                    array.push("");
+                                }
+                                else {
+                                    array.push(transactions[j].to.name.id);
+                                }
+                                array.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
+                                usdAmount = 0;
+                                array.push(usdAmount);
+                                rows.push(array);
+                            }
+                            tableName = 'Tabla';
+                            addTable(sheet, tableName, 'B2', [
+                                { name: 'Fecha', filterButton: true },
+                                { name: 'Divisa' },
+                                { name: 'Origen (wallet)' },
+                                { name: 'Origen (usuario)', filterButton: true },
+                                { name: 'Destino (wallet)' },
+                                { name: 'Destino (usuario)', filterButton: true },
+                                { name: 'Monto', totalsRowFunction: 'sum' },
+                                { name: 'Monto (USD)', totalsRowFunction: 'sum' }
+                            ], rows);
+                        }
                         _a.label = 5;
                     case 5:
-                        if (!(j < transactions.length)) return [3 /*break*/, 8];
-                        array = [];
-                        array.push(new Date(transactions[j].timestamp * 1000));
-                        array.push(transactions[j].currency.tokenSymbol);
-                        array.push(transactions[j].from.id);
-                        if (transactions[j].from.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(transactions[j].from.name.id);
-                        }
-                        array.push(transactions[j].to.id);
-                        if (transactions[j].to.name == null) {
-                            array.push("");
-                        }
-                        else {
-                            array.push(transactions[j].to.name.id);
-                        }
-                        array.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
-                        return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(transactions[j].amount)), transactions[j].currency.id, transactions[j].timestamp)];
-                    case 6:
-                        usdAmount = _a.sent();
-                        array.push(usdAmount);
-                        rows.push(array);
-                        _a.label = 7;
-                    case 7:
-                        j++;
-                        return [3 /*break*/, 5];
-                    case 8:
-                        tableName = 'Tabla';
-                        addTable(sheet, tableName, 'B2', [
-                            { name: 'Fecha', filterButton: true },
-                            { name: 'Divisa' },
-                            { name: 'Origen (wallet)' },
-                            { name: 'Origen (usuario)', filterButton: true },
-                            { name: 'Destino (wallet)' },
-                            { name: 'Destino (usuario)', filterButton: true },
-                            { name: 'Monto', totalsRowFunction: 'sum' },
-                            { name: 'Monto (USD)', totalsRowFunction: 'sum' }
-                        ], rows);
-                        _a.label = 9;
-                    case 9:
-                        _a.trys.push([9, 11, , 17]);
+                        _a.trys.push([5, 7, , 13]);
                         return [4 /*yield*/, workbook.xlsx.writeFile('PiMarketsTransactionsReport.xlsx')];
-                    case 10:
+                    case 6:
                         _a.sent();
-                        return [3 /*break*/, 17];
-                    case 11:
+                        return [3 /*break*/, 13];
+                    case 7:
                         error_3 = _a.sent();
                         return [4 /*yield*/, workbook.xlsx.writeBuffer()];
-                    case 12:
+                    case 8:
                         buffer = _a.sent();
-                        _a.label = 13;
-                    case 13:
-                        _a.trys.push([13, 15, , 16]);
+                        _a.label = 9;
+                    case 9:
+                        _a.trys.push([9, 11, , 12]);
                         return [4 /*yield*/, FileSaver.saveAs(new Blob([buffer]), 'PiMarketsTransactionsReport.xlsx')];
-                    case 14:
+                    case 10:
                         _a.sent();
-                        return [3 /*break*/, 16];
-                    case 15:
+                        return [3 /*break*/, 12];
+                    case 11:
                         err_3 = _a.sent();
                         console.error(err_3);
-                        return [3 /*break*/, 16];
-                    case 16: return [3 /*break*/, 17];
-                    case 17: return [2 /*return*/];
+                        return [3 /*break*/, 12];
+                    case 12: return [3 /*break*/, 13];
+                    case 13: return [2 /*return*/];
                 }
             });
         });
