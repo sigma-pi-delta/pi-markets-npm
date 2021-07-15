@@ -435,6 +435,14 @@ const AGPA = {
     },
     category: 3
 };
+const WAWAs1 = {
+    symbol: "WAWAs1",
+    address: "0xfc6f530e8a229a7aa64d35f0e9d8037877a74433",
+    expiry: {
+        never: ["never", "0x74cadb4d9320ac15c2fa1337e2a156f00313def2d2b14dd695c348c719ff9fa4"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -559,6 +567,7 @@ const ALL_TOKENS = [
     NOVA,
     AGRO,
     AGPA,
+    WAWAs1,
     INVB,
     REPO,
     BDVE,
@@ -630,6 +639,7 @@ const ALL_PACKABLES = [
     NOVA,
     AGRO,
     AGPA,
+    WAWAs1,
     INVB,
     REPO,
     BDVE,
@@ -653,6 +663,7 @@ const ALL_PACKABLE_EXP = [
     NOVA.expiry.mar21,
     AGRO.expiry.never,
     AGPA.expiry.never,
+    WAWAs1.expiry.never,
     INVB.expiry.never,
     REPO.expiry.never,
     BDVE.expiry.never,
@@ -855,6 +866,10 @@ const AGRO_PTR = {
 const AGPA_PEL = {
     symbol: "AGPA_PEL",
     pair: [AGPA.address, PEL.address]
+}
+const WAWAs1_PEL = {
+    symbol: "WAWAs1_PEL",
+    pair: [WAWAs1.address, PEL.address]
 }
 const BDVE_PEL = {
     symbol: "BDVE_PEL",
@@ -1071,6 +1086,8 @@ export {
     SP500_LONG,
     SP500_SHORT,
     AGRO,
+    AGPA,
+    WAWAs1,
     REPO,
     BDVE,
     A,
