@@ -443,6 +443,14 @@ const WAWAs1 = {
     },
     category: 3
 };
+const SCRAP = {
+    symbol: "SCRAP",
+    address: "0x380fef5a3b22e53757e8d24f91b2d698b85d21dc",
+    expiry: {
+        never: ["never", "0x34af308881d55e15e11d52afb784fc62bd33702b5c70001332149360f8efeb4b"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -568,6 +576,7 @@ const ALL_TOKENS = [
     AGRO,
     AGPA,
     WAWAs1,
+    SCRAP,
     INVB,
     REPO,
     BDVE,
@@ -640,6 +649,7 @@ const ALL_PACKABLES = [
     AGRO,
     AGPA,
     WAWAs1,
+    SCRAP,
     INVB,
     REPO,
     BDVE,
@@ -664,6 +674,7 @@ const ALL_PACKABLE_EXP = [
     AGRO.expiry.never,
     AGPA.expiry.never,
     WAWAs1.expiry.never,
+    SCRAP.expiry.never,
     INVB.expiry.never,
     REPO.expiry.never,
     BDVE.expiry.never,
@@ -870,6 +881,10 @@ const AGPA_PEL = {
 const WAWAs1_PEL = {
     symbol: "WAWAs1_PEL",
     pair: [WAWAs1.address, PEL.address]
+}
+const SCRAP_PEL = {
+    symbol: "SCRAP_PEL",
+    pair: [SCRAP.address, PEL.address]
 }
 const BDVE_PEL = {
     symbol: "BDVE_PEL",
@@ -1088,6 +1103,7 @@ export {
     AGRO,
     AGPA,
     WAWAs1,
+    SCRAP,
     REPO,
     BDVE,
     A,
