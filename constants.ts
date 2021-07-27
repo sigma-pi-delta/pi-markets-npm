@@ -371,6 +371,14 @@ const REPO = {
     },
     category: 3
 };
+const REPO2 = {
+    symbol: "REPO2",
+    address: "0xd1211eac37dd0d2e65d26163f7dcdc10a16c32da",
+    expiry: {
+        never: ["never", "0x0f9ff5fd315e50270db1b8461a7d485c70cf80cad69d8c5b31b28c91a48737f2"]
+    },
+    category: 3
+};
 const BDVE = {
     symbol: "BDVE",
     address: "0xa247bfd313d030388f51ca451ba7578f849438d6",
@@ -579,6 +587,7 @@ const ALL_TOKENS = [
     SCRAP,
     INVB,
     REPO,
+    REPO2,
     BDVE,
     A,
     B,
@@ -652,6 +661,7 @@ const ALL_PACKABLES = [
     SCRAP,
     INVB,
     REPO,
+    REPO2,
     BDVE,
     A,
     B,
@@ -677,6 +687,7 @@ const ALL_PACKABLE_EXP = [
     SCRAP.expiry.never,
     INVB.expiry.never,
     REPO.expiry.never,
+    REPO2.expiry.never,
     BDVE.expiry.never,
     A.expiry.never,
     B.expiry.never,
@@ -1105,6 +1116,7 @@ export {
     WAWAs1,
     SCRAP,
     REPO,
+    REPO2,
     BDVE,
     A,
     B,
