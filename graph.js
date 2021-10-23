@@ -50,7 +50,7 @@ var Graph = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         _a.trys.push([0, 4, , 5]);
-                        return [4 /*yield*/, node_fetch_1["default"](_query.url + _query.subgraph, {
+                        return [4 /*yield*/, (0, node_fetch_1["default"])(_query.url + _query.subgraph, {
                                 "method": 'POST',
                                 "headers": {
                                     "Accept": 'application/json',
@@ -1627,7 +1627,7 @@ function requestDataLake(token, from, to) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 5, , 6]);
-                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                    return [4 /*yield*/, (0, node_fetch_1["default"])(endPoint, {
                             "method": 'POST',
                             "headers": {
                                 "Accept": 'application/json',

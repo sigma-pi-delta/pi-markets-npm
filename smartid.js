@@ -89,7 +89,7 @@ var SmartID = /** @class */ (function () {
                     case 4:
                         fromBalance = _a.sent();
                         if (gasNeeded.gt(fromBalance)) {
-                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_1.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_1.weiBNToEtherString(fromBalance) + " PI [x]", "0x", error_1);
+                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + (0, utils_1.weiBNToEtherString)(gasNeeded) + " PI y dispone de " + (0, utils_1.weiBNToEtherString)(fromBalance) + " PI [x]", "0x", error_1);
                             throw new Error(JSON.stringify(errorOb));
                         }
                         _a.label = 5;
@@ -118,7 +118,7 @@ var SmartID = /** @class */ (function () {
                     case 10:
                         fromBalance = _a.sent();
                         if (gasNeeded.gt(fromBalance)) {
-                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + utils_1.weiBNToEtherString(gasNeeded) + " PI y dispone de " + utils_1.weiBNToEtherString(fromBalance) + " PI [xx]", "0x", errorForce_1);
+                            errorOb = new transactions_1.ErrorObj("No dispone de suficientes fondos para la comisión de red. Necesita " + (0, utils_1.weiBNToEtherString)(gasNeeded) + " PI y dispone de " + (0, utils_1.weiBNToEtherString)(fromBalance) + " PI [xx]", "0x", errorForce_1);
                             throw new Error(JSON.stringify(errorOb));
                         }
                         _a.label = 11;

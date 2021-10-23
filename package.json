@@ -1,6 +1,6 @@
 {
   "name": "pi-markets",
-  "version": "1.0.134",
+  "version": "1.0.135",
   "description": "Package to work with PiMarkets",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,7 @@
   "author": "gperezalba",
   "license": "ISC",
   "dependencies": {
+    "browserify": "^17.0.0",
     "ethers": "^4.0.48",
     "exceljs": "^4.2.0",
     "file-saver": "^2.0.2",

@@ -1,6 +1,9 @@
 "use strict";
 exports.__esModule = true;
-exports.BPVB_ALL_PACKABLES_EXP = exports.BPVB_ALL_PACKABLES = exports.BPVB_ALL_ERC223 = exports.BPVB_ALL_TOKENS = exports.BPVB_INSTRUMENTS = exports.BDVE_INSTRUMENTS = exports.INSTRUMENT_IDS = exports.ALL_COLLECTABLES = exports.ALL_PACKABLE_EXP = exports.ALL_PACKABLES = exports.ALL_ERC223_NO_FIAT = exports.ALL_ERC223 = exports.ALL_TOKENS = exports.DIA_TESTNET = exports.AGRO_TESTNET = exports.PGR_TESTNET = exports.RST_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.PEL_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.INFO = exports.F = exports.D = exports.C = exports.B = exports.A = exports.BDVE = exports.REPO2 = exports.REPO = exports.SCRAP = exports.WAWAs1 = exports.AGPA = exports.AGRO = exports.SP500_SHORT = exports.SP500_LONG = exports.BRENT_SHORT = exports.BRENT_LONG = exports.NOVA = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.SP500 = exports.RUB = exports.IBEX35 = exports.GBP = exports.GAS = exports.DOT = exports.DOGE = exports.BRENT = exports.XMRx = exports.LTCx = exports.DASHx = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDS = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES_FORCE = exports.OVERRIDES = exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.DEX_ALLOW_ABI = exports.DEX_PACKABLE_ABI = exports.DEX_ABI = exports.MARKET_ABI = exports.DIVIDENDS_ABI = exports.REGISTRY_KYC_ABI = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.REGISTRY_SUBGRAPH_TESTNET = exports.REGISTRY_SUBGRAPH = exports.DEX_BICENTENARIO_SUBGRAPH_TESTNET = exports.DEX_BICENTENARIO_SUBGRAPH = exports.DEX_SUBGRAPH_TESTNET = exports.DEX_SUBGRAPH = exports.DIVIDENDS_SUBGRAPH_TESTNET = exports.DIVIDENDS_SUBGRAPH = exports.PIPRICE_SUBGRAPH_TESTNET = exports.PIPRICE_SUBGRAPH = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
+exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.DEX_ALLOW_ABI = exports.DEX_PACKABLE_ABI = exports.DEX_ABI = exports.MARKET_ABI = exports.DIVIDENDS_ABI = exports.REGISTRY_KYC_ABI = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.REGISTRY_SUBGRAPH_TESTNET = exports.REGISTRY_SUBGRAPH = exports.DEX_BICENTENARIO_SUBGRAPH_TESTNET = exports.DEX_BICENTENARIO_SUBGRAPH = exports.DEX_SUBGRAPH_TESTNET = exports.DEX_SUBGRAPH = exports.DIVIDENDS_SUBGRAPH_TESTNET = exports.DIVIDENDS_SUBGRAPH = exports.PIPRICE_SUBGRAPH_TESTNET = exports.PIPRICE_SUBGRAPH = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
+exports.AGPA = exports.AGRO = exports.SP500_SHORT = exports.SP500_LONG = exports.BRENT_SHORT = exports.BRENT_LONG = exports.NOVA = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.SP500 = exports.RUB = exports.IBEX35 = exports.GBP = exports.GAS = exports.DOT = exports.DOGE = exports.BRENT = exports.XMRx = exports.LTCx = exports.DASHx = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDs = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES_FORCE = exports.OVERRIDES = void 0;
+exports.WAWA = exports.STAKES = exports.ETHUSDS = exports.DASHUSDS = exports.BTCUSDS = exports.AGPAS = exports.WAWAS = exports.USDCNHS = exports.USDTRYS = exports.USDRUBS = exports.USDMXNS = exports.USDCOPS = exports.USDCLPS = exports.USDARSS = exports.EURUSDS = exports.AGROS = exports.INVBS = exports.TDVDS = exports.RSTBS = exports.PTNS = exports.PGRS = exports.MVZBS = exports.MPAS = exports.GZLS = exports.FVIBS = exports.ENVS = exports.EFES = exports.CRMAS = exports.BVLS = exports.BVCCS = exports.BPVS = exports.BNCS = exports.ABCAS = exports.IRONS = exports.GLDS = exports.GASS = exports.BRENTS = exports.RICES = exports.CORNS = exports.INFO = exports.F = exports.D = exports.C = exports.B = exports.A = exports.BDVE = exports.REPO2 = exports.REPO = exports.SCRAP = exports.WAWAs1 = void 0;
+exports.BPVB_ALL_PACKABLES_EXP = exports.BPVB_ALL_PACKABLES = exports.BPVB_ALL_ERC223 = exports.BPVB_ALL_TOKENS = exports.BPVB_INSTRUMENTS = exports.BDVE_INSTRUMENTS = exports.INSTRUMENT_IDS = exports.ALL_COLLECTABLES = exports.ALL_PACKABLE_EXP = exports.ALL_PACKABLES = exports.ALL_ERC223_NO_FIAT = exports.ALL_ERC223 = exports.ALL_TOKENS = exports.DIA_TESTNET = exports.AGRO_TESTNET = exports.PGR_TESTNET = exports.RST_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.PEL_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = void 0;
 // URL
 var RPC_URL = "https://connect.pichain.io";
 exports.RPC_URL = RPC_URL;
@@ -112,12 +115,12 @@ var PI = {
     category: 1
 };
 exports.PI = PI;
-var GLDS = {
+var GLDs = {
     symbol: "GLDs",
     address: "0x0dc5c612b313d583398aebcbc3185c6448542f2a",
     category: 2
 };
-exports.GLDS = GLDS;
+exports.GLDs = GLDs;
 var GLDX = {
     symbol: "GLDx",
     address: "0x8e4b37a1b65ce5e78616259584662341fb667345",
@@ -285,6 +288,240 @@ var DIA = {
     category: 2
 };
 exports.DIA = DIA;
+var CORNS = {
+    symbol: "CORN.S",
+    address: "0x9f6102a15caa755178edf833e482b0c37ddedc7b",
+    category: 2
+};
+exports.CORNS = CORNS;
+var RICES = {
+    symbol: "RICE.S",
+    address: "0x8bf26f9474a34c68328850be83163c09e204d58d",
+    category: 2
+};
+exports.RICES = RICES;
+var BRENTS = {
+    symbol: "BRENT.S",
+    address: "0xd7a07fdefc3e63a916ddccb837c6746b233f8046",
+    category: 2
+};
+exports.BRENTS = BRENTS;
+var GASS = {
+    symbol: "GAS.S",
+    address: "0x72fd02caf9ab6c85d39c1a29f17fbb6d3ac2d3a2",
+    category: 2
+};
+exports.GASS = GASS;
+var GLDS = {
+    symbol: "GLD.S",
+    address: "0x22be695fdf61511cab28979298d0207ea579f96a",
+    category: 2
+};
+exports.GLDS = GLDS;
+var IRONS = {
+    symbol: "IRON.S",
+    address: "0xda5cd03f7ce7dd066c1cf5cbbae6fcb9f3c4a063",
+    category: 2
+};
+exports.IRONS = IRONS;
+var ABCAS = {
+    symbol: "ABC.A.S",
+    address: "0xbd7a07d69b98dc3c66afd2b2598fe5df6c7ec91c",
+    category: 2
+};
+exports.ABCAS = ABCAS;
+var BNCS = {
+    symbol: "BNC.S",
+    address: "0xafb29478b4ec49a445effde9f1efdcc10fb36093",
+    category: 2
+};
+exports.BNCS = BNCS;
+var BPVS = {
+    symbol: "BPV.S",
+    address: "0x3f6113962bc3c99e55d1d9a29c04c6e09f03c848",
+    category: 2
+};
+exports.BPVS = BPVS;
+var BVCCS = {
+    symbol: "BVCC.S",
+    address: "0x7524cbd7972a9165db7836e12ac1808a178d5aa5",
+    category: 2
+};
+exports.BVCCS = BVCCS;
+var BVLS = {
+    symbol: "BVL.S",
+    address: "0xcd58de27dd75f8c620116b1821a3049699395995",
+    category: 2
+};
+exports.BVLS = BVLS;
+var CRMAS = {
+    symbol: "CRM.A.S",
+    address: "0xdd215874d8cb55cb4a0fde888f55406c3a3bae0a",
+    category: 2
+};
+exports.CRMAS = CRMAS;
+var EFES = {
+    symbol: "EFE.S",
+    address: "0xecddbccb072beef2e883d07bf1685138b89f4c1e",
+    category: 2
+};
+exports.EFES = EFES;
+var ENVS = {
+    symbol: "ENV.S",
+    address: "0xee0a028f48f53e79d361a6221427f77fb935a464",
+    category: 2
+};
+exports.ENVS = ENVS;
+var FVIBS = {
+    symbol: "FVI.B.S",
+    address: "0x8e369485b2468309d23c5d9b42fce012e9760824",
+    category: 2
+};
+exports.FVIBS = FVIBS;
+var GZLS = {
+    symbol: "GZL.S",
+    address: "0xc224cb22eeb13a121a310e53030629caaf11a4f1",
+    category: 2
+};
+exports.GZLS = GZLS;
+var MPAS = {
+    symbol: "MPA.S",
+    address: "0xab69302e9e7ce4d7d47866d7fd6d63f84aeb9074",
+    category: 2
+};
+exports.MPAS = MPAS;
+var MVZBS = {
+    symbol: "MVZ.B.S",
+    address: "0xbcff81e7bb4f5b52c34e7781c942bcf5fbc265db",
+    category: 2
+};
+exports.MVZBS = MVZBS;
+var PGRS = {
+    symbol: "PGR.S",
+    address: "0xc96c6e0672289e69b6cc331796d307cee8b3faf2",
+    category: 2
+};
+exports.PGRS = PGRS;
+var PTNS = {
+    symbol: "PTN.S",
+    address: "0x5aa3100c18e46e123f1a07fc1d0dab1cf6f865a7",
+    category: 2
+};
+exports.PTNS = PTNS;
+var RSTBS = {
+    symbol: "RST.B.S",
+    address: "0x575579d3c257ca2a909557bb20407ebe0c84d043",
+    category: 2
+};
+exports.RSTBS = RSTBS;
+var TDVDS = {
+    symbol: "TDV.D.S",
+    address: "0x68066014827425db39258cac18179c158a7ed6a8",
+    category: 2
+};
+exports.TDVDS = TDVDS;
+var INVBS = {
+    symbol: "INV.B.S",
+    address: "0x782bdfb3b85fd00c8094929d3399624da39f25a7",
+    category: 2
+};
+exports.INVBS = INVBS;
+var AGROS = {
+    symbol: "AGRO.S",
+    address: "0x099a3dae2c7fcb0195ea0d29e82b4429f52144a6",
+    category: 2
+};
+exports.AGROS = AGROS;
+var EURUSDS = {
+    symbol: "EURUSD.S",
+    address: "0x8af4b0aeafad356b6b44ae51e1347a8e77624ee5",
+    category: 2
+};
+exports.EURUSDS = EURUSDS;
+var USDARSS = {
+    symbol: "USDARS.S",
+    address: "0xd3edf96032f4c012aefd10e29d0a6184863fd2b8",
+    category: 2
+};
+exports.USDARSS = USDARSS;
+var USDCLPS = {
+    symbol: "USDCLP.S",
+    address: "0x4272088234c406d9bd74bbf44bce996d00b92675",
+    category: 2
+};
+exports.USDCLPS = USDCLPS;
+var USDCOPS = {
+    symbol: "USDCOP.S",
+    address: "0xb76e92f62153955ec5732b121d21095b4e48ddb9",
+    category: 2
+};
+exports.USDCOPS = USDCOPS;
+var USDMXNS = {
+    symbol: "USDMXN.S",
+    address: "0x91dd592a4d6ea55682ee7edea0f136f4a105ff38",
+    category: 2
+};
+exports.USDMXNS = USDMXNS;
+var USDRUBS = {
+    symbol: "USDRUB.S",
+    address: "0xc3bc10a87c516a40556640dbcd0596394de65eae",
+    category: 2
+};
+exports.USDRUBS = USDRUBS;
+var USDTRYS = {
+    symbol: "USDTRY.S",
+    address: "0xb4450cbf7395d7e9c66544ced98c7489b4249214",
+    category: 2
+};
+exports.USDTRYS = USDTRYS;
+var USDCNHS = {
+    symbol: "USDCNH.S",
+    address: "0xc8c156be200427eee11398a5ab2080bed890837f",
+    category: 2
+};
+exports.USDCNHS = USDCNHS;
+var WAWAS = {
+    symbol: "WAWA.S",
+    address: "0x7ae5ab13dd8774f8cef58fd07d317a4638d97b16",
+    category: 2
+};
+exports.WAWAS = WAWAS;
+var AGPAS = {
+    symbol: "AGPA.S",
+    address: "0xe82316d3618a83ec03c4a75eec0f490e4040903c",
+    category: 2
+};
+exports.AGPAS = AGPAS;
+var BTCUSDS = {
+    symbol: "BTCUSD.S",
+    address: "0xf597f7967079971db367b179c4c6f41051dcc605",
+    category: 2
+};
+exports.BTCUSDS = BTCUSDS;
+var DASHUSDS = {
+    symbol: "DASHUSD.S",
+    address: "0xc19c8dd1d9c7e71b20457567f04daf96a26865c1",
+    category: 2
+};
+exports.DASHUSDS = DASHUSDS;
+var ETHUSDS = {
+    symbol: "ETHUSD.S",
+    address: "0x3815092da603aa0eb59b1290d13799cd00ef3094",
+    category: 2
+};
+exports.ETHUSDS = ETHUSDS;
+var STAKES = {
+    symbol: "STAKE.S",
+    address: "0x2f0a655ab89085b9e62cd782545e3b3f2ad7d493",
+    category: 2
+};
+exports.STAKES = STAKES;
+var WAWA = {
+    symbol: "WAWA",
+    address: "0xff41f2f094d25b53671f478e2bfd5d28c6453d4a",
+    category: 2
+};
+exports.WAWA = WAWA;
 //packables
 var CMT = {
     symbol: "CMT",
@@ -711,7 +948,46 @@ var ALL_TOKENS = [
     C,
     D,
     F,
-    INFO
+    INFO,
+    CORNS,
+    RICES,
+    BRENTS,
+    GASS,
+    GLDS,
+    IRONS,
+    ABCAS,
+    BNCS,
+    BPVS,
+    BVCCS,
+    BVLS,
+    CRMAS,
+    EFES,
+    ENVS,
+    FVIBS,
+    GZLS,
+    MPAS,
+    MVZBS,
+    PGRS,
+    PTNS,
+    RSTBS,
+    TDVDS,
+    INVBS,
+    AGROS,
+    EURUSDS,
+    USDARSS,
+    USDCLPS,
+    USDCOPS,
+    USDMXNS,
+    USDRUBS,
+    USDTRYS,
+    USDCNHS,
+    WAWAS,
+    AGPAS,
+    BTCUSDS,
+    DASHUSDS,
+    ETHUSDS,
+    STAKES,
+    WAWA
 ];
 exports.ALL_TOKENS = ALL_TOKENS;
 var ALL_ERC223 = [
@@ -738,7 +1014,46 @@ var ALL_ERC223 = [
     GBP,
     IBEX35,
     RUB,
-    SP500
+    SP500,
+    CORNS,
+    RICES,
+    BRENTS,
+    GASS,
+    GLDS,
+    IRONS,
+    ABCAS,
+    BNCS,
+    BPVS,
+    BVCCS,
+    BVLS,
+    CRMAS,
+    EFES,
+    ENVS,
+    FVIBS,
+    GZLS,
+    MPAS,
+    MVZBS,
+    PGRS,
+    PTNS,
+    RSTBS,
+    TDVDS,
+    INVBS,
+    AGROS,
+    EURUSDS,
+    USDARSS,
+    USDCLPS,
+    USDCOPS,
+    USDMXNS,
+    USDRUBS,
+    USDTRYS,
+    USDCNHS,
+    WAWAS,
+    AGPAS,
+    BTCUSDS,
+    DASHUSDS,
+    ETHUSDS,
+    STAKES,
+    WAWA
 ];
 exports.ALL_ERC223 = ALL_ERC223;
 var ALL_ERC223_NO_FIAT = [
@@ -759,7 +1074,46 @@ var ALL_ERC223_NO_FIAT = [
     GBP,
     IBEX35,
     RUB,
-    SP500
+    SP500,
+    CORNS,
+    RICES,
+    BRENTS,
+    GASS,
+    GLDS,
+    IRONS,
+    ABCAS,
+    BNCS,
+    BPVS,
+    BVCCS,
+    BVLS,
+    CRMAS,
+    EFES,
+    ENVS,
+    FVIBS,
+    GZLS,
+    MPAS,
+    MVZBS,
+    PGRS,
+    PTNS,
+    RSTBS,
+    TDVDS,
+    INVBS,
+    AGROS,
+    EURUSDS,
+    USDARSS,
+    USDCLPS,
+    USDCOPS,
+    USDMXNS,
+    USDRUBS,
+    USDTRYS,
+    USDCNHS,
+    WAWAS,
+    AGPAS,
+    BTCUSDS,
+    DASHUSDS,
+    ETHUSDS,
+    STAKES,
+    WAWA
 ];
 exports.ALL_ERC223_NO_FIAT = ALL_ERC223_NO_FIAT;
 var ALL_PACKABLES = [
@@ -816,7 +1170,7 @@ var ALL_PACKABLE_EXP = [
 exports.ALL_PACKABLE_EXP = ALL_PACKABLE_EXP;
 var ALL_COLLECTABLES = [
     DIA,
-    GLDS
+    GLDs
 ];
 exports.ALL_COLLECTABLES = ALL_COLLECTABLES;
 var INSTRUMENT_IDS = {

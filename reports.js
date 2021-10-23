@@ -187,7 +187,7 @@ var Report = /** @class */ (function () {
                                 else {
                                     array.push(transactions[j].to.name.id);
                                 }
-                                array.push(parseFloat(utils_1.weiToEther(transactions[j].amount)));
+                                array.push(parseFloat((0, utils_1.weiToEther)(transactions[j].amount)));
                                 usdAmount = 0;
                                 array.push(usdAmount);
                                 rows.push(array);
@@ -284,7 +284,7 @@ var Report = /** @class */ (function () {
                                 }
                             }
                             array.push(response[j].wallet.id);
-                            array.push(parseFloat(utils_1.weiToEther(response[j].balance)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(response[j].balance)));
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol;
@@ -337,7 +337,7 @@ var Report = /** @class */ (function () {
                             else {
                                 array2.push(offers[k].owner.name);
                             }
-                            array2.push(parseFloat(utils_1.weiToEther(offers[k].sellAmount)));
+                            array2.push(parseFloat((0, utils_1.weiToEther)(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
                         tableName2 = 'P2P' + tokensArray[i].symbol;
@@ -430,7 +430,7 @@ var Report = /** @class */ (function () {
                                 }
                             }
                             array.push(response[j].wallet.id);
-                            array.push(parseFloat(utils_1.weiToEther(response[j].balance)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(response[j].balance)));
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol;
@@ -547,7 +547,7 @@ var Report = /** @class */ (function () {
                                 }
                             }
                             array.push(response[j].wallet.id);
-                            array.push(parseInt(utils_1.weiToEther(response[j].balance)));
+                            array.push(parseInt((0, utils_1.weiToEther)(response[j].balance)));
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
@@ -602,7 +602,7 @@ var Report = /** @class */ (function () {
                             else {
                                 array2.push(offers[k].owner.name);
                             }
-                            array2.push(parseInt(utils_1.weiToEther(offers[k].sellAmount)));
+                            array2.push(parseInt((0, utils_1.weiToEther)(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
                         tableName2 = 'P2P' + tokensArray[i].symbol;
@@ -705,7 +705,7 @@ var Report = /** @class */ (function () {
                                 }
                             }
                             array.push(response[j].wallet.id);
-                            array.push(parseInt(utils_1.weiToEther(response[j].balance)));
+                            array.push(parseInt((0, utils_1.weiToEther)(response[j].balance)));
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol + expiries[i][0];
@@ -808,7 +808,7 @@ var Report = /** @class */ (function () {
                                 array.push(response[j].wallet.name.id);
                             }
                             array.push(response[j].wallet.id);
-                            array.push(parseFloat(utils_1.weiToEther(response[j].balance)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(response[j].balance)));
                             rows.push(array);
                         }
                         tableName = 'Tabla' + tokensArray[i].symbol;
@@ -842,7 +842,7 @@ var Report = /** @class */ (function () {
                             array2 = [];
                             array2.push(offers[k].owner.name);
                             array2.push(offers[k].owner.id);
-                            array2.push(parseInt(utils_1.weiToEther(offers[k].sellAmount)));
+                            array2.push(parseInt((0, utils_1.weiToEther)(offers[k].sellAmount)));
                             rows2.push(array2);
                         }
                         tableName2 = 'P2P' + tokensArray[i].symbol;
@@ -996,8 +996,8 @@ var Report = /** @class */ (function () {
                             else {
                                 array.push(nextDeal.buyer.name);
                             }
-                            array.push(parseFloat(utils_1.weiToEther(nextDeal.sellAmount)));
-                            array.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(nextDeal.sellAmount)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(nextDeal.buyAmount)));
                             rows.push(array);
                         }
                         tableName = 'Tabla';
@@ -1130,8 +1130,8 @@ var Report = /** @class */ (function () {
                                 array.push(nextDeal.buyer.name);
                             }
                             array.push(nextDeal.buyer.id);
-                            array.push(parseFloat(utils_1.weiToEther(nextDeal.sellAmount)));
-                            array.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(nextDeal.sellAmount)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(nextDeal.buyAmount)));
                             rows.push(array);
                         }
                         tableName = 'Tabla';
@@ -1290,8 +1290,8 @@ var Report = /** @class */ (function () {
                             else {
                                 array.push(nextDeal.buyer.name);
                             }
-                            array.push(parseInt(utils_1.weiToEther(nextDeal.sellAmount)));
-                            array.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
+                            array.push(parseInt((0, utils_1.weiToEther)(nextDeal.sellAmount)));
+                            array.push(parseFloat((0, utils_1.weiToEther)(nextDeal.buyAmount)));
                             rows.push(array);
                         }
                         tableName = 'Tabla';
@@ -1461,15 +1461,15 @@ var Report = /** @class */ (function () {
                             array_1.push(nextDeal.buyer.name);
                         }
                         array_1.push(nextDeal.buyer.id);
-                        array_1.push(parseFloat(utils_1.weiToEther(nextDeal.sellAmount)));
-                        array_1.push(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)));
+                        array_1.push(parseFloat((0, utils_1.weiToEther)(nextDeal.sellAmount)));
+                        array_1.push(parseFloat((0, utils_1.weiToEther)(nextDeal.buyAmount)));
                         usdAmount = 0;
                         if (!((nextDeal.offer.buyToken.id == Constants.USD.address) ||
                             (nextDeal.offer.buyToken.id == Constants.USC.address) ||
                             (nextDeal.offer.buyToken.id == Constants.PEL.address))) return [3 /*break*/, 8];
-                        usdAmount = parseFloat(utils_1.weiToEther(nextDeal.buyAmount));
+                        usdAmount = parseFloat((0, utils_1.weiToEther)(nextDeal.buyAmount));
                         return [3 /*break*/, 10];
-                    case 8: return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(nextDeal.buyAmount)), nextDeal.offer.buyToken.id, nextDeal.timestamp)];
+                    case 8: return [4 /*yield*/, convertToUsd(parseFloat((0, utils_1.weiToEther)(nextDeal.buyAmount)), nextDeal.offer.buyToken.id, nextDeal.timestamp)];
                     case 9:
                         usdAmount = _d.sent();
                         _d.label = 10;
@@ -1530,11 +1530,11 @@ var Report = /** @class */ (function () {
                                 dealRow.push("VENTA");
                             }
                             //PRICE
-                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.price)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(nextDexDeal.price)));
                             //AMOUNT (in nominatorToken)
-                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountA)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(nextDexDeal.amountA)));
                             //AMOUNT (in baseToken aka PEL)
-                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountB)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(nextDexDeal.amountB)));
                         }
                         else {
                             //amountA is in baseToken (PEL)
@@ -1550,19 +1550,19 @@ var Report = /** @class */ (function () {
                                 dealRow.push("VENTA");
                             }
                             //PRICE
-                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.price)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(nextDexDeal.price)));
                             //AMOUNT (in nominatorToken)
-                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountB)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(nextDexDeal.amountB)));
                             //AMOUNT (in baseToken aka PEL)
-                            dealRow.push(parseFloat(utils_1.weiToEther(nextDexDeal.amountA)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(nextDexDeal.amountA)));
                         }
                         usdAmount = 0;
                         if (!((baseToken == Constants.USD.address) ||
                             (baseToken == Constants.USC.address) ||
                             (baseToken == Constants.PEL.address))) return [3 /*break*/, 14];
-                        usdAmount = parseFloat(utils_1.weiToEther(baseAmount));
+                        usdAmount = parseFloat((0, utils_1.weiToEther)(baseAmount));
                         return [3 /*break*/, 16];
-                    case 14: return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(baseAmount)), baseToken, nextDexDeal.timestamp)];
+                    case 14: return [4 /*yield*/, convertToUsd(parseFloat((0, utils_1.weiToEther)(baseAmount)), baseToken, nextDexDeal.timestamp)];
                     case 15:
                         usdAmount = _d.sent();
                         _d.label = 16;
@@ -1662,8 +1662,8 @@ var Report = /** @class */ (function () {
                         else {
                             array_2.push(txs[j].to.name.id);
                         }
-                        array_2.push(parseFloat(utils_1.weiToEther(txs[j].amount)));
-                        return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(txs[j].amount)), txs[j].currency.id, txs[j].timestamp)];
+                        array_2.push(parseFloat((0, utils_1.weiToEther)(txs[j].amount)));
+                        return [4 /*yield*/, convertToUsd(parseFloat((0, utils_1.weiToEther)(txs[j].amount)), txs[j].currency.id, txs[j].timestamp)];
                     case 31:
                         usdAmount = _d.sent();
                         array_2.push(usdAmount);
@@ -1796,7 +1796,7 @@ var Report = /** @class */ (function () {
                     case 6:
                         if (!(m < txs.length)) return [3 /*break*/, 9];
                         tx = txs[m];
-                        return [4 /*yield*/, convertToUsdFromObj(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, parseInt(tx.currency.tokenKind), tx.timestamp, ratesObj)];
+                        return [4 /*yield*/, convertToUsdFromObj(parseFloat((0, utils_1.weiToEther)(tx.amount)), tx.currency.id, parseInt(tx.currency.tokenKind), tx.timestamp, ratesObj)];
                     case 7:
                         txAmount = _a.sent();
                         if (tx.from.identity != null) {
@@ -2264,7 +2264,7 @@ function getUserTxStatsByNameByTime(_identity, _timeLow, _timeHigh, _url) {
                 case 2:
                     if (!(i < txs.length)) return [3 /*break*/, 5];
                     tx = txs[i];
-                    return [4 /*yield*/, convertToUsd(parseFloat(utils_1.weiToEther(tx.amount)), tx.currency.id, tx.timestamp)];
+                    return [4 /*yield*/, convertToUsd(parseFloat((0, utils_1.weiToEther)(tx.amount)), tx.currency.id, tx.timestamp)];
                 case 3:
                     txAmount = _a.sent();
                     if (tx.from.name != null) {
@@ -2345,7 +2345,7 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                     while (_timeHigh <= timeHigh) {
                         while ((_timeLow < nextTimestamp) && (nextTimestamp < _timeHigh)) {
                             txDayRow = [];
-                            amount = parseFloat(utils_1.weiToEther(nextTx.amount));
+                            amount = parseFloat((0, utils_1.weiToEther)(nextTx.amount));
                             dayCounter = dayCounter + amount;
                             weekCounter = weekCounter + amount;
                             monthCounter = monthCounter + amount;
@@ -2374,7 +2374,7 @@ function setTransactionSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonth
                             else {
                                 txDayRow.push(nextTx.to.id);
                             }
-                            txDayRow.push(parseFloat(utils_1.weiToEther(nextTx.amount)));
+                            txDayRow.push(parseFloat((0, utils_1.weiToEther)(nextTx.amount)));
                             txRows.push(txDayRow);
                             //pop new tx
                             if (transactions.length > 0) {
@@ -2557,7 +2557,7 @@ function setTransactionSheetByArray(sheet, timeLow, timeHigh, addressesArray, ur
                         else {
                             txDayRow.push(nextTx.to.id);
                         }
-                        txDayRow.push(parseFloat(utils_1.weiToEther(nextTx.amount)));
+                        txDayRow.push(parseFloat((0, utils_1.weiToEther)(nextTx.amount)));
                         txRows.push(txDayRow);
                     }
                     tableName = 'Tabla' + token.symbol;
@@ -2643,7 +2643,7 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                                 if (nextIsOffer) {
                                     deals = nextOffer.deals;
                                     for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                                        amount = parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount));
                                         dayCounter = dayCounter + amount;
                                         weekCounter = weekCounter + amount;
                                         monthCounter = monthCounter + amount;
@@ -2670,8 +2670,8 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                                             array.push(deals[q].seller.id);
                                             array.push(deals[q].buyer.id);
                                         }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
                                         offersRows.push(array);
                                         //1 DEAL per iteration
                                     }
@@ -2679,7 +2679,7 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                                 else {
                                     deals = nextOffer.deals;
                                     for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                                        amount = parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount));
                                         dayCounter = dayCounter + amount;
                                         weekCounter = weekCounter + amount;
                                         monthCounter = monthCounter + amount;
@@ -2706,8 +2706,8 @@ function setTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, toMonthI
                                             array.push(deals[q].seller.id);
                                             array.push(deals[q].buyer.id);
                                         }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
                                         requestsRows.push(array);
                                         //1 DEAL per iteration
                                     }
@@ -2939,7 +2939,7 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                                 if (nextIsOffer) {
                                     deals = nextOffer.deals;
                                     for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                                        amount = parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount));
                                         dayCounter = dayCounter + amount;
                                         weekCounter = weekCounter + amount;
                                         monthCounter = monthCounter + amount;
@@ -2966,8 +2966,8 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                                             array.push(deals[q].seller.id);
                                             array.push(deals[q].buyer.id);
                                         }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
                                         offersRows.push(array);
                                         //1 DEAL per iteration
                                     }
@@ -2975,7 +2975,7 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                                 else {
                                     deals = nextOffer.deals;
                                     for (q = 0; q < deals.length; q++) {
-                                        amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                                        amount = parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount));
                                         dayCounter = dayCounter + amount;
                                         weekCounter = weekCounter + amount;
                                         monthCounter = monthCounter + amount;
@@ -3002,8 +3002,8 @@ function setPrimaryTokenDealsSheet(sheet, timeLow, timeHigh, monthIndex, year, t
                                             array.push(deals[q].seller.id);
                                             array.push(deals[q].buyer.id);
                                         }
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                                        array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
+                                        array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
                                         requestsRows.push(array);
                                         //1 DEAL per iteration
                                     }
@@ -3237,8 +3237,8 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hideNames) 
                     _a.label = 5;
                 case 5:
                     if (!(q < deals.length)) return [3 /*break*/, 10];
-                    amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                    buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                    amount = parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount));
+                    buyAmount = parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount));
                     dayCounter = dayCounter + amount;
                     weekCounter = weekCounter + amount;
                     monthCounter = monthCounter + amount;
@@ -3279,8 +3279,8 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hideNames) 
                         array.push(deals[q].seller.id);
                         array.push(deals[q].buyer.id);
                     }
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
                     offersRows.push(array);
                     _a.label = 9;
                 case 9:
@@ -3293,8 +3293,8 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hideNames) 
                     _a.label = 12;
                 case 12:
                     if (!(q < deals.length)) return [3 /*break*/, 17];
-                    amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                    sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                    amount = parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount));
+                    sellAmount = parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount));
                     dayCounter = dayCounter + amount;
                     weekCounter = weekCounter + amount;
                     monthCounter = monthCounter + amount;
@@ -3335,8 +3335,8 @@ function setPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hideNames) 
                         array.push(deals[q].seller.id);
                         array.push(deals[q].buyer.id);
                     }
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
                     requestsRows.push(array);
                     _a.label = 16;
                 case 16:
@@ -3554,8 +3554,8 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hide
                     _a.label = 5;
                 case 5:
                     if (!(q < deals.length)) return [3 /*break*/, 10];
-                    amount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
-                    buyAmount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
+                    amount = parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount));
+                    buyAmount = parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount));
                     dayCounter = dayCounter + amount;
                     weekCounter = weekCounter + amount;
                     monthCounter = monthCounter + amount;
@@ -3596,8 +3596,8 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hide
                         array.push(deals[q].seller.id);
                         array.push(deals[q].buyer.id);
                     }
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
                     offersRows.push(array);
                     _a.label = 9;
                 case 9:
@@ -3610,8 +3610,8 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hide
                     _a.label = 12;
                 case 12:
                     if (!(q < deals.length)) return [3 /*break*/, 17];
-                    amount = parseFloat(utils_1.weiToEther(deals[q].buyAmount));
-                    sellAmount = parseFloat(utils_1.weiToEther(deals[q].sellAmount));
+                    amount = parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount));
+                    sellAmount = parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount));
                     dayCounter = dayCounter + amount;
                     weekCounter = weekCounter + amount;
                     monthCounter = monthCounter + amount;
@@ -3652,8 +3652,8 @@ function setPrimaryPackableDealsSheet(sheet, timeLow, timeHigh, url, token, hide
                         array.push(deals[q].seller.id);
                         array.push(deals[q].buyer.id);
                     }
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].buyAmount)));
-                    array.push(parseFloat(utils_1.weiToEther(deals[q].sellAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].buyAmount)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(deals[q].sellAmount)));
                     requestsRows.push(array);
                     _a.label = 16;
                 case 16:
@@ -3810,12 +3810,12 @@ function setBalancesTable(sheet, balances, tableName, tableCell) {
                 array = [];
                 if (balances[k].token.tokenKind == 1) {
                     array.push(balances[k].token.tokenSymbol);
-                    array.push(parseFloat(utils_1.weiToEther(balances[k].balance)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(balances[k].balance)));
                     balanceRows.push(array);
                 }
                 else if (balances[k].token.tokenKind == 2) {
                     array.push(balances[k].token.tokenSymbol);
-                    array.push(parseFloat(utils_1.weiToEther(balances[k].balance)));
+                    array.push(parseFloat((0, utils_1.weiToEther)(balances[k].balance)));
                     balanceRows.push(array);
                 }
                 else if (balances[k].token.tokenKind == 3) {
@@ -3825,7 +3825,7 @@ function setBalancesTable(sheet, balances, tableName, tableCell) {
                         expiry = timeConverter(packables[m].packableId.metadata[0]);
                         symbol = String(symbolName).concat(" ").concat(expiry);
                         array.push(symbol);
-                        array.push(parseInt(utils_1.weiToEther(packables[m].balance)));
+                        array.push(parseInt((0, utils_1.weiToEther)(packables[m].balance)));
                         balanceRows.push(array);
                         array = [];
                     }
@@ -3882,11 +3882,11 @@ function setDexSheet(sheet, timeLow, timeHigh, instrument, dex, url, hideNames) 
                                 dealRow.push(deal.orderB.owner.id);
                             }
                             //PRICE
-                            dealRow.push(parseFloat(utils_1.weiToEther(deal.price)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(deal.price)));
                             //AMOUNT (in nominatorToken)
-                            dealRow.push(parseFloat(utils_1.weiToEther(deal.amountA)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(deal.amountA)));
                             //AMOUNT (in baseToken aka PEL)
-                            dealRow.push(parseFloat(utils_1.weiToEther(deal.amountB)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(deal.amountB)));
                         }
                         else {
                             //amountA is in baseToken (PEL)
@@ -3917,11 +3917,11 @@ function setDexSheet(sheet, timeLow, timeHigh, instrument, dex, url, hideNames) 
                                 dealRow.push(deal.orderA.owner.id);
                             }
                             //PRICE
-                            dealRow.push(parseFloat(utils_1.weiToEther(deal.price)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(deal.price)));
                             //AMOUNT (in nominatorToken)
-                            dealRow.push(parseFloat(utils_1.weiToEther(deal.amountB)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(deal.amountB)));
                             //AMOUNT (in baseToken aka PEL)
-                            dealRow.push(parseFloat(utils_1.weiToEther(deal.amountA)));
+                            dealRow.push(parseFloat((0, utils_1.weiToEther)(deal.amountA)));
                         }
                         dealsRow.push(dealRow);
                     }
@@ -5736,7 +5736,7 @@ function requestDataLake(token, from, to) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 5, , 6]);
-                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                    return [4 /*yield*/, (0, node_fetch_1["default"])(endPoint, {
                             "method": 'POST',
                             "headers": {
                                 "Accept": 'application/json',
@@ -5798,7 +5798,7 @@ function try_requestRateEndPoint(from, to, token) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 5, , 6]);
-                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                    return [4 /*yield*/, (0, node_fetch_1["default"])(endPoint, {
                             "method": 'POST',
                             "headers": {
                                 "Accept": 'application/json',
@@ -5836,7 +5836,7 @@ function getUsersDataProtected(walletsArray, bearerToken, includeBanks) {
                     _a.label = 1;
                 case 1:
                     _a.trys.push([1, 5, , 6]);
-                    return [4 /*yield*/, node_fetch_1["default"](endPoint, {
+                    return [4 /*yield*/, (0, node_fetch_1["default"])(endPoint, {
                             "method": 'POST',
                             "headers": {
                                 "Accept": 'application/json',

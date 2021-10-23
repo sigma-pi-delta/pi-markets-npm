@@ -64,7 +64,7 @@ const PI = {
     address: "0x0000000000000000000000000000000000000000",
     category: 1
 };
-const GLDS = {
+const GLDs = {
     symbol: "GLDs",
     address: "0x0dc5c612b313d583398aebcbc3185c6448542f2a",
     category: 2
@@ -207,6 +207,201 @@ const IMV = {
 const DIA = {
     symbol: "DIA",
     address: "0xfb75b3cd83d81937770e5955f3e6565bfecc195f",
+    category: 2
+};
+const CORNS = {
+    symbol: "CORN.S",
+    address: "0x9f6102a15caa755178edf833e482b0c37ddedc7b",
+    category: 2
+};
+const RICES = {
+    symbol: "RICE.S",
+    address: "0x8bf26f9474a34c68328850be83163c09e204d58d",
+    category: 2
+};
+const BRENTS = {
+    symbol: "BRENT.S",
+    address: "0xd7a07fdefc3e63a916ddccb837c6746b233f8046",
+    category: 2
+};
+const GASS = {
+    symbol: "GAS.S",
+    address: "0x72fd02caf9ab6c85d39c1a29f17fbb6d3ac2d3a2",
+    category: 2
+};
+const GLDS = {
+    symbol: "GLD.S",
+    address: "0x22be695fdf61511cab28979298d0207ea579f96a",
+    category: 2
+};
+const IRONS = {
+    symbol: "IRON.S",
+    address: "0xda5cd03f7ce7dd066c1cf5cbbae6fcb9f3c4a063",
+    category: 2
+};
+const ABCAS = {
+    symbol: "ABC.A.S",
+    address: "0xbd7a07d69b98dc3c66afd2b2598fe5df6c7ec91c",
+    category: 2
+};
+const BNCS = {
+    symbol: "BNC.S",
+    address: "0xafb29478b4ec49a445effde9f1efdcc10fb36093",
+    category: 2
+};
+const BPVS = {
+    symbol: "BPV.S",
+    address: "0x3f6113962bc3c99e55d1d9a29c04c6e09f03c848",
+    category: 2
+};
+const BVCCS = {
+    symbol: "BVCC.S",
+    address: "0x7524cbd7972a9165db7836e12ac1808a178d5aa5",
+    category: 2
+};
+const BVLS = {
+    symbol: "BVL.S",
+    address: "0xcd58de27dd75f8c620116b1821a3049699395995",
+    category: 2
+};
+const CRMAS = {
+    symbol: "CRM.A.S",
+    address: "0xdd215874d8cb55cb4a0fde888f55406c3a3bae0a",
+    category: 2
+};
+const EFES = {
+    symbol: "EFE.S",
+    address: "0xecddbccb072beef2e883d07bf1685138b89f4c1e",
+    category: 2
+};
+const ENVS = {
+    symbol: "ENV.S",
+    address: "0xee0a028f48f53e79d361a6221427f77fb935a464",
+    category: 2
+};
+const FVIBS = {
+    symbol: "FVI.B.S",
+    address: "0x8e369485b2468309d23c5d9b42fce012e9760824",
+    category: 2
+};
+const GZLS = {
+    symbol: "GZL.S",
+    address: "0xc224cb22eeb13a121a310e53030629caaf11a4f1",
+    category: 2
+};
+const MPAS = {
+    symbol: "MPA.S",
+    address: "0xab69302e9e7ce4d7d47866d7fd6d63f84aeb9074",
+    category: 2
+};
+const MVZBS = {
+    symbol: "MVZ.B.S",
+    address: "0xbcff81e7bb4f5b52c34e7781c942bcf5fbc265db",
+    category: 2
+};
+const PGRS = {
+    symbol: "PGR.S",
+    address: "0xc96c6e0672289e69b6cc331796d307cee8b3faf2",
+    category: 2
+};
+const PTNS = {
+    symbol: "PTN.S",
+    address: "0x5aa3100c18e46e123f1a07fc1d0dab1cf6f865a7",
+    category: 2
+};
+const RSTBS = {
+    symbol: "RST.B.S",
+    address: "0x575579d3c257ca2a909557bb20407ebe0c84d043",
+    category: 2
+};
+const TDVDS = {
+    symbol: "TDV.D.S",
+    address: "0x68066014827425db39258cac18179c158a7ed6a8",
+    category: 2
+};
+const INVBS = {
+    symbol: "INV.B.S",
+    address: "0x782bdfb3b85fd00c8094929d3399624da39f25a7",
+    category: 2
+};
+const AGROS = {
+    symbol: "AGRO.S",
+    address: "0x099a3dae2c7fcb0195ea0d29e82b4429f52144a6",
+    category: 2
+};
+const EURUSDS = {
+    symbol: "EURUSD.S",
+    address: "0x8af4b0aeafad356b6b44ae51e1347a8e77624ee5",
+    category: 2
+};
+const USDARSS = {
+    symbol: "USDARS.S",
+    address: "0xd3edf96032f4c012aefd10e29d0a6184863fd2b8",
+    category: 2
+};
+const USDCLPS = {
+    symbol: "USDCLP.S",
+    address: "0x4272088234c406d9bd74bbf44bce996d00b92675",
+    category: 2
+};
+const USDCOPS = {
+    symbol: "USDCOP.S",
+    address: "0xb76e92f62153955ec5732b121d21095b4e48ddb9",
+    category: 2
+};
+const USDMXNS = {
+    symbol: "USDMXN.S",
+    address: "0x91dd592a4d6ea55682ee7edea0f136f4a105ff38",
+    category: 2
+};
+const USDRUBS = {
+    symbol: "USDRUB.S",
+    address: "0xc3bc10a87c516a40556640dbcd0596394de65eae",
+    category: 2
+};
+const USDTRYS = {
+    symbol: "USDTRY.S",
+    address: "0xb4450cbf7395d7e9c66544ced98c7489b4249214",
+    category: 2
+};
+const USDCNHS = {
+    symbol: "USDCNH.S",
+    address: "0xc8c156be200427eee11398a5ab2080bed890837f",
+    category: 2
+};
+const WAWAS = {
+    symbol: "WAWA.S",
+    address: "0x7ae5ab13dd8774f8cef58fd07d317a4638d97b16",
+    category: 2
+};
+const AGPAS = {
+    symbol: "AGPA.S",
+    address: "0xe82316d3618a83ec03c4a75eec0f490e4040903c",
+    category: 2
+};
+const BTCUSDS = {
+    symbol: "BTCUSD.S",
+    address: "0xf597f7967079971db367b179c4c6f41051dcc605",
+    category: 2
+};
+const DASHUSDS = {
+    symbol: "DASHUSD.S",
+    address: "0xc19c8dd1d9c7e71b20457567f04daf96a26865c1",
+    category: 2
+};
+const ETHUSDS = {
+    symbol: "ETHUSD.S",
+    address: "0x3815092da603aa0eb59b1290d13799cd00ef3094",
+    category: 2
+};
+const STAKES = {
+    symbol: "STAKE.S",
+    address: "0x2f0a655ab89085b9e62cd782545e3b3f2ad7d493",
+    category: 2
+};
+const WAWA = {
+    symbol: "WAWA",
+    address: "0xff41f2f094d25b53671f478e2bfd5d28c6453d4a",
     category: 2
 };
 //packables
@@ -594,7 +789,46 @@ const ALL_TOKENS = [
     C,
     D,
     F,
-    INFO
+    INFO,
+    CORNS,
+    RICES,
+    BRENTS,
+    GASS,
+    GLDS,
+    IRONS,
+    ABCAS,
+    BNCS,
+    BPVS,
+    BVCCS,
+    BVLS,
+    CRMAS,
+    EFES,
+    ENVS,
+    FVIBS,
+    GZLS,
+    MPAS,
+    MVZBS,
+    PGRS,
+    PTNS,
+    RSTBS,
+    TDVDS,
+    INVBS,
+    AGROS,
+    EURUSDS,
+    USDARSS,
+    USDCLPS,
+    USDCOPS,
+    USDMXNS,
+    USDRUBS,
+    USDTRYS,
+    USDCNHS,
+    WAWAS,
+    AGPAS,
+    BTCUSDS,
+    DASHUSDS,
+    ETHUSDS,
+    STAKES,
+    WAWA
 ]
 
 const ALL_ERC223 = [
@@ -621,7 +855,46 @@ const ALL_ERC223 = [
     GBP,
     IBEX35,
     RUB,
-    SP500
+    SP500,
+    CORNS,
+    RICES,
+    BRENTS,
+    GASS,
+    GLDS,
+    IRONS,
+    ABCAS,
+    BNCS,
+    BPVS,
+    BVCCS,
+    BVLS,
+    CRMAS,
+    EFES,
+    ENVS,
+    FVIBS,
+    GZLS,
+    MPAS,
+    MVZBS,
+    PGRS,
+    PTNS,
+    RSTBS,
+    TDVDS,
+    INVBS,
+    AGROS,
+    EURUSDS,
+    USDARSS,
+    USDCLPS,
+    USDCOPS,
+    USDMXNS,
+    USDRUBS,
+    USDTRYS,
+    USDCNHS,
+    WAWAS,
+    AGPAS,
+    BTCUSDS,
+    DASHUSDS,
+    ETHUSDS,
+    STAKES,
+    WAWA
 ]
 
 const ALL_ERC223_NO_FIAT = [
@@ -642,7 +915,46 @@ const ALL_ERC223_NO_FIAT = [
     GBP,
     IBEX35,
     RUB,
-    SP500
+    SP500,
+    CORNS,
+    RICES,
+    BRENTS,
+    GASS,
+    GLDS,
+    IRONS,
+    ABCAS,
+    BNCS,
+    BPVS,
+    BVCCS,
+    BVLS,
+    CRMAS,
+    EFES,
+    ENVS,
+    FVIBS,
+    GZLS,
+    MPAS,
+    MVZBS,
+    PGRS,
+    PTNS,
+    RSTBS,
+    TDVDS,
+    INVBS,
+    AGROS,
+    EURUSDS,
+    USDARSS,
+    USDCLPS,
+    USDCOPS,
+    USDMXNS,
+    USDRUBS,
+    USDTRYS,
+    USDCNHS,
+    WAWAS,
+    AGPAS,
+    BTCUSDS,
+    DASHUSDS,
+    ETHUSDS,
+    STAKES,
+    WAWA
 ]
 
 const ALL_PACKABLES = [
@@ -699,7 +1011,7 @@ const ALL_PACKABLE_EXP = [
 
 const ALL_COLLECTABLES = [
     DIA,
-    GLDS
+    GLDs
 ]
 
 const INSTRUMENT_IDS = {
@@ -1067,7 +1379,7 @@ export {
     OVERRIDES_FORCE,
     OVERRIDES_BACKEND,
     PI,
-    GLDS,
+    GLDs,
     GLDX,
     MVZA,
     PTR,
@@ -1124,6 +1436,45 @@ export {
     D,
     F,
     INFO,
+    CORNS,
+    RICES,
+    BRENTS,
+    GASS,
+    GLDS,
+    IRONS,
+    ABCAS,
+    BNCS,
+    BPVS,
+    BVCCS,
+    BVLS,
+    CRMAS,
+    EFES,
+    ENVS,
+    FVIBS,
+    GZLS,
+    MPAS,
+    MVZBS,
+    PGRS,
+    PTNS,
+    RSTBS,
+    TDVDS,
+    INVBS,
+    AGROS,
+    EURUSDS,
+    USDARSS,
+    USDCLPS,
+    USDCOPS,
+    USDMXNS,
+    USDRUBS,
+    USDTRYS,
+    USDCNHS,
+    WAWAS,
+    AGPAS,
+    BTCUSDS,
+    DASHUSDS,
+    ETHUSDS,
+    STAKES,
+    WAWA,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,

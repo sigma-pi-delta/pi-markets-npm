@@ -175,7 +175,7 @@ var Transactions = /** @class */ (function () {
                         _a.label = 1;
                     case 1:
                         _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, node_fetch_1["default"](Constants.TRACES_URL, {
+                        return [4 /*yield*/, (0, node_fetch_1["default"])(Constants.TRACES_URL, {
                                 "method": 'POST',
                                 "headers": {
                                     "Accept": 'application/json',
