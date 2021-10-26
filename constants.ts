@@ -404,6 +404,12 @@ const WAWA = {
     address: "0xff41f2f094d25b53671f478e2bfd5d28c6453d4a",
     category: 2
 };
+const VED = {
+    symbol: "VED",
+    address: "0xaaefcda18775f94e98888e6c622465dfc5e53ab7",
+    category: 2
+};
+0xAAeFcDa18775f94e98888e6C622465dFC5e53Ab7
 //packables
 const CMT = {
     symbol: "CMT",
@@ -654,6 +660,14 @@ const SCRAP = {
     },
     category: 3
 };
+const pYMAS = {
+    symbol: "pYMAS",
+    address: "0x0472171a74060547ec3d744412c292ab5b0818c2",
+    expiry: {
+        never: ["never", "0xf4379b4c98b920131bb81d57ef08d8c17872851ee4d20ed570d35c1d4e2336d3"]
+    },
+    category: 3
+};
 
 // TestNet
 const PI_TESTNET = {
@@ -780,6 +794,7 @@ const ALL_TOKENS = [
     AGPA,
     WAWAs1,
     SCRAP,
+    pYMAS,
     INVB,
     REPO,
     REPO2,
@@ -828,7 +843,8 @@ const ALL_TOKENS = [
     DASHUSDS,
     ETHUSDS,
     STAKES,
-    WAWA
+    WAWA,
+    VED
 ]
 
 const ALL_ERC223 = [
@@ -894,7 +910,8 @@ const ALL_ERC223 = [
     DASHUSDS,
     ETHUSDS,
     STAKES,
-    WAWA
+    WAWA,
+    VED
 ]
 
 const ALL_ERC223_NO_FIAT = [
@@ -954,7 +971,8 @@ const ALL_ERC223_NO_FIAT = [
     DASHUSDS,
     ETHUSDS,
     STAKES,
-    WAWA
+    WAWA,
+    VED
 ]
 
 const ALL_PACKABLES = [
@@ -971,6 +989,7 @@ const ALL_PACKABLES = [
     AGPA,
     WAWAs1,
     SCRAP,
+    pYMAS,
     INVB,
     REPO,
     REPO2,
@@ -997,6 +1016,7 @@ const ALL_PACKABLE_EXP = [
     AGPA.expiry.never,
     WAWAs1.expiry.never,
     SCRAP.expiry.never,
+    pYMAS.expiry.never,
     INVB.expiry.never,
     REPO.expiry.never,
     REPO2.expiry.never,
@@ -1291,7 +1311,9 @@ const BPVB_ALL_TOKENS = [
     BTC,
     ETH,
     CNY,
-    EUR
+    EUR,
+    VED,
+    pYMAS
 ]
 
 const BPVB_ALL_ERC223 = [
@@ -1303,19 +1325,22 @@ const BPVB_ALL_ERC223 = [
     ETH,
     CNY,
     EUR,
-    BRENT
+    BRENT,
+    VED
 ]
 
 const BPVB_ALL_PACKABLES = [
     NOVA,
     AGRO,
-    BDVE
+    BDVE,
+    pYMAS
 ]
 
 const BPVB_ALL_PACKABLES_EXP = [
     NOVA.expiry.mar21,
     AGRO.expiry.never,
-    BDVE.expiry.never
+    BDVE.expiry.never,
+    pYMAS.expiry.never
 ]
 
 // OTHER
@@ -1427,6 +1452,7 @@ export {
     AGPA,
     WAWAs1,
     SCRAP,
+    pYMAS,
     REPO,
     REPO2,
     BDVE,
@@ -1475,6 +1501,7 @@ export {
     ETHUSDS,
     STAKES,
     WAWA,
+    VED,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,
