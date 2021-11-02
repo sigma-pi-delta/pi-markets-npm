@@ -660,6 +660,14 @@ const SCRAP = {
     },
     category: 3
 };
+const ACP = {
+    symbol: "ACP",
+    address: "0x0656aa4a55f25da22ed641cbb38d55b233f2ff20",
+    expiry: {
+        never: ["never", "0x9da2190870305191bb3ecfe3cdfdfdaa85a67c93fcc5af6d1ccc5de71e0266ab"]
+    },
+    category: 3
+};
 const pYMAS = {
     symbol: "pYMAS",
     address: "0x0472171a74060547ec3d744412c292ab5b0818c2",
@@ -794,6 +802,7 @@ const ALL_TOKENS = [
     AGPA,
     WAWAs1,
     SCRAP,
+    ACP,
     pYMAS,
     INVB,
     REPO,
@@ -989,6 +998,7 @@ const ALL_PACKABLES = [
     AGPA,
     WAWAs1,
     SCRAP,
+    ACP,
     pYMAS,
     INVB,
     REPO,
@@ -1016,6 +1026,7 @@ const ALL_PACKABLE_EXP = [
     AGPA.expiry.never,
     WAWAs1.expiry.never,
     SCRAP.expiry.never,
+    ACP.expiry.never,
     pYMAS.expiry.never,
     INVB.expiry.never,
     REPO.expiry.never,
@@ -1228,6 +1239,10 @@ const WAWAs1_PEL = {
 const SCRAP_PEL = {
     symbol: "SCRAP_PEL",
     pair: [SCRAP.address, PEL.address]
+}
+const ACP_PEL = {
+    symbol: "ACP_PEL",
+    pair: [ACP.address, PEL.address]
 }
 const BDVE_PEL = {
     symbol: "BDVE_PEL",
@@ -1452,6 +1467,7 @@ export {
     AGPA,
     WAWAs1,
     SCRAP,
+    ACP,
     pYMAS,
     REPO,
     REPO2,
