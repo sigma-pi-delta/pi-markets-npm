@@ -2,8 +2,8 @@
 exports.__esModule = true;
 exports.MIN_GAS_PRICE = exports.CONTROLLER_ADDRESS_TESTNET = exports.CONTROLLER_ADDRESS = exports.PATH_1 = exports.PATH_0 = exports.DEX_ALLOW_ABI = exports.DEX_PACKABLE_ABI = exports.DEX_ABI = exports.MARKET_ABI = exports.DIVIDENDS_ABI = exports.REGISTRY_KYC_ABI = exports.AUCTION_ABI = exports.AUCTION_FACTORY_ABI = exports.TOKEN_NFT_ABI = exports.TOKEN_PACKABLE_ABI = exports.TOKEN_ABI = exports.P2P_PNFT_ABI = exports.P2P_NFT_ABI = exports.P2P_ABI = exports.NAME_SERVICE_ABI = exports.WALLET_ABI = exports.IDENTITY_ABI = exports.IDENTITY_FACTORY_ABI = exports.REGISTRY_ABI = exports.CONTROLLER_ABI = exports.REGISTRY_SUBGRAPH_TESTNET = exports.REGISTRY_SUBGRAPH = exports.DEX_BICENTENARIO_SUBGRAPH_TESTNET = exports.DEX_BICENTENARIO_SUBGRAPH = exports.DEX_SUBGRAPH_TESTNET = exports.DEX_SUBGRAPH = exports.DIVIDENDS_SUBGRAPH_TESTNET = exports.DIVIDENDS_SUBGRAPH = exports.PIPRICE_SUBGRAPH_TESTNET = exports.PIPRICE_SUBGRAPH = exports.AUCTION_SUBGRAPH_TESTNET = exports.AUCTION_SUBGRAPH = exports.P2P_PRIMARY_SUBGRAPH_TESTNET = exports.P2P_PRIMARY_SUBGRAPH = exports.P2P_SUBGRAPH_TESTNET = exports.P2P_SUBGRAPH = exports.MARKETS_SUBGRAPH_TESTNET = exports.MARKETS_SUBGRAPH = exports.BANK_SUBGRAPH_TESTNET = exports.BANK_SUBGRAPH = exports.GRAPH_URL_TESTNET = exports.GRAPH_URL = exports.TRACES_URL = exports.RPC_URL_TESTNET = exports.RPC_URL = void 0;
 exports.AGPA = exports.AGRO = exports.SP500_SHORT = exports.SP500_LONG = exports.BRENT_SHORT = exports.BRENT_LONG = exports.NOVA = exports.CRMA = exports.FVIA = exports.BNC = exports.BPV = exports.TDVD = exports.RST = exports.ENV = exports.PGR = exports.DIA = exports.USDT = exports.PEL = exports.CLP = exports.VOTE = exports.CMT = exports.COP = exports.VES = exports.IMV = exports.USD = exports.ARS = exports.PEN = exports.EUR = exports.SP500 = exports.RUB = exports.IBEX35 = exports.GBP = exports.GAS = exports.DOT = exports.DOGE = exports.BRENT = exports.XMRx = exports.LTCx = exports.DASHx = exports.ETH = exports.USC = exports.BTC = exports.PTR = exports.MVZA = exports.GLDX = exports.GLDs = exports.PI = exports.OVERRIDES_BACKEND = exports.OVERRIDES_FORCE = exports.OVERRIDES = void 0;
-exports.ETHUSDS = exports.DASHUSDS = exports.BTCUSDS = exports.AGPAS = exports.WAWAS = exports.USDCNHS = exports.USDTRYS = exports.USDRUBS = exports.USDMXNS = exports.USDCOPS = exports.USDCLPS = exports.USDARSS = exports.EURUSDS = exports.AGROS = exports.INVBS = exports.TDVDS = exports.RSTBS = exports.PTNS = exports.PGRS = exports.MVZBS = exports.MPAS = exports.GZLS = exports.FVIBS = exports.ENVS = exports.EFES = exports.CRMAS = exports.BVLS = exports.BVCCS = exports.BPVS = exports.BNCS = exports.ABCAS = exports.IRONS = exports.GLDS = exports.GASS = exports.BRENTS = exports.RICES = exports.CORNS = exports.INFO = exports.F = exports.D = exports.C = exports.B = exports.A = exports.BDVE = exports.REPO2 = exports.REPO = exports.pYMAS = exports.ACP = exports.SCRAP = exports.WAWAs1 = void 0;
-exports.BPVB_ALL_PACKABLES_EXP = exports.BPVB_ALL_PACKABLES = exports.BPVB_ALL_ERC223 = exports.BPVB_ALL_TOKENS = exports.BPVB_INSTRUMENTS = exports.BDVE_INSTRUMENTS = exports.INSTRUMENT_IDS = exports.ALL_COLLECTABLES = exports.ALL_PACKABLE_EXP = exports.ALL_PACKABLES = exports.ALL_ERC223_NO_FIAT = exports.ALL_ERC223 = exports.ALL_TOKENS = exports.DIA_TESTNET = exports.AGRO_TESTNET = exports.PGR_TESTNET = exports.RST_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.PEL_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.VED = exports.WAWA = exports.STAKES = void 0;
+exports.USDTRYS = exports.USDRUBS = exports.USDMXNS = exports.USDCOPS = exports.USDCLPS = exports.USDARSS = exports.EURUSDS = exports.AGROS = exports.INVBS = exports.TDVDS = exports.RSTBS = exports.PTNS = exports.PGRS = exports.MVZBS = exports.MPAS = exports.GZLS = exports.FVIBS = exports.ENVS = exports.EFES = exports.CRMAS = exports.BVLS = exports.BVCCS = exports.BPVS = exports.BNCS = exports.ABCAS = exports.IRONS = exports.GLDS = exports.GASS = exports.BRENTS = exports.RICES = exports.CORNS = exports.INFO = exports.F = exports.D = exports.C = exports.B = exports.A = exports.BDVE = exports.REPO2 = exports.REPO = exports.UDIG006 = exports.UDIG005 = exports.UDIG004 = exports.UDIG003 = exports.UDIG002 = exports.UDIG001 = exports.pYMAS = exports.ACP = exports.SCRAP = exports.WAWAs1 = void 0;
+exports.BPVB_ALL_PACKABLES_EXP = exports.BPVB_ALL_PACKABLES = exports.BPVB_ALL_ERC223 = exports.BPVB_ALL_TOKENS = exports.BPVB_INSTRUMENTS = exports.BDVE_INSTRUMENTS = exports.INSTRUMENT_IDS = exports.ALL_COLLECTABLES = exports.ALL_PACKABLE_EXP = exports.ALL_PACKABLES = exports.ALL_ERC223_NO_FIAT = exports.ALL_ERC223 = exports.ALL_TOKENS = exports.DIA_TESTNET = exports.AGRO_TESTNET = exports.PGR_TESTNET = exports.RST_TESTNET = exports.CMT_TESTNET = exports.GLD_TESTNET = exports.PEL_TESTNET = exports.USDT_TESTNET = exports.USD_TESTNET = exports.EUR_TESTNET = exports.ETH_TESTNET = exports.BTC_TESTNET = exports.VES_TESTNET = exports.PI_TESTNET = exports.MED = exports.VED = exports.WAWA = exports.STAKES = exports.ETHUSDS = exports.DASHUSDS = exports.BTCUSDS = exports.AGPAS = exports.WAWAS = exports.USDCNHS = void 0;
 // URL
 var RPC_URL = "https://connect.pichain.io";
 exports.RPC_URL = RPC_URL;
@@ -528,7 +528,12 @@ var VED = {
     category: 2
 };
 exports.VED = VED;
-0xAAeFcDa18775f94e98888e6C622465dFC5e53Ab7;
+var MED = {
+    symbol: "MED",
+    address: "0x7e6a675a6b757c08078af9e950a546ec7288e7ee",
+    category: 2
+};
+exports.MED = MED;
 //packables
 var CMT = {
     symbol: "CMT",
@@ -826,6 +831,60 @@ var pYMAS = {
     category: 3
 };
 exports.pYMAS = pYMAS;
+var UDIG001 = {
+    symbol: "UDIG001",
+    address: "0xdffd890853864e6baee31346c3ad0a5c5f275501",
+    expiry: {
+        never: ["never", "0x5700a37010c657ac5df2207167b2d5c0022d7c49f71e594f5772590079e17bbd"]
+    },
+    category: 3
+};
+exports.UDIG001 = UDIG001;
+var UDIG002 = {
+    symbol: "UDIG002",
+    address: "0xbee40b027b54eb6fc282c1566ed37857cb3c3e5d",
+    expiry: {
+        never: ["never", "0x72af4dfa1ecae5efb41ea12220d2a625f295508c58837691c3ca47a040992950"]
+    },
+    category: 3
+};
+exports.UDIG002 = UDIG002;
+var UDIG003 = {
+    symbol: "UDIG003",
+    address: "0xde5a0b1004cb6ab6f57585c751f13e1af4533836",
+    expiry: {
+        never: ["never", "0xc56cfbcf35110c64e67f3d8b5af54066c6847a4d97715e1e82979c014fd86ce9"]
+    },
+    category: 3
+};
+exports.UDIG003 = UDIG003;
+var UDIG004 = {
+    symbol: "UDIG004",
+    address: "0x9984f105903a5df1de5a68c3c98ef4bf49090785",
+    expiry: {
+        never: ["never", "0xdb9ea0075125d38990a7bf55083f45263c3c8e548c1e166918fc5106bd4c6181"]
+    },
+    category: 3
+};
+exports.UDIG004 = UDIG004;
+var UDIG005 = {
+    symbol: "UDIG005",
+    address: "0x6d444890576cd743fec0e054726c68742c1bbf04",
+    expiry: {
+        never: ["never", "0x716fc17b59595ef6ea76b347aedad75765e8d511f29605448628fc1018c6ef2f"]
+    },
+    category: 3
+};
+exports.UDIG005 = UDIG005;
+var UDIG006 = {
+    symbol: "UDIG006",
+    address: "0xb7b8a317c7fb86d154e8cc9b7d753f0c5a92b6c1",
+    expiry: {
+        never: ["never", "0x620ac0abb2b6f6dce02dfdab3788d2f0f514159c0ef65c3eaeb7808e8dec434b"]
+    },
+    category: 3
+};
+exports.UDIG006 = UDIG006;
 // TestNet
 var PI_TESTNET = {
     symbol: "PI_TESTNET",
@@ -1489,7 +1548,14 @@ var BPVB_ALL_TOKENS = [
     CNY,
     EUR,
     VED,
-    pYMAS
+    MED,
+    pYMAS,
+    UDIG001,
+    UDIG002,
+    UDIG003,
+    UDIG004,
+    UDIG005,
+    UDIG006
 ];
 exports.BPVB_ALL_TOKENS = BPVB_ALL_TOKENS;
 var BPVB_ALL_ERC223 = [
@@ -1502,21 +1568,34 @@ var BPVB_ALL_ERC223 = [
     CNY,
     EUR,
     BRENT,
-    VED
+    VED,
+    MED
 ];
 exports.BPVB_ALL_ERC223 = BPVB_ALL_ERC223;
 var BPVB_ALL_PACKABLES = [
     NOVA,
     AGRO,
     BDVE,
-    pYMAS
+    pYMAS,
+    UDIG001,
+    UDIG002,
+    UDIG003,
+    UDIG004,
+    UDIG005,
+    UDIG006
 ];
 exports.BPVB_ALL_PACKABLES = BPVB_ALL_PACKABLES;
 var BPVB_ALL_PACKABLES_EXP = [
     NOVA.expiry.mar21,
     AGRO.expiry.never,
     BDVE.expiry.never,
-    pYMAS.expiry.never
+    pYMAS.expiry.never,
+    UDIG001.expiry.never,
+    UDIG002.expiry.never,
+    UDIG003.expiry.never,
+    UDIG004.expiry.never,
+    UDIG005.expiry.never,
+    UDIG006.expiry.never
 ];
 exports.BPVB_ALL_PACKABLES_EXP = BPVB_ALL_PACKABLES_EXP;
 // OTHER

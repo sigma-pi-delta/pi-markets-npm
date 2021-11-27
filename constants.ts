@@ -409,7 +409,11 @@ const VED = {
     address: "0xaaefcda18775f94e98888e6c622465dfc5e53ab7",
     category: 2
 };
-0xAAeFcDa18775f94e98888e6C622465dFC5e53Ab7
+const MED = {
+    symbol: "MED",
+    address: "0x7e6a675a6b757c08078af9e950a546ec7288e7ee",
+    category: 2
+};
 //packables
 const CMT = {
     symbol: "CMT",
@@ -673,6 +677,54 @@ const pYMAS = {
     address: "0x0472171a74060547ec3d744412c292ab5b0818c2",
     expiry: {
         never: ["never", "0xf4379b4c98b920131bb81d57ef08d8c17872851ee4d20ed570d35c1d4e2336d3"]
+    },
+    category: 3
+};
+const UDIG001 = {
+    symbol: "UDIG001",
+    address: "0xdffd890853864e6baee31346c3ad0a5c5f275501",
+    expiry: {
+        never: ["never", "0x5700a37010c657ac5df2207167b2d5c0022d7c49f71e594f5772590079e17bbd"]
+    },
+    category: 3
+};
+const UDIG002 = {
+    symbol: "UDIG002",
+    address: "0xbee40b027b54eb6fc282c1566ed37857cb3c3e5d",
+    expiry: {
+        never: ["never", "0x72af4dfa1ecae5efb41ea12220d2a625f295508c58837691c3ca47a040992950"]
+    },
+    category: 3
+};
+const UDIG003 = {
+    symbol: "UDIG003",
+    address: "0xde5a0b1004cb6ab6f57585c751f13e1af4533836",
+    expiry: {
+        never: ["never", "0xc56cfbcf35110c64e67f3d8b5af54066c6847a4d97715e1e82979c014fd86ce9"]
+    },
+    category: 3
+};
+const UDIG004 = {
+    symbol: "UDIG004",
+    address: "0x9984f105903a5df1de5a68c3c98ef4bf49090785",
+    expiry: {
+        never: ["never", "0xdb9ea0075125d38990a7bf55083f45263c3c8e548c1e166918fc5106bd4c6181"]
+    },
+    category: 3
+};
+const UDIG005 = {
+    symbol: "UDIG005",
+    address: "0x6d444890576cd743fec0e054726c68742c1bbf04",
+    expiry: {
+        never: ["never", "0x716fc17b59595ef6ea76b347aedad75765e8d511f29605448628fc1018c6ef2f"]
+    },
+    category: 3
+};
+const UDIG006 = {
+    symbol: "UDIG006",
+    address: "0xb7b8a317c7fb86d154e8cc9b7d753f0c5a92b6c1",
+    expiry: {
+        never: ["never", "0x620ac0abb2b6f6dce02dfdab3788d2f0f514159c0ef65c3eaeb7808e8dec434b"]
     },
     category: 3
 };
@@ -1328,7 +1380,14 @@ const BPVB_ALL_TOKENS = [
     CNY,
     EUR,
     VED,
-    pYMAS
+    MED,
+    pYMAS,
+    UDIG001,
+    UDIG002,
+    UDIG003,
+    UDIG004,
+    UDIG005,
+    UDIG006
 ]
 
 const BPVB_ALL_ERC223 = [
@@ -1341,21 +1400,34 @@ const BPVB_ALL_ERC223 = [
     CNY,
     EUR,
     BRENT,
-    VED
+    VED,
+    MED
 ]
 
 const BPVB_ALL_PACKABLES = [
     NOVA,
     AGRO,
     BDVE,
-    pYMAS
+    pYMAS,
+    UDIG001,
+    UDIG002,
+    UDIG003,
+    UDIG004,
+    UDIG005,
+    UDIG006
 ]
 
 const BPVB_ALL_PACKABLES_EXP = [
     NOVA.expiry.mar21,
     AGRO.expiry.never,
     BDVE.expiry.never,
-    pYMAS.expiry.never
+    pYMAS.expiry.never,
+    UDIG001.expiry.never,
+    UDIG002.expiry.never,
+    UDIG003.expiry.never,
+    UDIG004.expiry.never,
+    UDIG005.expiry.never,
+    UDIG006.expiry.never
 ]
 
 // OTHER
@@ -1469,6 +1541,12 @@ export {
     SCRAP,
     ACP,
     pYMAS,
+    UDIG001,
+    UDIG002,
+    UDIG003,
+    UDIG004,
+    UDIG005,
+    UDIG006,
     REPO,
     REPO2,
     BDVE,
@@ -1518,6 +1596,7 @@ export {
     STAKES,
     WAWA,
     VED,
+    MED,
     PI_TESTNET,
     VES_TESTNET,
     BTC_TESTNET,
