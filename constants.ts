@@ -414,6 +414,11 @@ const MED = {
     address: "0x7e6a675a6b757c08078af9e950a546ec7288e7ee",
     category: 2
 };
+const PELplus = {
+    symbol: "PELu",
+    address: "0xfac1bd0012c0fc649af435cf04834655f7b70be1",
+    category: 2
+};
 //packables
 const CMT = {
     symbol: "CMT",
@@ -827,6 +832,7 @@ const ALL_TOKENS = [
     USD,
     VES,
     PEL,
+    PELplus,
     GLDX,
     CLP,
     USDT,
@@ -919,6 +925,7 @@ const ALL_ERC223 = [
     USD,
     VES,
     PEL,
+    PELplus,
     GLDX,
     CLP,
     USDT,
@@ -982,6 +989,7 @@ const ALL_ERC223_NO_FIAT = [
     ETH,
     GLDX,
     PEL,
+    PELplus,
     USDT,
     DASHx,
     LTCx,
@@ -1520,6 +1528,7 @@ export {
     VOTE,
     CLP,
     PEL,
+    PELplus,
     USDT,
     DIA,
     PGR,
