@@ -419,6 +419,11 @@ const PELplus = {
     address: "0xfac1bd0012c0fc649af435cf04834655f7b70be1",
     category: 2
 };
+const REPOplus = {
+    symbol: "REPOu",
+    address: "0x873535d5aebd010c686ab2b2791f52d793ead21a",
+    category: 2
+};
 //packables
 const CMT = {
     symbol: "CMT",
@@ -833,6 +838,7 @@ const ALL_TOKENS = [
     VES,
     PEL,
     PELplus,
+    REPOplus,
     GLDX,
     CLP,
     USDT,
@@ -926,6 +932,7 @@ const ALL_ERC223 = [
     VES,
     PEL,
     PELplus,
+    REPOplus,
     GLDX,
     CLP,
     USDT,
@@ -990,6 +997,7 @@ const ALL_ERC223_NO_FIAT = [
     GLDX,
     PEL,
     PELplus,
+    REPOplus,
     USDT,
     DASHx,
     LTCx,
@@ -1529,6 +1537,7 @@ export {
     CLP,
     PEL,
     PELplus,
+    REPOplus,
     USDT,
     DIA,
     PGR,
