@@ -542,7 +542,7 @@ var PELplus = {
 exports.PELplus = PELplus;
 var REPOplus = {
     symbol: "REPOu",
-    address: "0x873535d5aebd010c686ab2b2791f52d793ead21a",
+    address: "0x4c585cb1a9f3b41510620fc427228e507fd72344",
     category: 2
 };
 exports.REPOplus = REPOplus;
